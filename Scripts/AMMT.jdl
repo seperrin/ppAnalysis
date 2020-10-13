@@ -3,10 +3,10 @@ Jobtag = {
 };
 # Input xml collections
 InputDataCollection = {
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/$1,nodownload"
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/$1,nodownload"
 };
 # Output directory
-OutputDir = "/alice/cern.ch/user/s/seperrin//ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/output/$2/#alien_counter_03i#";
+OutputDir = "/alice/cern.ch/user/s/seperrin//ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/output/$2/#alien_counter_03i#";
 # List of requested packages
 Packages = {
    "VO_ALICE@AliPhysics::vAN-20200629-1",
@@ -14,13 +14,13 @@ Packages = {
 };
 # List of input files to be uploaded to workers
 InputFile = {
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/AMMT.C",
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/AMMT.root",
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/AliAnalysisTaskMyMuonTree_AOD.h",
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/AliAnalysisTaskMyMuonTree_AOD.cxx"
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT.C",
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT.root",
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AliAnalysisTaskMyMuonTree_AOD.h",
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AliAnalysisTaskMyMuonTree_AOD.cxx"
 };
 # This is the startup script
-Executable = "/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/AMMT.sh";
+Executable = "/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT.sh";
 # We split per SE or file
 Split = "se";
 # Time after which the job is killed (120 min.)
@@ -41,7 +41,7 @@ Output = {
 # AliEn price for this job
 Price = "1";
 # Validation script to be run for each subjob
-Validationcommand = "/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2/AMMT_validation.sh";
+Validationcommand = "/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT_validation.sh";
 User = "seperrin";
 
 # JDL variables

@@ -41,7 +41,7 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
   // "terminate") plugin->SetRunMode("submit");
   // plugin->SetRunMode("offline");
  // plugin->SetRunMode("test");
-  PlotFromTreeCINT.C plugin->SetRunMode("full");
+  plugin->SetRunMode("full");
   // plugin->SetRunMode("terminate");
   plugin->SetMergeViaJDL(kTRUE); // send jobs to merge the output
                                  // Set versions of used packages
@@ -55,12 +55,12 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
 #endif
   std::vector<int> fRunList; // input run list
 
-  ReadIntegers("../RunList_LHC16h_mcp1_rct0.txt", fRunList, kTRUE);
+  ReadIntegers("../RunList_LHC16j_mcp1_rct0.txt", fRunList, kTRUE);
   // Declare input data to be processed.
 
   // Method 1: Create automatically XML collections using alien 'find' command.
   // Define production directory LFN
-  plugin->SetGridDataDir("/alice/data/2016/LHC16h");
+  plugin->SetGridDataDir("/alice/data/2016/LHC16j");
   // Set data search pattern
   //  plugin->SetDataPattern("muon_calo_pass3/AOD225/*AliAOD.root");
   // plugin->SetDataPattern("muon_calo_pass1/*AliAOD.Muons.root");
@@ -101,7 +101,7 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
 
   // Define alien work directory where all files will be copied. Relative to
   // alien $HOME.
-  plugin->SetGridWorkingDir("ppwrk/MA_LHC16h_mcp1_AOD_PS_CutsEvent_Test2");
+  plugin->SetGridWorkingDir("ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent");
   //	if (!bSig)
   //		plugin->SetGridWorkingDir("data/2011/LHC11h/pass2embupsi/emb");
   //	else
