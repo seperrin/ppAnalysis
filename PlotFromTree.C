@@ -91,6 +91,7 @@ void PlotFromTree(){
     TH1F* hnseg6(NULL);
     TH1F* hnseg7(NULL);
     TH2F* hnseg8(NULL);
+    TH2F* hnseg8TKL(NULL);
     TH2F* hnseg8_masscut_allC(NULL);
     TH2F* hnseg8_masscut_central(NULL);
     TH2F* hnseg8_masscut_periph(NULL);
@@ -148,6 +149,8 @@ void PlotFromTree(){
     TH1F* coefficients0(NULL);
     TH1F* coefficients1(NULL);
     TH1F* coefficients2(NULL);
+    TH1F* baselines0(NULL);
+    TH1F* c2b0(NULL);
     TH1F* V2JPsiTkl(NULL);
     
     Yields_Central_1 = new TH1F("Yields_Central_1",
@@ -183,6 +186,16 @@ void PlotFromTree(){
                            NbinsInvMass,MinInvMass,MaxInvMass);
           coefficients2->SetXTitle("Mass of dimuon (GeV/c^{2})");
           coefficients2->SetYTitle("Coefficient 2 (Fourier)");
+    baselines0 = new TH1F("baselines0",
+                     "Baseline 0",
+                     NbinsInvMass,MinInvMass,MaxInvMass);
+    baselines0->SetXTitle("Mass of dimuon (GeV/c^{2})");
+    baselines0->SetYTitle("Baseline 0 (YieldPeriph deltaPhi=0)");
+    c2b0 = new TH1F("c2b0",
+                     "Coefficient 2 + Baseline 0",
+                     NbinsInvMass,MinInvMass,MaxInvMass);
+    c2b0->SetXTitle("Mass of dimuon (GeV/c^{2})");
+    c2b0->SetYTitle("Coefficient 2 + Baseline 0");
     V2JPsiTkl = new TH1F("V2JPsiTkl",
                            "V2JPsiTkl wrt Mass",
                            NbinsInvMass,MinInvMass,MaxInvMass);
@@ -302,6 +315,12 @@ void PlotFromTree(){
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
     hnseg8->SetXTitle("Correlation DeltaPhi (rad)");
     hnseg8->SetYTitle("Correlation DeltaEta");
+    
+    hnseg8TKL = new TH2F("hnseg8TKL",
+                      "Tracklets delta eta wrt delta phi",
+                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+    hnseg8TKL->SetXTitle("Tracklets DeltaPhi (rad)");
+    hnseg8TKL->SetYTitle("Tracklets DeltaEta");
     
     hnseg8_masscut_allC = new TH2F("hnseg8_masscut_allC",
                                    "Correlation delta eta wrt delta phi, mass cut, all centralities",
@@ -446,7 +465,7 @@ void PlotFromTree(){
     
     
         
-    TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent_Test2/muonGrid.root");
+    TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16j_pass1_PS_CutsEvent/muonGrid.root");
     std::cout << "1" <<std::endl;
         TTree* theTree = NULL;
         fileIn.GetObject("MyMuonTree",theTree);
@@ -458,6 +477,8 @@ void PlotFromTree(){
     TClonesArray *fDimuons = 0;
     CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
     TrackletLight *trac = 0;
+    TrackletLight *tracklet1 = 0;
+    TrackletLight *tracklet2 = 0;
     DimuonLight *dimu = 0;
         //setting the branch address
     std::cout << "3" <<std::endl;
@@ -696,7 +717,32 @@ void PlotFromTree(){
             if(TMath::Abs(fEvent->fVertexZ) < ZvtxCut){
                 hnseg10->Fill(fEvent->fCentralityV0M, fEvent->fNTracklets);
             }
+            
+            // TREATEMENT OF TRACKLET V2
+            if(kFALSE){
+         //   cout << "There are " << fEvent->fNTracklets << " tracklets" << endl;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+        //        cout << "Tracklet 1 " << j << endl;
+                tracklet1 = (TrackletLight*)fTracklets->At(j);
+                for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
+             //       cout << "Tracklet 2 " << k << endl;
+                    tracklet2 = (TrackletLight*)fTracklets->At(k);
+                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut)){   //Cuts
+                            Float_t DeltaPhi = tracklet1->fPhi - tracklet2->fPhi;
+                            if(DeltaPhi < -TMath::Pi()/2){
+                                DeltaPhi += 2* TMath::Pi();
+                            }
+                            if(DeltaPhi > 1.5*TMath::Pi()){
+                                DeltaPhi -= 2* TMath::Pi();
+                            }
+                            Float_t DeltaEta = TMath::Abs(tracklet1->fEta - tracklet2->fEta);
 
+                            hnseg8TKL->Fill(DeltaPhi, DeltaEta);
+                        
+                        }
+                }
+            }
+        }
         }
     cout << "Reading of events finished" <<endl;
     cout << "Converting count histograms into yields, by dividing by the number of dimuons seen in each case" <<endl;
@@ -928,6 +974,10 @@ void PlotFromTree(){
             for(int j=1; j<NbinsDeltaPhi+1; j++){
                 YieldsWrtDeltaPhiMassBin_PeriphProj[i-1]->SetBinContent(j, YieldsWrtDeltaPhiMassBin_PeriphProj_Tampon->GetBinContent(j));
                 YieldsWrtDeltaPhiMassBin_PeriphProj[i-1]->SetBinError(j, sqrt(YieldsWrtDeltaPhiMassBin_PeriphProj[i-1]->GetBinContent(j))/sqrt(DimuPeriphSeenMassBin[i-1]));
+                if(j==4){
+                    baselines0->Fill(MinInvMass + (-0.5+i)*SizeBinInvMass, YieldsWrtDeltaPhiMassBin_PeriphProj[i-1]->GetBinContent(j));
+                    baselines0->SetBinError(i, YieldsWrtDeltaPhiMassBin_PeriphProj[i-1]->GetBinError(j));
+                }
             }
         c9->cd(NbinsInvMass+i);
         YieldsWrtDeltaPhiMassBin_PeriphProj[i-1]->Draw("E");
@@ -1085,20 +1135,22 @@ void PlotFromTree(){
     
     TCanvas*c15=new TCanvas();
     // Fourier coefficients of Yields wrt Phi [Mass bins] -> Extraction method 2
-    c15->Divide(3,1);
+    c15->Divide(2,2);
     c15->cd(1);
     coefficients0->Draw();
     c15->cd(2);
-    coefficients1->Draw();
+    baselines0->Draw();
     c15->cd(3);
+    coefficients1->Draw();
+    c15->cd(4);
     coefficients2->Draw();
             
 
     // Plot du V2 JPsi Tracklet
     TCanvas*c16=new TCanvas();
     //V2_2 Jpsi-tkl wrt Mass fit (Extraction method 2)
-    
-    V2JPsiTkl->Divide(coefficients2, coefficients0);
+    c2b0->Add(coefficients0, baselines0);
+    V2JPsiTkl->Divide(coefficients2, c2b0);
         
 //
 //        double V2_2[10];
@@ -1285,6 +1337,9 @@ void PlotFromTree(){
                par[i] = 1;
            }
        }
+    
+    double baseline = 1;
+    double errbaseline = 1;
        
        for(int i=0; i<NbinsDeltaPhi; i++){
            c10_fit->cd(NbinsDeltaPhi+i+1);
@@ -1297,8 +1352,8 @@ void PlotFromTree(){
               TVirtualFitter::Fitter(YieldWrtMass_PhiBin_Periph[i])->SetPrecision();
            //  histo->Fit("fitFcn","0");
              // second try: set start values for some parameters
-           for(int i=0; i<=11; i++){
-               fitY_1Periph->FixParameter(i,par[i]);
+           for(int j=0; j<=11; j++){
+               fitY_1Periph->FixParameter(j,par[j]);
            }
               
               fitY_1Periph->SetParName(0,"N_{JPsi} Gaussian approx.");
@@ -1320,9 +1375,9 @@ void PlotFromTree(){
               
              res = YieldWrtMass_PhiBin_Periph[i]->Fit("fitY_1Periph","SBMERI+","ep");
              Double_t par[16];
-           double baseline = 1;
            if(i==3){
                baseline = par[12];
+               errbaseline = fitY_1Periph->GetParError(12);
            }
              fitY_1Periph->GetParameters(par);
              Yields_Periph_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, par[12]);
@@ -1385,11 +1440,17 @@ void PlotFromTree(){
                Char_t message[80];
                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
                legend->AddEntry(fitFcnV2_2,message);
-        sprintf(message,"V2_1 JPsi-Tkl: %.4f / %.4f = %.4f +- %.4f",par[2],par[0],par[2]/par[0],(par[2]/par[0])*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)));
+        sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
         legend->AddEntry(fitFcnV2_2,message);
              legend->AddEntry(Yields_Difference_1,"Data","lpe");
              legend->Draw();
            
+    }
+    
+    {
+        TCanvas* c18 = new TCanvas;
+        c18->cd();
+        hnseg8TKL->Draw();
     }
     
     
