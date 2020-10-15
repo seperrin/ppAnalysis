@@ -79,6 +79,11 @@ void PlotFromTree(){
     const int NbinsDeltaEta = 20;
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     
+    double MinDeltaEtaTKL = 1.2;
+    double MaxDeltaEtaTKL = 2.4;
+    const int NbinsDeltaEtaTKL = 24;
+    double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
+    
 // *************************
 // Initialiser les graphes *
 // *************************
@@ -91,10 +96,23 @@ void PlotFromTree(){
     TH1F* hnseg6(NULL);
     TH1F* hnseg7(NULL);
     TH2F* hnseg8(NULL);
-    TH2F* hnseg8TKL(NULL);
     TH2F* hnseg8_masscut_allC(NULL);
     TH2F* hnseg8_masscut_central(NULL);
     TH2F* hnseg8_masscut_periph(NULL);
+    TH2F* hnseg8TKL(NULL);
+    TH2F* hnseg8TKL_central(NULL);
+    TH2F* hnseg8TKL_periph(NULL);
+    TH2F* hnseg8yTKL(NULL);
+    TH2F* hnseg8yTKL_central(NULL);
+    TH2F* hnseg8yTKL_periph(NULL);
+    TH2F* yield_differenceTKL(NULL);
+    TH1F* yield_centralTKL_proj_tampon(NULL);
+    TH1F* yield_centralTKL_proj(NULL);
+    TH1F* yield_periphTKL_proj_tampon(NULL);
+    TH1F* yield_periphTKL_proj(NULL);
+    TH1F* yield_differenceTKL_proj_tampon(NULL);
+    TH1F* yield_differenceTKL_proj(NULL);
+    
     TH2F* hnseg8y(NULL);
     TH2F* hnseg8y_masscut_allC(NULL);
     TH2F* hnseg8y_masscut_central(NULL);
@@ -318,9 +336,46 @@ void PlotFromTree(){
     
     hnseg8TKL = new TH2F("hnseg8TKL",
                       "Tracklets delta eta wrt delta phi",
-                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
     hnseg8TKL->SetXTitle("Tracklets DeltaPhi (rad)");
     hnseg8TKL->SetYTitle("Tracklets DeltaEta");
+    hnseg8TKL_central = new TH2F("hnseg8TKL_central",
+                      "Tracklets delta eta wrt delta phi - Central",
+                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8TKL_central->SetXTitle("Tracklets DeltaPhi (rad)");
+    hnseg8TKL_central->SetYTitle("Tracklets DeltaEta");
+    hnseg8TKL_periph = new TH2F("hnseg8TKL_periph",
+                      "Tracklets delta eta wrt delta phi - Periph",
+                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8TKL_periph->SetXTitle("Tracklets DeltaPhi (rad)");
+    hnseg8TKL_periph->SetYTitle("Tracklets DeltaEta");
+    hnseg8yTKL = new TH2F("hnseg8yTKL",
+                      "Tracklets delta eta wrt delta phi, tracklet yields",
+                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8yTKL->SetXTitle("Tracklets DeltaPhi (rad)");
+    hnseg8yTKL->SetYTitle("Tracklets DeltaEta");
+    hnseg8yTKL_central = new TH2F("hnseg8yTKL_central",
+                                   "Tracklets delta eta wrt delta phi, mass cut, central, tracklet yields",
+                                   NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8yTKL_central->SetXTitle("Tracklets DeltaPhi (rad)");
+    hnseg8yTKL_central->SetYTitle("Tracklets DeltaEta");
+    hnseg8yTKL_periph = new TH2F("hnseg8yTKL_periph",
+                                   "Tracklets delta eta wrt delta phi, mass cut, peripheral, tracklet yields",
+                                   NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8yTKL_periph->SetXTitle("Tracklets DeltaPhi (rad)");
+    hnseg8yTKL_periph->SetYTitle("Tracklets DeltaEta");
+    yield_differenceTKL = new TH2F("yield_differenceTKL", "Tracklets delta eta wrt delta phi, mass cut, central-peripheral, tracklet yields",NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    yield_differenceTKL->SetXTitle("Tracklets DeltaPhi (rad)");
+    yield_differenceTKL->SetYTitle("Tracklets DeltaEta");
+    yield_centralTKL_proj = new TH1F("yield_centralTKL_proj", "Tracklets delta eta wrt delta phi, mass cut, central, tracklet yields, projection",NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    yield_centralTKL_proj->SetXTitle("Tracklets DeltaPhi (rad)");
+    yield_centralTKL_proj->SetYTitle("Tracklets Yield (Central)");
+    yield_periphTKL_proj = new TH1F("yield_periphTKL_proj", "Tracklets delta eta wrt delta phi, mass cut, periph, tracklet yields, projection",NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    yield_periphTKL_proj->SetXTitle("Tracklets DeltaPhi (rad)");
+    yield_periphTKL_proj->SetYTitle("Tracklets Yield (Periph)");
+    yield_differenceTKL_proj = new TH1F("yield_differenceTKL_proj", "Tracklets delta eta wrt delta phi, mass cut, central-peripheral, tracklet yields, projection",NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+   yield_differenceTKL_proj->SetXTitle("Tracklets DeltaPhi (rad)");
+   yield_differenceTKL_proj->SetYTitle("Tracklets Yield (Central - Peripheral)");
     
     hnseg8_masscut_allC = new TH2F("hnseg8_masscut_allC",
                                    "Correlation delta eta wrt delta phi, mass cut, all centralities",
@@ -503,6 +558,9 @@ void PlotFromTree(){
     int DimuSeenMassCut = 0;
     int DimuSeenNoMassCut = 0;
     int EventWithPileupMult = 0;
+    int RefTracklets = 0;
+    int RefTrackletsCentral = 0;
+    int RefTrackletsPeriph = 0;
     int cmul = 0;
     int barWidth = 50;
     int DimuCentralSeenMassBin[10];
@@ -518,7 +576,7 @@ void PlotFromTree(){
 // ************************************
     
   //  Double_t px[1000], py[1000];
-        for (Int_t i=0;i<nevent;i++) {
+        for (Int_t i=0;i<1000000;i++) {
             if(i%100000 == 0){
                     std::cout << "[";
                     int pos = barWidth * i / nevent;
@@ -718,9 +776,25 @@ void PlotFromTree(){
                 hnseg10->Fill(fEvent->fCentralityV0M, fEvent->fNTracklets);
             }
             
+            
+            
+            
+            
             // TREATEMENT OF TRACKLET V2
-            if(kFALSE){
+            if(kTRUE){
          //   cout << "There are " << fEvent->fNTracklets << " tracklets" << endl;
+                RefTracklets += fEvent->fNTracklets;
+                if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
+       //            if(NumberCloseEtaTracklets >= MinMultCentral){
+        //               cout << "It is a central event" << endl;
+                       RefTrackletsCentral += fEvent->fNTracklets;
+                   }
+               if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
+     //          if(NumberCloseEtaTracklets <= MaxMultPeriph){
+    //               cout << "It is a peripheral event" << endl;
+                   RefTrackletsPeriph += fEvent->fNTracklets;
+               }
+                
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
         //        cout << "Tracklet 1 " << j << endl;
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
@@ -736,15 +810,32 @@ void PlotFromTree(){
                                 DeltaPhi -= 2* TMath::Pi();
                             }
                             Float_t DeltaEta = TMath::Abs(tracklet1->fEta - tracklet2->fEta);
-
+                            
                             hnseg8TKL->Fill(DeltaPhi, DeltaEta);
+                        
+                            if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
+                                       //            if(NumberCloseEtaTracklets >= MinMultCentral){
+                                        //               cout << "It is a central event" << endl;
+                                                       hnseg8TKL_central->Fill(DeltaPhi, DeltaEta);
+                                                   }
+                           if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
+                 //          if(NumberCloseEtaTracklets <= MaxMultPeriph){
+                //               cout << "It is a peripheral event" << endl;
+                               hnseg8TKL_periph->Fill(DeltaPhi, DeltaEta);
+                           }
                         
                         }
                 }
             }
         }
+            
+            
+            
+            
+            
         }
     cout << "Reading of events finished" <<endl;
+    
     cout << "Converting count histograms into yields, by dividing by the number of dimuons seen in each case" <<endl;
     for(int i=0; i<=hnseg8->GetNbinsX()+1; i++){
         for(int j=0; j<=hnseg8->GetNbinsY()+1; j++){
@@ -767,6 +858,15 @@ void PlotFromTree(){
             
         }
     }
+    // For TklTkl Analysis
+    for(int i=0; i<=hnseg8TKL->GetNbinsX()+1; i++){
+            for(int j=0; j<=hnseg8TKL->GetNbinsY()+1; j++){
+                hnseg8yTKL->SetBinContent(i,j, hnseg8TKL->GetBinContent(i,j)/RefTracklets);
+                hnseg8yTKL_central->SetBinContent(i,j, hnseg8TKL_central->GetBinContent(i,j)/RefTrackletsCentral);
+                hnseg8yTKL_periph->SetBinContent(i,j, hnseg8TKL_periph->GetBinContent(i,j)/RefTrackletsPeriph);
+                yield_differenceTKL->SetBinContent(i,j, hnseg8yTKL_central->GetBinContent(i,j) - hnseg8yTKL_periph->GetBinContent(i,j));
+            }
+        }
     
    // TH1F* InvMass_CentralRebinned(NULL);
     TH1F *InvMass_CentralRebinned = dynamic_cast<TH1F*>(InvMass_Central->Rebin(25,"InvMass_CentralRebinned"));
@@ -1450,7 +1550,73 @@ void PlotFromTree(){
     {
         TCanvas* c18 = new TCanvas;
         c18->cd();
-        hnseg8TKL->Draw();
+        hnseg8TKL->Draw("colz");
+        
+        TCanvas*c4TKL=new TCanvas();
+        //Tracklets count DeltaEta wrt DeltaPhi TH2
+        c4TKL->Divide(2,2);
+        c4TKL->cd(1);
+        hnseg8TKL->Draw("colz");
+        c4TKL->cd(3);
+        hnseg8TKL_central->SetFillColor(18);
+        hnseg8TKL_central->Draw("colz");
+        c4TKL->cd(4);
+        hnseg8TKL_periph->SetFillColor(18);
+        hnseg8TKL_periph->Draw("colz");
+        
+        TCanvas*c5TKL=new TCanvas();
+         //Correlation yield DeltaEta wrt DeltaPhi TH2
+           c5TKL->Divide(2,2);
+           c5TKL->cd(1);
+           hnseg8yTKL->SetFillColor(18);
+           hnseg8yTKL->Draw("colz");
+           c5TKL->cd(3);
+           hnseg8yTKL_central->SetFillColor(18);
+           hnseg8yTKL_central->Draw("colz");
+           c5TKL->cd(4);
+           hnseg8yTKL_periph->SetFillColor(18);
+           hnseg8yTKL_periph->Draw("colz");
+        
+        TCanvas* c6TKL = new TCanvas;
+            //Tracklets yield DeltaEta wrt DeltaPhi TH2 -> Projected for Periph and Central
+                yield_centralTKL_proj_tampon = (TH1F*)(hnseg8yTKL_central->ProjectionX("yield_centralTKL_proj",0,-1,"e"));
+                for(int i=1; i<yield_centralTKL_proj->GetNbinsX()+1; i++){
+                    yield_centralTKL_proj->SetBinContent(i, yield_centralTKL_proj_tampon->GetBinContent(i));
+                    yield_centralTKL_proj->SetBinError(i, sqrt(yield_centralTKL_proj->GetBinContent(i))/sqrt(RefTrackletsCentral));
+                }
+                yield_periphTKL_proj_tampon = (TH1F*)(hnseg8yTKL_periph->ProjectionX("yield_periphTKL_proj",0,-1,"e"));
+                    for(int i=1; i<yield_periphTKL_proj->GetNbinsX()+1; i++){
+                        yield_periphTKL_proj->SetBinContent(i, yield_periphTKL_proj_tampon->GetBinContent(i));
+                        yield_periphTKL_proj->SetBinError(i, sqrt(yield_periphTKL_proj->GetBinContent(i))/sqrt(RefTrackletsPeriph));
+                    }
+            c6TKL->Divide(2,2);
+            c6TKL->cd(1);
+            hnseg8yTKL_central->Draw("colz");
+            c6TKL->cd(2);
+            hnseg8yTKL_periph->Draw("colz");
+            c6TKL->cd(3);
+            yield_centralTKL_proj->Draw("E");
+            c6TKL->cd(4);
+            yield_periphTKL_proj->Draw("E");
+            c6TKL->Draw();
+            c6TKL->Modified();
+            c6TKL->ForceUpdate();
+            
+            TCanvas* c7TKL = new TCanvas;
+            //Tracklets yield DeltaEta wrt DeltaPhi TH2 -> Projected Difference
+            yield_differenceTKL_proj_tampon = (TH1F*)(yield_differenceTKL->ProjectionX("yield_differenceTKL_proj",0,-1,"e"));
+            for(int i=1; i<yield_differenceTKL_proj->GetNbinsX()+1; i++){
+                yield_differenceTKL_proj->SetBinContent(i, yield_differenceTKL_proj_tampon->GetBinContent(i));
+                yield_differenceTKL_proj->SetBinError(i, TMath::Sqrt( pow(yield_centralTKL_proj->GetBinError(i),2)+pow(yield_periphTKL_proj->GetBinError(i),2)) );
+            }
+            c7TKL->Divide(1,2);
+            c7TKL->cd(1);
+            yield_differenceTKL->Draw("colz");
+            c7TKL->cd(2);
+            yield_differenceTKL_proj->Draw("E");
+            c7TKL->Draw();
+            c7TKL->Modified();
+            c7TKL->ForceUpdate();
     }
     
     
