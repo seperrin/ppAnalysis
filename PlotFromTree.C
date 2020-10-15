@@ -46,6 +46,8 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i
 void PlotFromTree(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     
+    bool doTracklets = kTRUE;
+    
 // ************************************
 // Définitions de paramètres          *
 // ************************************
@@ -56,8 +58,8 @@ void PlotFromTree(){
     double HighDimuYCut = -2.5;
     double LowDimuPtCut = 0;
     double HighDimuPtCut = 99999;
-    double MinMultCentral = 37;
-    double MaxMultPeriph = 23;
+//    double MinMultCentral = 37;
+//    double MaxMultPeriph = 23;
     double CentSPDTrackletsCentral = 0.75;
     double CentSPDTrackletsPeriph = 7;
 
@@ -520,7 +522,7 @@ void PlotFromTree(){
     
     
         
-    TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16j_pass1_PS_CutsEvent/muonGrid.root");
+    TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge16hj_PS_CutsEvent.root");
     std::cout << "1" <<std::endl;
         TTree* theTree = NULL;
         fileIn.GetObject("MyMuonTree",theTree);
@@ -576,7 +578,7 @@ void PlotFromTree(){
 // ************************************
     
   //  Double_t px[1000], py[1000];
-        for (Int_t i=0;i<1000000;i++) {
+        for (Int_t i=0;i<nevent;i++) {
             if(i%100000 == 0){
                     std::cout << "[";
                     int pos = barWidth * i / nevent;
@@ -588,6 +590,9 @@ void PlotFromTree(){
                     std::cout << "] " << int(i * 100 / nevent) << "%     " << i << "/" << nevent;
                     std::cout.flush();
                 std::cout << std::endl;
+            }
+            if(doTracklets && (i%10!=0)){
+                continue;
             }
             theTree->GetEvent(i);
      //       cout << "Looking at Event " << i << endl;
@@ -781,7 +786,7 @@ void PlotFromTree(){
             
             
             // TREATEMENT OF TRACKLET V2
-            if(kTRUE){
+            if(doTracklets){
          //   cout << "There are " << fEvent->fNTracklets << " tracklets" << endl;
                 RefTracklets += fEvent->fNTracklets;
                 if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
@@ -858,6 +863,7 @@ void PlotFromTree(){
             
         }
     }
+    if(doTracklets){
     // For TklTkl Analysis
     for(int i=0; i<=hnseg8TKL->GetNbinsX()+1; i++){
             for(int j=0; j<=hnseg8TKL->GetNbinsY()+1; j++){
@@ -867,6 +873,7 @@ void PlotFromTree(){
                 yield_differenceTKL->SetBinContent(i,j, hnseg8yTKL_central->GetBinContent(i,j) - hnseg8yTKL_periph->GetBinContent(i,j));
             }
         }
+    }
     
    // TH1F* InvMass_CentralRebinned(NULL);
     TH1F *InvMass_CentralRebinned = dynamic_cast<TH1F*>(InvMass_Central->Rebin(25,"InvMass_CentralRebinned"));
@@ -1209,7 +1216,7 @@ void PlotFromTree(){
        fitFcnV2_2->SetParName(1,"a1");
        fitFcnV2_2->SetParName(2,"a2");
        
-      TFitResultPtr res = histo->Fit("fitFcnV2_2","SBMERQ+","ep");
+      TFitResultPtr res = histo->Fit("fitFcnV2_2","SBMERI+","ep");
       // improve the pictu
     //   std::cout << "integral error: " << integralerror << std::endl;
         Double_t par[3];
@@ -1409,7 +1416,7 @@ void PlotFromTree(){
         fitY_1Central->SetParName(14,"Y_1 Bkg M1");
         fitY_1Central->SetParName(15,"Y_1 Nkg M0");
            
-          res = YieldWrtMass_PhiBin_Central[i]->Fit("fitY_1Central","SBMERI+","ep");
+          res = YieldWrtMass_PhiBin_Central[i]->Fit("fitY_1Central","SBMERQ+","ep");
           Double_t par[16];
           fitY_1Central->GetParameters(par);
           Yields_Central_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, par[12]);
@@ -1473,7 +1480,7 @@ void PlotFromTree(){
            fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
            fitY_1Periph->SetParName(15,"Y_1 Nkg M0");
               
-             res = YieldWrtMass_PhiBin_Periph[i]->Fit("fitY_1Periph","SBMERI+","ep");
+             res = YieldWrtMass_PhiBin_Periph[i]->Fit("fitY_1Periph","SBMERQ+","ep");
              Double_t par[16];
            if(i==3){
                baseline = par[12];
@@ -1527,7 +1534,7 @@ void PlotFromTree(){
               fitFcnV2_2->SetParName(1,"a1");
               fitFcnV2_2->SetParName(2,"a2");
               
-             TFitResultPtr res = Yields_Difference_1->Fit("fitFcnV2_2","SBMERQ+","ep");
+             TFitResultPtr res = Yields_Difference_1->Fit("fitFcnV2_2","SBMERI+","ep");
             Double_t par[3];
             fitFcnV2_2->GetParameters(par);
              // improve the pictu
@@ -1547,7 +1554,11 @@ void PlotFromTree(){
            
     }
     
-    {
+    
+    double baselineTKL = 1;
+    double errbaselineTKL = 1;
+    
+    if(doTracklets){
         TCanvas* c18 = new TCanvas;
         c18->cd();
         hnseg8TKL->Draw("colz");
@@ -1588,6 +1599,10 @@ void PlotFromTree(){
                     for(int i=1; i<yield_periphTKL_proj->GetNbinsX()+1; i++){
                         yield_periphTKL_proj->SetBinContent(i, yield_periphTKL_proj_tampon->GetBinContent(i));
                         yield_periphTKL_proj->SetBinError(i, sqrt(yield_periphTKL_proj->GetBinContent(i))/sqrt(RefTrackletsPeriph));
+                        if(i==4){
+                            baselineTKL = yield_periphTKL_proj->GetBinContent(i);
+                            errbaselineTKL = yield_periphTKL_proj->GetBinError(i);
+                        }
                     }
             c6TKL->Divide(2,2);
             c6TKL->cd(1);
@@ -1617,7 +1632,53 @@ void PlotFromTree(){
             c7TKL->Draw();
             c7TKL->Modified();
             c7TKL->ForceUpdate();
+        
+        TCanvas*c14TKL=new TCanvas();
+        //Tracklets Yield difference wrt Phi fit
+        c14TKL->cd();
+        // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+            TH1F *histo = yield_differenceTKL_proj;
+          // create a TF1 with the range from 0 to 3 and 6 parameters
+          TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+          fitFcnV2TKL->SetNpx(500);
+          fitFcnV2TKL->SetLineWidth(4);
+          fitFcnV2TKL->SetLineColor(kMagenta);
+          // first try without starting values for the parameters
+          // This defaults to 1 for each param.
+          // this results in an ok fit for the polynomial function
+          // however the non-linear part (lorenzian) does not
+          // respond well.
+           Double_t params[3] = {1,1,1};
+          fitFcnV2TKL->SetParameters(params);
+           TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+           TVirtualFitter::Fitter(histo)->SetPrecision();
+        //  histo->Fit("fitFcn","0");
+          // second try: set start values for some parameters
+           
+           fitFcnV2TKL->SetParName(0,"a0");
+           fitFcnV2TKL->SetParName(1,"a1");
+           fitFcnV2TKL->SetParName(2,"a2");
+           
+          TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+          // improve the pictu
+        //   std::cout << "integral error: " << integralerror << std::endl;
+            Double_t par[3];
+            fitFcnV2TKL->GetParameters(par);
+          fitFcnV2TKL->Draw("same");
+          // draw the legend
+          TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+          legend->SetTextFont(72);
+          legend->SetTextSize(0.04);
+            Char_t message[80];
+            sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+            legend->AddEntry(fitFcnV2TKL,message);
+        sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baselineTKL,par[2]/(par[0] + baselineTKL),(par[2]/(par[0] + baselineTKL)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL/baselineTKL,2))));
+        legend->AddEntry(fitFcnV2TKL,message);
+          legend->AddEntry(histo,"Data","lpe");
+          legend->Draw();
+        
     }
+    
     
     
         for (int i=0;i<6;i++){
