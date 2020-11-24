@@ -37,11 +37,14 @@
 
 void PlotFromTree();
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par);
+Double_t BackFcnV2(Double_t *x,Double_t *par);
+Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par);
 Double_t FourierV2(Double_t *x,Double_t *par);
 Double_t FourierV5(Double_t *x,Double_t *par);
 Double_t TwoCBE2E(Double_t *x,Double_t *par);
 Double_t ExpBkg(Double_t *x,Double_t *par);
-Double_t TwoCrystalBallExtended(Double_t *x,Double_t *par);
+Double_t JPsiCrystalBallExtended(Double_t *x,Double_t *par);
+Double_t Psi2SCrystalBallExtended(Double_t *x,Double_t *par);
 TFitResultPtr FittingAllInvMass(const char *histoname, TCanvas *canvas);
 TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i);
 int GetCent(double cent);
@@ -49,7 +52,7 @@ int GetCent(double cent);
 void PlotFromTree(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kTRUE;
+    bool doTracklets = kFALSE;
     bool doMixedEvents = kFALSE;
     
 // ************************************
@@ -58,6 +61,7 @@ void PlotFromTree(){
 
     double ZvtxCut = 10;
     double DPhiCut = 0.01;
+    double TklEtaCut  = 1;
     double LowDimuYCut = -4;
     double HighDimuYCut = -2.5;
     double LowDimuPtCut = 0;
@@ -692,9 +696,9 @@ void PlotFromTree(){
     
     
         
-    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge16All17hikl_PS_CutsEvent.root");
-    TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17m_muoncalopass1_PS_CutsEvent/muonGrid.root");
-   // TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17h_muoncalopass2_PS_CutsEvent/muonGrid.root");
+    TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge16All17hikl_PS_CutsEvent.root");
+    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge17mor_PS_CutsEvent.root");
+   // TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17o_muoncalopass1_PS_CutsEvent/muonGrid.root");
     std::cout << "1" <<std::endl;
         TTree* theTree1 = NULL;
         TTree* theTree2 = NULL;
@@ -736,7 +740,10 @@ void PlotFromTree(){
     int DimuPeriphSeen = 0;
     int DimuSeenMassCut = 0;
     int DimuSeenNoMassCut = 0;
-    int EventWithPileupMult = 0;
+    int EventRejected = 0;
+    int EventNC = 0;
+    int EventPileUpMult = 0;
+    int EventPileUpVtx = 0;
     int RefTracklets = 0;
     int RefTrackletsCentral = 0;
     int RefTrackletsPeriph = 0;
@@ -767,7 +774,7 @@ void PlotFromTree(){
     if(doMixedEvents){
         cout << "MIXED EVENTS IS WANTED - WILL NOW PROCESS EVENTS AND ORGANISE POOLS" << endl;
       //  Double_t px[1000], py[1000];
-            for (int i=0;i<60000000;i++) {
+            for (int i=0;i<50000000;i++) {
                 if(i%100000 == 0){
                         std::cout << "[";
                         int pos = barWidth * i / nevent;
@@ -776,12 +783,9 @@ void PlotFromTree(){
                             else if (k == pos) std::cout << ">";
                             else std::cout << " ";
                         }
-                        std::cout << "] " << int(i * 100 / nevent) << "%     " << i << "/" << nevent;
+                        std::cout << "] " << int(i * 100 / nevent) << "%     " << i << "/" << nevent << " Pooling";
                         std::cout.flush();
                     std::cout << std::endl;
-                }
-                if(doTracklets && (i%10!=0)){
-                    continue;
                 }
                 if(i == nevent1){
                     branch = theTree2->GetBranch("event");
@@ -790,6 +794,9 @@ void PlotFromTree(){
                     fTracklets = fEvent->fTracklets;
                     fDimuons = fEvent->fDimuons;
                     cout << "Switched to 2nd TTree" <<endl;
+                }
+                if(doTracklets && (i%10!=0)){
+                    continue;
                 }
                 if(i<nevent1){
                     theTree1->GetEvent(i);
@@ -819,10 +826,12 @@ void PlotFromTree(){
                        if(PoolsSize[centint][zv]<100){ //[phint]
                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
+                               if(TMath::Abs(trackletME->fEta) < TklEtaCut){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
                                    double trackletMEEta = trackletME->fEta;
                                    Pools[centint][zv].push_back(trackletMEPhi); //[phint]
                                    Pools[centint][zv].push_back(trackletMEEta); //[phint]
+                               }
                                
                            }
                            PoolsSize[centint][zv] += 1; //[phint]
@@ -839,10 +848,12 @@ void PlotFromTree(){
                        if(PoolsSizeTkl[centint][zv]<100){
                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
+                               if(TMath::Abs(trackletME->fEta) < TklEtaCut){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
                                    double trackletMEEta = trackletME->fEta;
                                    PoolsTkl[centint][zv].push_back(trackletMEPhi);
                                    PoolsTkl[centint][zv].push_back(trackletMEEta);
+                               }
                                
                            }
                            PoolsSizeTkl[centint][zv] += 1;
@@ -867,7 +878,7 @@ void PlotFromTree(){
     fTracklets = fEvent->fTracklets;
     fDimuons = fEvent->fDimuons;
     
-        for (int i=0;i<60000000;i++) {
+        for (int i=0;i<50000000;i++) {
             if(i%100000 == 0){
                     std::cout << "[";
                     int pos = barWidth * i / nevent;
@@ -880,9 +891,6 @@ void PlotFromTree(){
                     std::cout.flush();
                 std::cout << std::endl;
             }
-            if(doTracklets && (i%10!=0)){
-                continue;
-            }
             if(i == nevent1){
                 branch = theTree2->GetBranch("event");
                 branch->SetAddress(&fEvent);
@@ -891,22 +899,33 @@ void PlotFromTree(){
                 fDimuons = fEvent->fDimuons;
                 cout << "Switched to 2nd TTree" <<endl;
             }
+            if(doTracklets && (i%10!=0)){
+                continue;
+            }
             if(i<nevent1){
                 theTree1->GetEvent(i);
             }
             else if(i>=nevent1){
                 theTree2->GetEvent(i-nevent1);
             }
-            
+            if(fEvent->fIsPileupFromSPDMultBins){
+                EventPileUpMult++;
+            }
+            if(fEvent->fNPileupVtx != 0){
+                EventPileUpVtx++;
+            }
+            if(fEvent->fVertexNC < 1){
+                EventNC++;
+            }
             if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
-                EventWithPileupMult++;
+                EventRejected++;
                 continue;
             }
             int NumberCloseEtaTracklets = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
-                hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
-                if((TMath::Abs(trac->fEta) < 1)){
+                if((TMath::Abs(trac->fEta) < TklEtaCut)){
+                    hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
                     hDPhi->Fill(trac->fDPhi);
                     if((TMath::Abs(trac->fDPhi) < DPhiCut)){
                         NumberCloseEtaTracklets++;
@@ -1008,7 +1027,7 @@ void PlotFromTree(){
 // ***********************************
             for (Int_t j=0; j<fEvent->fNCorrelations; j++) {
                 correl = (CorrelationLight*)fCorrelations->At(j);
-                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut)){   //Cuts    (fEvent->fNPileupVtx == 0) &&
+                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) &&
                     Float_t DeltaPhi = correl->fDeltaPhi;
                     if(DeltaPhi < -TMath::Pi()/2){
                         DeltaPhi += 2* TMath::Pi();
@@ -1044,7 +1063,7 @@ void PlotFromTree(){
             }
             
             if(TMath::Abs(fEvent->fVertexZ) < ZvtxCut){
-                hnseg10->Fill(fEvent->fCentralityV0M, fEvent->fNTracklets);
+                hnseg10->Fill(fEvent->fCentralityV0M, NumberCloseEtaTracklets); //fEvent->fNTracklets
             }
             
             
@@ -1058,7 +1077,7 @@ void PlotFromTree(){
                   int centint = GetCent(cent);
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
-                   RefTklCounter[centint][zvint] += fEvent->fNTracklets;
+                   RefTklCounter[centint][zvint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
                 if(cent <= CentSPDTrackletsCentral){
                     TklC++;
                 }
@@ -1070,7 +1089,7 @@ void PlotFromTree(){
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
-                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut)){   //Cuts
+                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts
                             Float_t DeltaPhi = tracklet1->fPhi - tracklet2->fPhi;
                             if(DeltaPhi < -TMath::Pi()/2){
                                 DeltaPhi += 2* TMath::Pi();
@@ -1101,10 +1120,12 @@ void PlotFromTree(){
                     if((TMath::Abs(fEvent->fVertexZ) < ZvtxCut)){
                         for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                           tracklet1 = (TrackletLight*)fTracklets->At(j);
-                          double centME = fEvent->fCentralitySPDTracklets;
-                          int centintME = GetCent(centME);
-                          double zvME = fEvent->fVertexZ;
-                          int zvintME = floor(zvME) + ZvtxCut;
+                            if(TMath::Abs(tracklet1->fEta) < TklEtaCut){
+                              double centME = fEvent->fCentralitySPDTracklets;
+                              int centintME = GetCent(centME);
+                              double zvME = fEvent->fVertexZ;
+                              int zvintME = floor(zvME) + ZvtxCut;
+                            
 
                               for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
                                           double correlTklMEPhi = PoolsTkl[centintME][zvintME].at(k) - tracklet1->fPhi;
@@ -1135,7 +1156,9 @@ void PlotFromTree(){
                                       }
                                       
                               }
+                            }
                         }
+                        
                     }
                 }
             
@@ -1732,6 +1755,19 @@ void PlotFromTree(){
     //Plut Ntrk wrt V0M
     hnseg10->Draw("colz");
     
+    TCanvas* c8zoom = new TCanvas;
+    c8zoom->SetTitle("Yields in Mass Bins CtrlPeriphDiff zoom");
+    //Correlation yield DeltaEta wrt DeltaPhi TH2 -> Central, Periph, Difference [MassBins]
+    c8zoom->Divide(3,3);
+    for(int i=1; i<=3; i++){
+        c8zoom->cd(i);
+        Yield_Central_MassBin[i+1]->Draw("E");
+        c8zoom->cd(3+i);
+        Yield_Periph_MassBin[i+1]->Draw("E");
+        c8zoom->cd(2*3+i);
+        Yield_Difference_MassBin[i+1]->Draw("E");
+    }
+    
     TCanvas* c8 = new TCanvas;
     c8->SetTitle("Yields in Mass Bins CtrlPeriphDiff");
     //Correlation yield DeltaEta wrt DeltaPhi TH2 -> Central, Periph, Difference [MassBins]
@@ -1880,7 +1916,7 @@ void PlotFromTree(){
         coefficients1->SetBinError(i,fitFcnV2_2->GetParError(1));
         coefficients2->SetBinError(i,fitFcnV2_2->GetParError(2));
       fitFcnV2_2->Draw("same");
-        cout << "STATUS FIT: " << gMinuit->fStatus <<endl;
+        cout << "STATUS COV : " << res->CovMatrixStatus() <<endl;
       // draw the legend
       TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
       legend->SetTextFont(72);
@@ -1888,10 +1924,10 @@ void PlotFromTree(){
         Char_t message[80];
         sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
         legend->AddEntry(fitFcnV2_2,message);
-        if(gMinuit->fStatus == 0){
+        if(res->CovMatrixStatus() == 3){
             sprintf(message,"The fit is a success");
         }
-        else if(gMinuit->fStatus == 1){
+        else{
             sprintf(message,"The fit is a failure");
         }
         legend->AddEntry(fitFcnV2_2,message);
@@ -1976,14 +2012,14 @@ void PlotFromTree(){
         fitV2_2->FixParameter(i,par[i]);
     }
        
-       fitV2_2->SetParName(0,"N_{JPsi} Gaussian approx.");
+       fitV2_2->SetParName(0,"Norm_{JPsi}");
        fitV2_2->SetParName(1,"M_{JPsi}");
        fitV2_2->SetParName(2,"Sigma_{JPsi}");
        fitV2_2->SetParName(3,"a_{1}");
        fitV2_2->SetParName(4,"n_{1}");
        fitV2_2->SetParName(5,"a_{2}");
        fitV2_2->SetParName(6,"n_{2}");
-       fitV2_2->SetParName(7,"Norm_{Tails/Core}");
+       fitV2_2->SetParName(7,"Norm_{Psi2S}");
        fitV2_2->SetParName(8,"Norm_{TailLowM}");
        fitV2_2->SetParName(9,"Exp_{TailLowM}");
        fitV2_2->SetParName(10,"Norm_{TailHighM}");
@@ -1995,8 +2031,21 @@ void PlotFromTree(){
        
       res = V2JPsiTkl->Fit("fitV2_2","SBMERI+","ep");
       Double_t para[12];
+    TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2,2.1,5.1,16);
+    backFcnV2_2->SetLineColor(kRed);
+    TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
       // writes the fit results into the par array
-       gStyle->SetOptFit(1011);
+    
+    signalFcnJPsiV2_2->SetLineColor(kBlue);
+    signalFcnJPsiV2_2->SetNpx(500);
+    fitV2_2->GetParameters(para);
+    backFcnV2_2->SetParameters(para);
+    signalFcnJPsiV2_2->SetParameters(para);
+    
+    gStyle->SetOptFit(1011);
+    
+    signalFcnJPsiV2_2->Draw("same");
+    backFcnV2_2->Draw("same");
       // draw the legend
       TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
       legend->SetTextFont(72);
@@ -2004,13 +2053,15 @@ void PlotFromTree(){
     Char_t message[80];
     sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
      legend->AddEntry(fitV2_2,message);
-    if(gMinuit->fStatus == 0){
+    if(res->CovMatrixStatus() == 3){
                sprintf(message,"The fit is a success");
            }
-           else if(gMinuit->fStatus == 1){
+           else{
                sprintf(message,"The fit is a failure");
            }
            legend->AddEntry(fitV2_2,message);
+    legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+    legend->AddEntry(backFcnV2_2,"Background");
       legend->AddEntry(V2JPsiTkl,"Data","lpe");
       legend->Draw();
     
@@ -2018,7 +2069,7 @@ void PlotFromTree(){
     
     cinvmass->cd();
     sprintf(histoname,"InvMass_Central");
-    res = FittingAllInvMassBin(histoname, cinvmass, 1);
+    res = FittingAllInvMassBin(histoname, cinvmass, 1); //ZZZZZZZ
     
     TCanvas* c10_fit = new TCanvas;
        c10_fit->Divide(6,4);
@@ -2044,14 +2095,14 @@ void PlotFromTree(){
             fitY_1Central->FixParameter(i,par[i]);
         }
            
-           fitY_1Central->SetParName(0,"N_{JPsi} Gaussian approx.");
+           fitY_1Central->SetParName(0,"Norm_{JPsi}");
            fitY_1Central->SetParName(1,"M_{JPsi}");
            fitY_1Central->SetParName(2,"Sigma_{JPsi}");
            fitY_1Central->SetParName(3,"a_{1}");
            fitY_1Central->SetParName(4,"n_{1}");
            fitY_1Central->SetParName(5,"a_{2}");
            fitY_1Central->SetParName(6,"n_{2}");
-           fitY_1Central->SetParName(7,"Norm_{Tails/Core}");
+           fitY_1Central->SetParName(7,"Norm_{Psi2S}");
            fitY_1Central->SetParName(8,"Norm_{TailLowM}");
            fitY_1Central->SetParName(9,"Exp_{TailLowM}");
            fitY_1Central->SetParName(10,"Norm_{TailHighM}");
@@ -2064,6 +2115,19 @@ void PlotFromTree(){
           res = YieldWrtMass_Central[i]->Fit("fitY_1Central","SBMERI+","ep");
           Double_t par[16];
           fitY_1Central->GetParameters(par);
+        
+        TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2,2.1,5.1,16);
+        backFcnY_1Central->SetLineColor(kRed);
+        TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
+          // writes the fit results into the par array
+        
+        signalFcnJPsiY_1Central->SetLineColor(kBlue);
+        signalFcnJPsiY_1Central->SetNpx(500);
+        backFcnY_1Central->SetParameters(par);
+        signalFcnJPsiY_1Central->SetParameters(par);
+        signalFcnJPsiY_1Central->Draw("same");
+        backFcnY_1Central->Draw("same");
+        
           Yields_Central_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, par[12]);
           Yields_Central_1->SetBinError(i+1,fitY_1Central->GetParError(12));
           // writes the fit results into the par array
@@ -2075,20 +2139,22 @@ void PlotFromTree(){
         Char_t message[80];
         sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
          legend->AddEntry(fitY_1Central,message);
-        if(gMinuit->fStatus == 0){
+        if(res->CovMatrixStatus() == 3){
                    sprintf(message,"The fit is a success");
                }
-               else if(gMinuit->fStatus == 1){
+               else{
                    sprintf(message,"The fit is a failure");
                }
                legend->AddEntry(fitY_1Central,message);
+        legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
+        legend->AddEntry(backFcnY_1Central,"Background");
           legend->AddEntry(YieldWrtMass_Central[i],"Data","lpe");
           legend->Draw();
     }
     
     cinvmass->cd();
     sprintf(histoname,"InvMass_Periph");
-    res = FittingAllInvMassBin(histoname, cinvmass, 2);
+    res = FittingAllInvMassBin(histoname, cinvmass, 2); //ZZZZZ
     
        for(int i=0; i <16; i++){
            par[i] = res->Parameter(i);
@@ -2115,14 +2181,14 @@ void PlotFromTree(){
                fitY_1Periph->FixParameter(j,par[j]);
            }
               
-              fitY_1Periph->SetParName(0,"N_{JPsi} Gaussian approx.");
+              fitY_1Periph->SetParName(0,"Norm_{JPsi}");
               fitY_1Periph->SetParName(1,"M_{JPsi}");
               fitY_1Periph->SetParName(2,"Sigma_{JPsi}");
               fitY_1Periph->SetParName(3,"a_{1}");
               fitY_1Periph->SetParName(4,"n_{1}");
               fitY_1Periph->SetParName(5,"a_{2}");
               fitY_1Periph->SetParName(6,"n_{2}");
-              fitY_1Periph->SetParName(7,"Norm_{Tails/Core}");
+              fitY_1Periph->SetParName(7,"Norm_{Psi2S}");
               fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
               fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
               fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
@@ -2135,6 +2201,19 @@ void PlotFromTree(){
              res = YieldWrtMass_Periph[i]->Fit("fitY_1Periph","SBMERI+","ep");
              Double_t par[16];
              fitY_1Periph->GetParameters(par);
+
+           TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2,2.1,5.1,16);
+           backFcnY_1Periph->SetLineColor(kRed);
+           TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
+             // writes the fit results into the par array
+           
+           signalFcnJPsiY_1Periph->SetLineColor(kBlue);
+           signalFcnJPsiY_1Periph->SetNpx(500);
+           backFcnY_1Periph->SetParameters(par);
+           signalFcnJPsiY_1Periph->SetParameters(par);
+           signalFcnJPsiY_1Periph->Draw("same");
+           backFcnY_1Periph->Draw("same");
+           
            if(i==2){
                baseline = par[12];
                errbaseline = fitY_1Periph->GetParError(12);
@@ -2155,13 +2234,15 @@ void PlotFromTree(){
            Char_t message[80];
            sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
             legend->AddEntry(fitY_1Periph,message);
-           if(gMinuit->fStatus == 0){
+           if(res->CovMatrixStatus() == 3){
                       sprintf(message,"The fit is a success");
                   }
-                  else if(gMinuit->fStatus == 1){
+                  else{
                       sprintf(message,"The fit is a failure");
                   }
                   legend->AddEntry(fitY_1Periph,message);
+           legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
+           legend->AddEntry(backFcnY_1Periph,"Background");
              legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
              legend->Draw();
        }
@@ -2213,10 +2294,10 @@ void PlotFromTree(){
                legend->AddEntry(fitFcnV2_2,message);
         sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
         legend->AddEntry(fitFcnV2_2,message);
-        if(gMinuit->fStatus == 0){
+        if(res->CovMatrixStatus() == 3){
                    sprintf(message,"The fit is a success");
                }
-               else if(gMinuit->fStatus == 1){
+               else{
                    sprintf(message,"The fit is a failure");
                }
                legend->AddEntry(fitFcnV2_2,message);
@@ -2301,10 +2382,10 @@ void PlotFromTree(){
             legend->AddEntry(fitFcnV2TKL,message);
         sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baselineTKL,par[2]/(par[0] + baselineTKL),(par[2]/(par[0] + baselineTKL)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL/baselineTKL,2))));
         legend->AddEntry(fitFcnV2TKL,message);
-        if(gMinuit->fStatus == 0){
+        if(res->CovMatrixStatus() == 3){
                    sprintf(message,"The fit is a success");
                }
-               else if(gMinuit->fStatus == 1){
+               else{
                    sprintf(message,"The fit is a failure");
                }
                legend->AddEntry(fitFcnV2TKL,message);
@@ -2315,18 +2396,23 @@ void PlotFromTree(){
     
     
     
-        for (int i=0;i<6;i++){
-               sprintf(histoname,Form("bin%d_0",i+1));
-               res = FittingAllInvMassBin(histoname, c11b_0, i);
-           }
-    for (int i=0;i<6;i++){
-        sprintf(histoname,Form("bin%d_1",i+1));
-        res = FittingAllInvMassBin(histoname, c11b_1, i);
-    }
-    for (int i=0;i<6;i++){
-        sprintf(histoname,Form("bin%d_2",i+1));
-        res = FittingAllInvMassBin(histoname, c11b_2, i);
-    }
+//        for (int i=0;i<6;i++){
+//               sprintf(histoname,Form("bin%d_0",i+1)); // ZZZZZZZ
+//               res = FittingAllInvMassBin(histoname, c11b_0, i);
+//           }
+//    for (int i=0;i<6;i++){
+//        sprintf(histoname,Form("bin%d_1",i+1));
+//        res = FittingAllInvMassBin(histoname, c11b_1, i);
+//    }
+//    for (int i=0;i<6;i++){
+//        sprintf(histoname,Form("bin%d_2",i+1));
+//        res = FittingAllInvMassBin(histoname, c11b_2, i);
+//    }
+    
+    
+    
+    
+    
 //    for(int i=0; i<12; i++){
 //  //  histoname = "Inv Mass, Phi: " + std::to_string(0) + " pi/6 to " + std::to_string(1) + " pi/6";
 //        sprintf(histoname,"InvMassPhiBin_%d",i);
@@ -2337,7 +2423,10 @@ void PlotFromTree(){
     std::cout<< "DimuPeriphSeen " << DimuPeriphSeen <<std::endl;
     std::cout<< "DimuSeenMassCut " << DimuSeenMassCut <<std::endl;
     std::cout<< "DimuSeenNoMassCut " << DimuSeenNoMassCut <<std::endl;
-    std::cout << "EventWithPileupMult AAAAAAAAA " << EventWithPileupMult <<std::endl;
+    std::cout << "EventRejected: " << EventRejected <<std::endl;
+    std::cout << "EventPileUpVtx: " << EventPileUpVtx <<std::endl;
+    std::cout << "EventPileUpMult: " << EventPileUpMult <<std::endl;
+    std::cout << "EventNC: " << EventNC <<std::endl;
     std::cout << "cmul  " << cmul <<std::endl;
 }
     
@@ -2354,7 +2443,13 @@ void PlotFromTree(){
 
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par)
 // Par 0->7: signal, 8->11 Bkg, 12: v2 JPsi, 13->15: V2 bkg
-{ return (TwoCrystalBallExtended(x,par)*par[12] + ExpBkg(x,&par[8])*(par[13]*x[0]*x[0] + par[14]*x[0] + par[15]))/(TwoCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+{ return (JPsiCrystalBallExtended(x,par)*par[12] + (ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*x[0]*x[0] + par[14]*x[0] + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+
+Double_t BackFcnV2(Double_t *x,Double_t *par)
+{return ((ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*x[0]*x[0] + par[14]*x[0] + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+
+Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par)
+{return (JPsiCrystalBallExtended(x,par)*par[12])/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
 
 Double_t FourierV2(Double_t *x,Double_t *par)
 
@@ -2366,13 +2461,13 @@ Double_t FourierV5(Double_t *x,Double_t *par)
 
 Double_t TwoCBE2E(Double_t *x,Double_t *par)
 
-{ return TwoCrystalBallExtended(x,par) + ExpBkg(x,&par[8]);}
+{ return JPsiCrystalBallExtended(x,par) + Psi2SCrystalBallExtended(x,par) + ExpBkg(x,&par[8]);}
 
 Double_t ExpBkg(Double_t *x,Double_t *par)
 
 { return par[0]*(exp(x[0]*par[1]*(-1))) + par[2]*(exp(x[0]*par[3]*(-1))); }
 
-Double_t TwoCrystalBallExtended(Double_t *x,Double_t *par)
+Double_t JPsiCrystalBallExtended(Double_t *x,Double_t *par)
 {
     
     Double_t mJpsi =  3.096916;
@@ -2406,34 +2501,45 @@ Double_t TwoCrystalBallExtended(Double_t *x,Double_t *par)
     } else
         sum += 0;
     
-//  t = (x[0]-(par[1]*mPsip/mJpsi))/(par[2]*mPsip/mJpsi);
-  t = (x[0]-(par[1]*mPsip/mJpsi))/(par[2]*ratSigma);
-    if (par[3] < 0) t = -t;
+    return sum ;
+}
+
+Double_t Psi2SCrystalBallExtended(Double_t *x,Double_t *par)
+{
+    Double_t mJpsi =  3.096916;
+      Double_t mPsip =  3.686108;
+    Double_t ratMass = 1.01;
+    Double_t ratSigma = 1.02;
+      Double_t sum = 0;
     
-    absAlpha = fabs((Double_t)par[3]);
-    absAlpha2 = fabs((Double_t)par[5]);
-    
-    if (t < -absAlpha) //left tail
-    {
-        Double_t a =  TMath::Power(par[4]/absAlpha,par[4])*exp(-0.5*absAlpha*absAlpha);
-        Double_t b = par[4]/absAlpha - absAlpha;
-        
-        sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(a/TMath::Power(b - t, par[4]));
-    }
-    else if (t >= -absAlpha && t < absAlpha2) // gaussian core
-    {
-        sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(exp(-0.5*t*t));
-    }
-    else if (t >= absAlpha2) //right tail
-    {
-        Double_t c =  TMath::Power(par[6]/absAlpha2,par[6])*exp(-0.5*absAlpha2*absAlpha2);
-        Double_t d = par[6]/absAlpha2 - absAlpha2;
-        
-        sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(c/TMath::Power(d + t, par[6]));
-    } else
-        sum += 0;
+    Double_t t = (x[0]-(par[1]*mPsip/mJpsi))/(par[2]*ratSigma);
+  if (par[3] < 0) t = -t;
+  
+  Double_t absAlpha = fabs((Double_t)par[3]);
+  Double_t absAlpha2 = fabs((Double_t)par[5]);
+  
+  if (t < -absAlpha) //left tail
+  {
+      Double_t a =  TMath::Power(par[4]/absAlpha,par[4])*exp(-0.5*absAlpha*absAlpha);
+      Double_t b = par[4]/absAlpha - absAlpha;
+      
+      sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(a/TMath::Power(b - t, par[4]));
+  }
+  else if (t >= -absAlpha && t < absAlpha2) // gaussian core
+  {
+      sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(exp(-0.5*t*t));
+  }
+  else if (t >= absAlpha2) //right tail
+  {
+      Double_t c =  TMath::Power(par[6]/absAlpha2,par[6])*exp(-0.5*absAlpha2*absAlpha2);
+      Double_t d = par[6]/absAlpha2 - absAlpha2;
+      
+      sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(c/TMath::Power(d + t, par[6]));
+  } else
+      sum += 0;
     
     return sum ;
+
 }
     
     TFitResultPtr FittingAllInvMass(const char *histoname, TCanvas *cinvmass){
@@ -2453,7 +2559,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
      4: Power 1
      5: Alpha 2
      6: Power 2
-     7: Normalisation Tails-Core
+     7: Normalisation Psi2s, JPsi
      ------ Background 2Exp
      8: Normalisation Before
      9: Exponent Before
@@ -2479,62 +2585,103 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    // respond well.
     Double_t params[12] = {1,1,1,1,1,1,1,1,1,1,1,1};
    fitFcn->SetParameters(params);
-    TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+    TVirtualFitter::Fitter(histo)->SetMaxIterations(100000);
     TVirtualFitter::Fitter(histo)->SetPrecision();
  //  histo->Fit("fitFcn","0");
-   // second try: set start values for some parameters
-   fitFcn->FixParameter(1,3.096916); // Mean x core
-    fitFcn->SetParameter(2,0.05);
-    fitFcn->SetParameter(3,0.9);
-    fitFcn->SetParameter(4,10);
-    fitFcn->SetParameter(5,2);
-    fitFcn->SetParameter(6,15);
+   // First fit, fix MJPsi and Sigma
     
-    fitFcn->SetParLimits(0,0.1,1000000);
-  //  fitFcn->SetParLimits(1,15);
-    fitFcn->SetParLimits(2,0.01,0.2);
-    fitFcn->SetParLimits(3,0.1,5);
-    fitFcn->SetParLimits(4,1,40);
-    fitFcn->SetParLimits(5,0.1,20);
-    fitFcn->SetParLimits(6,0.01,50);
+    fitFcn->SetParLimits(0,0.1,100000000);
+    fitFcn->SetParLimits(1,3.05,3.15);
+    fitFcn->SetParLimits(2,0.03,0.1);
+    fitFcn->SetParLimits(3,0.7,1.1);
+    fitFcn->SetParLimits(4,1,30);
+    fitFcn->SetParLimits(5,1,5);
+    fitFcn->SetParLimits(6,5,25);
     fitFcn->SetParLimits(7,0.1,1000000);
     fitFcn->SetParLimits(8,0.1,1000000);
-    fitFcn->SetParLimits(9,0.1,20);
-    fitFcn->SetParLimits(10,0.1,100000000);
-    fitFcn->SetParLimits(11,0.1,200);
+    fitFcn->SetParLimits(9,0.01,20);
+    fitFcn->SetParLimits(10,0.01,1000000);
+    fitFcn->SetParLimits(11,0.01,50);
     
-    fitFcn->SetParName(0,"N_{JPsi} Gaussian approx.");
+   fitFcn->FixParameter(1,3.096916); // Mean x core
+    fitFcn->FixParameter(2,0.07);
+    fitFcn->FixParameter(3,0.9);
+    fitFcn->FixParameter(4,10);
+    fitFcn->FixParameter(5,2);
+    fitFcn->FixParameter(6,15);
+    fitFcn->SetParameter(7,100);
+    fitFcn->SetParameter(8,1000);
+    fitFcn->SetParameter(9,0.5);
+    fitFcn->SetParameter(11,10);
+    
+    
+    fitFcn->SetParName(0,"Norm_{JPsi}");
     fitFcn->SetParName(1,"M_{JPsi}");
     fitFcn->SetParName(2,"Sigma_{JPsi}");
     fitFcn->SetParName(3,"a_{1}");
     fitFcn->SetParName(4,"n_{1}");
     fitFcn->SetParName(5,"a_{2}");
     fitFcn->SetParName(6,"n_{2}");
-    fitFcn->SetParName(7,"Norm_{Tails/Core}");
+    fitFcn->SetParName(7,"Norm_{Psi2S}");
     fitFcn->SetParName(8,"Norm_{TailLowM}");
     fitFcn->SetParName(9,"Exp_{TailLowM}");
     fitFcn->SetParName(10,"Norm_{TailHighM}");
     fitFcn->SetParName(11,"Exp_{TailHighM}");
     
-   TFitResultPtr res = histo->Fit("fitFcn","SBMERQ+","ep");
+   TFitResultPtr res = histo->Fit("fitFcn","SBMER","ep");
+   res = histo->Fit("fitFcn","SBMER","ep");
+      fitFcn->ReleaseParameter(1);
+   res = histo->Fit("fitFcn","SBMER","ep");
+    fitFcn->ReleaseParameter(2);
+   res = histo->Fit("fitFcn","SBMER","ep");
+    fitFcn->ReleaseParameter(7);
+   res = histo->Fit("fitFcn","SBMER","ep");
+   res = histo->Fit("fitFcn","SBMER","ep");
+//    fitFcn->ReleaseParameter(3);
+//    fitFcn->ReleaseParameter(4);
+//   res = histo->Fit("fitFcn","SBMER","ep");
+//   res = histo->Fit("fitFcn","SBMER","ep");
+//    fitFcn->ReleaseParameter(5);
+//    fitFcn->ReleaseParameter(6);
+//   res = histo->Fit("fitFcn","SBMER","ep");
+//    res = histo->Fit("fitFcn","SBMER","ep");
+
+    
    // improve the picture:
    TF1 *backFcn = new TF1("backFcn",ExpBkg,2.1,5.1,4);
    backFcn->SetLineColor(kRed);
-   TF1 *signalFcn = new TF1("signalFcn",TwoCrystalBallExtended,2.1,5.1,8);
+   TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,2.1,5.1,8);
+   TF1 *signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,2.1,5.1,8);
    TPaveText *pave = new TPaveText(0.15,0.5,0.3,0.65,"brNDC");
-   signalFcn->SetLineColor(kBlue);
-   signalFcn->SetNpx(500);
+   signalFcnJPsi->SetLineColor(kBlue);
+   signalFcnJPsi->SetNpx(500);
+    signalFcnPsi2S->SetLineColor(kGreen);
+    signalFcnPsi2S->SetNpx(500);
    Double_t par[12];
    // writes the fit results into the par array
     gStyle->SetOptFit(1011);
    fitFcn->GetParameters(par);
-   signalFcn->SetParameters(par);
-   Double_t integral = (signalFcn->Integral(2.1,3.45))/0.01;
-   Double_t integralerror = (fitFcn->IntegralError(2.1,3.45,res->GetParams(), res->GetCovarianceMatrix().GetMatrixArray() ))/0.01;
+   signalFcnJPsi->SetParameters(par);
+    signalFcnPsi2S->SetParameters(par);
+//   auto covMatrix = res->GetCovarianceMatrix();
+//   std::cout << "Covariance matrix from the fit ";
+//   covMatrix.Print();
+   Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))/0.01;
+    auto covtot = res->GetCovarianceMatrix();
+    auto covsgn = covtot.GetSub(0,8,0,8);
+    std::cout << "Matrice totale" <<endl;
+    covtot.Print();
+    std::cout << "Matrice réduite" <<endl;
+    covsgn.Print();
+    std::cout << "STATUS COV " << res->CovMatrixStatus() <<endl;
+   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.01;
+    std::cout << "Erreur integrale " << integralerror <<endl;
+    
     std::cout << "Fitted " << histoname << std::endl;
     std::cout << "Nb JPsi total: " << integral << std::endl;
  //   std::cout << "integral error: " << integralerror << std::endl;
-   signalFcn->Draw("same");
+   signalFcnJPsi->Draw("same");
+    signalFcnPsi2S->Draw("same");
    backFcn->SetParameters(&par[8]);
    backFcn->Draw("same");
    // draw the legend
@@ -2548,16 +2695,17 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     Char_t message[80];
     sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcn->GetChisquare(),fitFcn->GetNDF());
      legend->AddEntry(fitFcn,message);
-    if(gMinuit->fStatus == 0){
+    if(res->CovMatrixStatus() == 3){
                sprintf(message,"The fit is a success");
            }
-           else if(gMinuit->fStatus == 1){
+           else{
                sprintf(message,"The fit is a failure");
            }
            legend->AddEntry(fitFcn,message);
    legend->AddEntry(histo,"Data","lpe");
    legend->AddEntry(backFcn,"Background fit","l");
-   legend->AddEntry(signalFcn,"Signal fit","l");
+   legend->AddEntry(signalFcnJPsi,"JPsi Signal fit","l");
+    legend->AddEntry(signalFcnPsi2S,"Psi2S Signal fit","l");
    legend->Draw();
     
 //    cout << "Histogramme: " << histoname << endl;
