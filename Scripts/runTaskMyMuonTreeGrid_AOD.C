@@ -37,7 +37,7 @@ void runTaskMyMuonTreeGrid_AOD(Int_t runno = 0, Bool_t bSig = kFALSE) {
   AliAnalysisManager *mgr = new AliAnalysisManager("muonAnalysis");
 // Create and configure the alien handler plugin
 #if !(defined(__CLING__)) || defined(__CINT__)
-  gROOT->LoadMacro("CreateAlienHandler_AOD.C");
+  gROOT->LoadMacro("CreateAlienHandler_AOD.C"); //>>>
 #endif
   AliAnalysisGrid *alienHandler = CreateAlienHandler(runno, bSig);
   if (!alienHandler)
@@ -60,13 +60,20 @@ void runTaskMyMuonTreeGrid_AOD(Int_t runno = 0, Bool_t bSig = kFALSE) {
       "$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C"));
   AliMultSelectionTask *taskCentrality =
       reinterpret_cast<AliMultSelectionTask *>(multseladd.Exec()); // user mode:
-  taskCentrality->SetSelectedTriggerClass(AliVEvent::kAny); // default but
+  taskCentrality->SetSelectedTriggerClass(AliVEvent::kAny); // default but //kAny pour CMUL //kINT7 pour CINT7
   //  configurable taskCentrality->SetUseDefaultCalib(kTRUE);
 //taskCentrality->SetAlternateOADBFullManualBypass("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/data/OADB-LHC18q.root");
 
 AliMuonTrackCuts *MuonTrackCuts =
       new AliMuonTrackCuts("StandardMuonTrackCuts", "StandardMuonTrackCuts"); //
   MuonTrackCuts->SetAllowDefaultParams(kTRUE);
+  MuonTrackCuts->SetFilterMask(AliMuonTrackCuts::kMuEta | AliMuonTrackCuts::kMuThetaAbs | AliMuonTrackCuts::kMuMatchLpt | AliMuonTrackCuts::kMuPdca);
+    MuonTrackCuts->Print();
+    AliOADBMuonTrackCutsParam MuonTrackCutsParam = NULL;
+    MuonTrackCutsParam = MuonTrackCuts->GetMuonTrackCutsParam();
+    MuonTrackCutsParam.Print();
+        
+        
   // MuonTrackCuts->SetFilterMask(AliMuonTrackCuts::kEta |
   // AliMuonTrackCuts::kThetaAbs | AliMuonTrackCuts::kPdca |
   // AliMuonTrackCuts::kMatchApt); // Optionally set the cuts you want to apply
@@ -75,13 +82,13 @@ AliMuonTrackCuts *MuonTrackCuts =
   AliAnalysisTaskMyMuonTree_AOD *muonTask = 0x0;
   // muon task
 #if !defined(__CINT__) || defined(__CLING__)
-  gInterpreter->LoadMacro("AliAnalysisTaskMyMuonTree_AOD.cxx++g");
+  gInterpreter->LoadMacro("AliAnalysisTaskMyMuonTree_AOD.cxx++g"); //>>>
   muonTask = reinterpret_cast<AliAnalysisTaskMyMuonTree_AOD *>(
-      gInterpreter->ExecuteMacro("AddTaskMyMuonTreeGrid_AOD.C(\"muonTask\")"));
+      gInterpreter->ExecuteMacro("AddTaskMyMuonTreeGrid_AOD.C(\"muonTask\")")); //>>>
   muonTask->SetMC(isMMC);
   muonTask->SetMuonTrackCuts(MuonTrackCuts);
 #else
-  gROOT->LoadMacro("AliAnalysisTaskMyMuonTree_AOD.cxx++g");
+  gROOT->LoadMacro("AliAnalysisTaskMyMuonTree_AOD.cxx++g"); //>>>
   muonTask =
       new AliAnalysisTaskMyMuonTree_AOD("muonTask", MuonTrackCuts, isMMC);
 //  gSystem->Load("AliAnalysisTaskMyMuonTree_AOD_cxx.so");
