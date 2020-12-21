@@ -56,7 +56,10 @@ public:
   Float_t fVertexX; //! vertex X
   Float_t fVertexY; //! vertex Y
   Float_t fVertexZ; // vertex Z
+  Float_t fVertexSigmaZ; // vertex Z
+    Float_t fSPDVertexSigmaZ;
   Int_t fVertexNC;
+    Int_t fSPDVertexNC;
 //  Double_t fVertexResZ; //Resolution on Z
 
   Int_t fTriggerCINT7; //! trigger V0C and V0A
@@ -79,12 +82,13 @@ public:
   // 1: events passing trigger selection
 
   Float_t fCentralityV0M;
-  Float_t fCentralityTKL;
-    Float_t fCentralityCL0;
-    Float_t fCentralityCL1;
+//  Float_t fCentralityTKL;
+//    Float_t fCentralityCL0;
+//    Float_t fCentralityCL1;
     Float_t fCentralitySPDTracklets;
-    Float_t fCentralitySPDClusters;
-  Float_t fCentralityTKLvsV0M;
+    Float_t fSPDTrackletsValue;
+//    Float_t fCentralitySPDClusters;
+//  Float_t fCentralityTKLvsV0M;
 
   TClonesArray *fTracklets; // array of all tracks
   TClonesArray *fDimuons;   // array of all dimuons

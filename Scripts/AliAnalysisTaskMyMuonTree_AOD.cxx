@@ -41,6 +41,7 @@
 #include "AliCounterCollection.h"
 #include "AliEventplane.h"
 #include "AliMultSelection.h"
+#include "AliMultEstimator.h"
 #include "AliMuonTrackCuts.h"
 
 ClassImp(MyEventLight);
@@ -256,13 +257,13 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
     (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
                                    ->GetInputEventHandler()))
          ->IsEventSelected() &
-     (AliVEvent::kINT7inMUON));
+     (AliVEvent::kINT7));
   // Useful trigger class names composed of
   // Class
 
   const Char_t *trigNames[6] = {
       "CINT7-B-NOPF-MUFAST", "CMSL7-B-NOPF-MUFAST", "CMSH7-B-NOPF-MUFAST",
-      "CMUL7-B-NOPF-MUFAST", "CMLL7-B-NOPF-MUFAST", "CINT7-B-NOPF-CENTNOTRD"};
+      "CMUL7-B-NOPF-MUFAST", "CMLL7-B-NOPF-MUFAST", "CINT7-B-NOPF-CENT"}; // >>> CENTNOTRD
 
   TString firedTrigClasses = fAOD->GetFiredTriggerClasses();
 
@@ -386,7 +387,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
 
   //  if (isPhysSelectedMUFAST && isTriggerSelected && (clusterMUFAST)) {
  if (isPhysSelectedMUL && triggerCMUL7 && clusterMUFAST) {
-   // >>>>>> if (isPhysSelectedINT && triggerCINT7 && clusterMUFAST) {
+   // >>>>>>>  if (isPhysSelectedINT && triggerCINT7CENT) {
     fEvent->Build(fAOD, isPhysSelectedMUFAST, fMuonTrackCuts, fMC);
     fMyMuonTree->Fill();
   }
@@ -468,7 +469,7 @@ CorrelationLight::CorrelationLight()
 //_______________________________________________________________________
 MyEventLight::MyEventLight()
     : TObject(), fNTracklets(0), fNDimuons(0), fNMCDimuons(0), fNCorrelations(0), fRunNumber(0),
-      fNPileupVtx(0), fIsPileupFromSPDMultBins(0), fVertexZ(0), fVertexNC(0), fCentralityV0M(0), fCentralityTKL(0), fCentralityCL0(0), fCentralityCL1(0), fCentralitySPDTracklets(0), fCentralitySPDClusters(0), fCentralityTKLvsV0M(0),
+      fNPileupVtx(0), fIsPileupFromSPDMultBins(0), fVertexZ(0), fVertexSigmaZ(0), fSPDVertexSigmaZ(0), fVertexNC(0), fSPDVertexNC(0), fCentralityV0M(0), fCentralitySPDTracklets(0), fSPDTrackletsValue(0),
       fTracklets(new TClonesArray("TrackletLight", 0)),
       fDimuons(new TClonesArray("DimuonLight", 0)),
       fCorrelations(new TClonesArray("CorrelationLight", 0)),
@@ -516,10 +517,20 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
 
 
   const AliAODVertex *primVtx = aod->GetPrimaryVertex();
+  const AliAODVertex *SPDVtx = aod->GetPrimaryVertexSPD();
+    Float_t vtxErr[3];
+    Double_t covMatrix[6];
+    Double_t covMatrixSPD[6];
   fVertexX = primVtx->GetX();
   fVertexY = primVtx->GetY();
   fVertexZ = primVtx->GetZ();
+    primVtx->GetCovarianceMatrix(covMatrix);
+    SPDVtx->GetCovarianceMatrix(covMatrixSPD);
+ // primVtx->GetSigmaXYZ(vtxErr);
+    fVertexSigmaZ = sqrt(covMatrix[5]);
+    fSPDVertexSigmaZ = sqrt(covMatrixSPD[5]);
   fVertexNC = primVtx->GetNContributors();
+    fSPDVertexNC = primVtx->GetNContributors();
 //    primVtx->GetSigmaXYZ(sigma);
 //    fVertexResZ = sigma[2];
 //  fVertexNC = -1;
@@ -531,7 +542,7 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
 
   const Char_t *trigNames[6] = {"CINT7-B-NOPF-MUFAST", "CMSL7-B-NOPF-MUFAST",
                                 "CMSH7-B-NOPF-MUFAST", "CMUL7-B-NOPF-MUFAST",
-                                "CMLL7-B-NOPF-MUFAST", "CINT7-B-NOPF-CENT "};
+                                "CMLL7-B-NOPF-MUFAST", "CINT7-B-NOPF-CENT"};
 
   // fFiredTriggerClass = aod->GetFiredTriggerClasses();
 
@@ -549,7 +560,7 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
   // fTriggerCMLLB)
   //  if(fTriggerCMUL7 || fTriggerCMLL7)
  if (fTriggerCMUL7)
-// >>>>>> if (fTriggerCINT7)
+// >>>>> if (fTriggerCINT7)
     fPassTriggerSelection = 1;
   else
     fPassTriggerSelection = 0;
@@ -558,12 +569,14 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
       (AliMultSelection *)aod->FindListObject("MultSelection");
   //	Printf("MultSelection %p \n",MultSelection);
   fCentralityV0M = MultSelection->GetMultiplicityPercentile("V0M");
-    fCentralityTKL = MultSelection->GetMultiplicityPercentile("TKL");
-    fCentralityCL0 = MultSelection->GetMultiplicityPercentile("CL0");
-    fCentralityCL1 = MultSelection->GetMultiplicityPercentile("CL1");
-    fCentralitySPDTracklets = MultSelection->GetMultiplicityPercentile("SPDTracklets");
-    fCentralitySPDClusters = MultSelection->GetMultiplicityPercentile("SPDClusters");
-    fCentralityTKLvsV0M = MultSelection->GetMultiplicityPercentile("TKLvsV0M");
+//    fCentralityTKL = MultSelection->GetMultiplicityPercentile("TKL");
+//    fCentralityCL0 = MultSelection->GetMultiplicityPercentile("CL0");
+//    fCentralityCL1 = MultSelection->GetMultiplicityPercentile("CL1");
+    fCentralitySPDTracklets = MultSelection->GetMultiplicityPercentile("SPDTracklets"); // >>>>>>>> ,true);
+    AliMultEstimator *AliMuEst = MultSelection->GetEstimator("SPDTracklets");
+    fSPDTrackletsValue = AliMuEst->GetValue();
+//    fCentralitySPDClusters = MultSelection->GetMultiplicityPercentile("SPDClusters");
+//    fCentralityTKLvsV0M = MultSelection->GetMultiplicityPercentile("TKLvsV0M");
 
   AliAODTrack *track;
   TrackletLight *tracklet;
