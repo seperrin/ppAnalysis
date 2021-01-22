@@ -10,6 +10,7 @@
 #include <TFitResultPtr.h>
 #include <TPaveText.h>
 #include <TGraph.h>
+#include <TMatrixD.h>
 #include <TLorentzVector.h>
 #include <string>
 #include <vector>
@@ -50,6 +51,250 @@ TFitResultPtr FittingAllInvMass(const char *histoname, TCanvas *canvas);
 TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i);
 void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *p, Int_t /*iflag */  );
 int GetCent(double cent);
+int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
+
+int LimitsPM[12][20][5] =
+{       {   {31, 17, 12, 7, 0}, //Group 1
+            {32, 18, 13, 7, 0},
+            {34, 19, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {38, 21, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {40, 22, 16, 9, 0},
+            {40, 23, 16, 10, 0},
+            {41, 23, 17, 10, 0},
+            {41, 23, 17, 10, 0},
+            {42, 23, 17, 10, 0},
+            {41, 23, 17, 10, 0},
+            {39, 22, 16, 9, 0},
+            {37, 21, 15, 9, 0},
+            {35, 19, 14, 8, 0}  },
+        {   {30, 17, 12, 7, 0}, //Group 2
+            {32, 18, 13, 7, 0},
+            {34, 19, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 22, 16, 9, 0},
+            {38, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {40, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {37, 21, 15, 9, 0},
+            {35, 20, 14, 8, 0},
+            {34, 19, 13, 8, 0}  },
+        {   {30, 17, 12, 7, 0}, //Group 3
+            {32, 18, 13, 7, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 22, 16, 9, 0},
+            {38, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {40, 22, 16, 9, 0},
+            {40, 23, 16, 10, 0},
+            {39, 22, 16, 9, 0},
+            {37, 21, 15, 9, 0},
+            {35, 20, 14, 8, 0},
+            {34, 19, 13, 8, 0}   },
+        {   {29, 16, 11, 7, 0},  //Group 4
+            {31, 17, 12, 7, 0},
+            {32, 18, 13, 7, 0},
+            {34, 19, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {38, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {38, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {32, 18, 13, 7, 0}  },
+        {   {29, 16, 12, 7, 0}, //Group 5
+            {31, 17, 12, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {36, 20, 15, 8, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {39, 22, 16, 9, 0},
+            {40, 22, 16, 9, 0},
+            {41, 23, 16, 10, 0},
+            {41, 23, 17, 10, 0},
+            {42, 23, 17, 10, 0},
+            {41, 23, 16, 10, 0},
+            {39, 22, 16, 9, 0},
+            {37, 20, 15, 9, 0},
+            {35, 19, 14, 8, 0}  },
+        {   {27, 15, 11, 6, 0}, //Group 6
+            {28, 16, 11, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 18, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 15, 8, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {38, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {33, 18, 13, 8, 0}   },
+        {   {27, 15, 11, 6, 0}, //Group 7
+            {29, 16, 11, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 17, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 15, 8, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 20, 15, 9, 0},
+            {35, 20, 14, 8, 0},
+            {33, 18, 13, 8, 0},
+            {31, 17, 12, 7, 0}   },
+        {   {27, 15, 11, 6, 0}, //Group 8
+            {29, 16, 11, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 17, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 15, 8, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {32, 18, 13, 8, 0},
+            {31, 17, 12, 7, 0}   },
+        {   {27, 15, 11, 6, 0}, //Group 9
+            {29, 16, 11, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 18, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 14, 8, 0},
+            {34, 19, 13, 8, 0},
+            {32, 17, 13, 7, 0}   },
+        {   {27, 15, 11, 6, 0}, //Group 10
+            {29, 16, 11, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 18, 13, 7, 0},
+            {33, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 15, 8, 0},
+            {35, 20, 14, 8, 0},
+            {33, 19, 13, 8, 0},
+            {31, 17, 13, 7, 0},
+            {30, 17, 12, 7, 0}   },
+        {   {29, 16, 12, 7, 0}, //Group 11
+            {31, 17, 12, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {33, 19, 13, 8, 0},
+            {31, 17, 13, 7, 0},
+            {30, 16, 12, 7, 0}   },
+        {   {29, 16, 12, 7, 0}, //Group 12
+            {31, 17, 12, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {36, 20, 14, 8, 0},
+            {36, 20, 15, 8, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {32, 18, 13, 7, 0},
+            {31, 17, 12, 7, 0}   }
+};
 
 Double_t mJpsi =  3.096916;
  Double_t mPsip =  3.686108;
@@ -63,8 +308,8 @@ TH1F* V2JPsiTkl(NULL);
 void PlotFromTree(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kTRUE;
-    bool doMixedEvents = kTRUE;
+    bool doTracklets = kFALSE;
+    bool doMixedEvents = kFALSE;
     bool CombineFits = kFALSE;
     
 // ************************************
@@ -72,6 +317,7 @@ void PlotFromTree(){
 // ************************************
 
     double ZvtxCut = 10;
+    double SigmaZvtxCut = 0.25;
     double DPhiCut = 0.01;
     double TklEtaCut  = 1;
     double LowDimuYCut = -4;
@@ -111,12 +357,24 @@ void PlotFromTree(){
     
     const int NbBinsCent = 5;
     const int NbBinsZvtx = 20;
+    
+    
+  //  Char_t Group_Period[50] = "Group1";
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t fileInLoc[200];
+    Char_t FitFileName[200];
+    
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesRun2.root");
 
 // *************************
 // Initialiser les graphes *
 // *************************
     
-  //  TH1F* hnseg(NULL);
+    TH1F* hnseg(NULL);
     TH1F* hnseg2(NULL);
     TH1F* hnseg3(NULL);
     TH1F* hnseg4(NULL);
@@ -132,8 +390,8 @@ void PlotFromTree(){
     TH2F* hnseg8ME(NULL);
     TH1F* hnseg8ME_proj_tampon(NULL);
     TH1F* hnseg8TklME_proj_tampon(NULL);
-    TH1F* hnseg8ME_proj(NULL);
-    TH1F* hnseg8TklME_proj(NULL);
+    TH1D* hnseg8ME_proj(NULL);
+    TH1D* hnseg8TklME_proj(NULL);
     TH1F* ME_proj_tampon(NULL);
     TH1F* ProjCopy(NULL);
     TH1F* ProjCopy2(NULL);
@@ -264,7 +522,7 @@ void PlotFromTree(){
     TH1F* coefficients2(NULL);
     TH1F* baselines0(NULL);
     TH1F* c2b0(NULL);
-  //  TH1F* V2JPsiTkl(NULL);
+    TH1F* V2JPsiTkl(NULL);
     
     ProjCopy = new TH1F("ProjCopy",
                       "ProjCopy",
@@ -578,10 +836,10 @@ void PlotFromTree(){
     hnseg8Tkl_proj = new TH1F("hnseg8Tkl_proj", "Correlation Tkl wrt delta eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
     hnseg8Tkl_proj->SetXTitle("Correlation DeltaEta");
     hnseg8Tkl_proj->SetYTitle("Correlation mean");
-    hnseg8ME_proj = new TH1F("hnseg8ME_proj", "MixedEvent Correlation wrt delta eta, projection",NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+    hnseg8ME_proj = new TH1D("hnseg8ME_proj", "MixedEvent Correlation wrt delta eta, projection",NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
     hnseg8ME_proj->SetXTitle("Correlation DeltaEta");
     hnseg8ME_proj->SetYTitle("Correlation mean");
-    hnseg8TklME_proj = new TH1F("hnseg8TklME_proj", "MixedEvent Correlation Tkl wrt delta eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8TklME_proj = new TH1D("hnseg8TklME_proj", "MixedEvent Correlation Tkl wrt delta eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
     hnseg8TklME_proj->SetXTitle("Correlation DeltaEta");
     hnseg8TklME_proj->SetYTitle("Correlation mean");
  
@@ -713,55 +971,6 @@ void PlotFromTree(){
 // *************************
     
     
-        
-//    TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge16All17hikl_PS_CutsEvent.root");
-//    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge17mor_PS_CutsEvent.root");
-//    TFile fileIn3("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge18All_PS_CutsEvent.root");
-    TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent/muonGrid.root");
-    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent/muonGrid.root");
-    TFile fileIn3("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent/muonGrid.root");
-  //  TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17r_muoncalopass1_PS_CutsEvent/muonGrid.root");
-//    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17r_muoncalopass1_PS_CutsEvent/muonGrid.root");
-    std::cout << "1" <<std::endl;
-        TTree* theTree1 = NULL;
-        TTree* theTree2 = NULL;
-        TTree* theTree3 = NULL;
-        fileIn1.GetObject("MyMuonTree",theTree1);
-        fileIn2.GetObject("MyMuonTree",theTree2);
-        fileIn3.GetObject("MyMuonTree",theTree3);
-    std::cout << "2" <<std::endl;
-        
-    MyEventLight* fEvent = 0;
-    TClonesArray *fCorrelations = 0;
-    TClonesArray *fTracklets = 0;
-    TClonesArray *fDimuons = 0;
-    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
-    TrackletLight *trac = 0;
-    TrackletLight *tracklet1 = 0;
-    TrackletLight *tracklet2 = 0;
-    TrackletLight *trackletME = 0;
-    DimuonLight *dimu = 0;
-        //setting the branch address
-    std::cout << "3" <<std::endl;
-  //  theTree->SetBranchAddress("event", &fEvent);
-    TBranch *branch = theTree1->GetBranch("event");
-//        auto bntrack = theTree->GetBranch("tracks");
-        //auto branch  = theTree->GetBranch("mcparticles.fPx");
-    std::cout << "3.5" <<std::endl;
-        branch->SetAddress(&fEvent);
-    std::cout << "4" <<std::endl;
-    auto nevent1 = theTree1->GetEntries();
-    auto nevent2 = theTree2->GetEntries();
-    auto nevent3 = theTree3->GetEntries();
-    auto nevent = nevent1+nevent2+nevent3;
-    
-    std::cout << "5" <<std::endl;
-    fCorrelations = fEvent->fCorrelations;
-    fTracklets = fEvent->fTracklets;
-    fDimuons = fEvent->fDimuons;
-//            auto nevent = bntrack->GetEntries();
-    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
-    
     int DimuCentralSeen = 0;
     int DimuPeriphSeen = 0;
     int DimuSeenMassCut = 0;
@@ -793,6 +1002,64 @@ void PlotFromTree(){
     int NormTklCentral = 0;
     int NormTklPeriph = 0;
     int countsigma = 0;
+    
+        
+//    TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge16All17hikl_PS_CutsEvent.root");
+//    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge17mor_PS_CutsEvent.root");
+//    TFile fileIn3("~/../../Volumes/Transcend2/ppAnalysis/Scripts/merge18All_PS_CutsEvent.root");
+//    TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent/muonGrid.root");
+//    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent/muonGrid.root");
+//    TFile fileIn3("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC16h_pass1_PS_CutsEvent/muonGrid.root");
+//               TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group1_LHC16h/muonGrid.root");
+//               TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group1_LHC16k/muonGrid.root");
+//               TFile fileIn3("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group1_LHC16h/muonGrid.root");
+  //  TFile fileIn1("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17r_muoncalopass1_PS_CutsEvent/muonGrid.root");
+//    TFile fileIn2("~/../../Volumes/Transcend2/ppAnalysis/Scripts/GoodLHC17r_muoncalopass1_PS_CutsEvent/muonGrid.root");
+    
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    TrackletLight *tracklet1 = 0;
+    TrackletLight *tracklet2 = 0;
+    TrackletLight *trackletME = 0;
+    DimuonLight *dimu = 0;
+    TTree* theTree = NULL;
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+           
+           sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+       TFile fileIn(fileInLoc);
+        
+        char str [20];
+        int GroupNum;
+
+        sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
+    
+    
+    
+    std::cout << "1" <<std::endl;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
 
     
 // ************************************
@@ -801,56 +1068,49 @@ void PlotFromTree(){
     if(doMixedEvents){
         cout << "MIXED EVENTS IS WANTED - WILL NOW PROCESS EVENTS AND ORGANISE POOLS" << endl;
       //  Double_t px[1000], py[1000];
-            for (int i=0;i<nevent1;i++) {
+            for (int i=0;i<nevent;i++) {
                 if(i%100000 == 0){
                         std::cout << "[";
-                        int pos = barWidth * i / nevent;
+                        double portion = double(i)/nevent;
+                        long pos = barWidth * portion;
                         for (int k = 0; k < barWidth; ++k) {
                             if (k < pos) std::cout << "=";
                             else if (k == pos) std::cout << ">";
                             else std::cout << " ";
                         }
-                        std::cout << "] " << int(i * 100 / nevent) << "%     " << i << "/" << nevent << " Pooling";
+                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods << " Pooling";
                         std::cout.flush();
                     std::cout << std::endl;
-                }
-                if(i == nevent1){
-                    branch = theTree2->GetBranch("event");
-                    branch->SetAddress(&fEvent);
-                    fCorrelations = fEvent->fCorrelations;
-                    fTracklets = fEvent->fTracklets;
-                    fDimuons = fEvent->fDimuons;
-                    cout << "Switched to 2nd TTree" <<endl;
-                }
-                if(i == nevent1+nevent2){
-                    branch = theTree3->GetBranch("event");
-                    branch->SetAddress(&fEvent);
-                    fCorrelations = fEvent->fCorrelations;
-                    fTracklets = fEvent->fTracklets;
-                    fDimuons = fEvent->fDimuons;
-                    cout << "Switched to 3rd TTree" <<endl;
                 }
                 if(doTracklets && (i%10!=0)){
                     continue;
                 }
-                if(i<nevent1){
-                    theTree1->GetEvent(i);
-                }
-                else if(i>=nevent1 && i<nevent1+nevent2){
-                    theTree2->GetEvent(i-nevent1);
-                }
-                else if(i>=nevent1+nevent2){
-                    theTree3->GetEvent(i-(nevent1+nevent2));
-                }
+                    theTree->GetEvent(i);
                 if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
                     continue;
                 }
+                
+                int NumberOfTrackletsPassingEtaCut = 0;
+                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                    trackletME = (TrackletLight*)fTracklets->At(j);
+                    if(TMath::Abs(trackletME->fEta) < TklEtaCut){
+                        NumberOfTrackletsPassingEtaCut++;
+                    }
+                    
+                }
+                
+                if(NumberOfTrackletsPassingEtaCut==0){
+                    continue;
+                }
+                
                 for (Int_t j=0; j<fEvent->fNDimuons; j++) {
                    dimu = (DimuonLight*)fDimuons->At(j);
-                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
+                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
+                       
                        double cent = fEvent->fCentralitySPDTracklets;
-                       int centint = GetCent(cent);
                        int zv = floor(fEvent->fVertexZ) + ZvtxCut;
+                       int centint = GetCent(cent);
+             //          int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
                        int phint = 0;
                        double phi = dimu->fPhi;
                        if(phi < -TMath::Pi()/2){
@@ -879,10 +1139,11 @@ void PlotFromTree(){
                 
                 if(doTracklets){
                
-                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut)){
+                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
                        double cent = fEvent->fCentralitySPDTracklets;
-                       int centint = GetCent(cent);
                        int zv = floor(fEvent->fVertexZ) + ZvtxCut;
+                       int centint = GetCent(cent);
+                   //    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
                        if(PoolsSizeTkl[centint][zv]<100){
                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
@@ -903,6 +1164,8 @@ void PlotFromTree(){
                 
             }
     }
+        
+    }
     
 // ************************************
 // Boucle sur les evenements, notés i *
@@ -910,53 +1173,60 @@ void PlotFromTree(){
     
     cout << "=== NOW EVENT STUDY ===" <<endl;
     cout << "Switching back to 1st TTree" <<endl;
-    branch = theTree1->GetBranch("event");
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+    TFile fileIn(fileInLoc);
+        
+        char str [20];
+        int GroupNum;
+
+        sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
+    
+    std::cout << "1" <<std::endl;
+            fileIn.GetObject("MyMuonTree",theTree);
+        std::cout << "2" <<std::endl;
+            //setting the branch address
+        std::cout << "3" <<std::endl;
+      //  theTree->SetBranchAddress("event", &fEvent);
+        TBranch *branch = theTree->GetBranch("event");
+    //        auto bntrack = theTree->GetBranch("tracks");
+            //auto branch  = theTree->GetBranch("mcparticles.fPx");
+        std::cout << "3.5" <<std::endl;
+            branch->SetAddress(&fEvent);
+        std::cout << "4" <<std::endl;
+        auto nevent = theTree->GetEntries();
+        
+        std::cout << "5" <<std::endl;
+        fCorrelations = fEvent->fCorrelations;
+        fTracklets = fEvent->fTracklets;
+        fDimuons = fEvent->fDimuons;
+    
+    branch = theTree->GetBranch("event");
     branch->SetAddress(&fEvent);
     fCorrelations = fEvent->fCorrelations;
     fTracklets = fEvent->fTracklets;
     fDimuons = fEvent->fDimuons;
     
-        for (int i=0;i<nevent1;i++) {
+        for (int i=0;i<nevent;i++) {
             if(i%100000 == 0){
                     std::cout << "[";
-                    int pos = barWidth * i / nevent;
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
                     for (int k = 0; k < barWidth; ++k) {
                         if (k < pos) std::cout << "=";
                         else if (k == pos) std::cout << ">";
                         else std::cout << " ";
                     }
-                    std::cout << "] " << int(i * 100 / nevent) << "%     " << i << "/" << nevent;
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods;
                     std::cout.flush();
                 std::cout << std::endl;
-            }
-            if(i == nevent1){
-                branch = theTree2->GetBranch("event");
-                branch->SetAddress(&fEvent);
-                fCorrelations = fEvent->fCorrelations;
-                fTracklets = fEvent->fTracklets;
-                fDimuons = fEvent->fDimuons;
-                cout << "Switched to 2nd TTree" <<endl;
-            }
-            if(i == nevent1+nevent2){
-                branch = theTree3->GetBranch("event");
-                branch->SetAddress(&fEvent);
-                fCorrelations = fEvent->fCorrelations;
-                fTracklets = fEvent->fTracklets;
-                fDimuons = fEvent->fDimuons;
-                cout << "Switched to 3rd TTree" <<endl;
             }
             if(doTracklets && (i%10!=0)){
                 continue;
             }
-            if(i<nevent1){
-                theTree1->GetEvent(i);
-            }
-            else if(i>=nevent1 && i<nevent1+nevent2){
-                theTree2->GetEvent(i-nevent1);
-            }
-            else if(i>=nevent1+nevent2){
-                theTree3->GetEvent(i-(nevent1+nevent2));
-            }
+                theTree->GetEvent(i);
             if(fEvent->fIsPileupFromSPDMultBins){
                 EventPileUpMult++;
             }
@@ -971,9 +1241,11 @@ void PlotFromTree(){
                 continue;
             }
             int NumberCloseEtaTracklets = 0;
+            int NumberOfTrackletsPassingEtaCut = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
                 if((TMath::Abs(trac->fEta) < TklEtaCut)){
+                    NumberOfTrackletsPassingEtaCut++;
                     hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
                     hDPhi->Fill(trac->fDPhi);
                     if((TMath::Abs(trac->fDPhi) < DPhiCut)){
@@ -981,6 +1253,10 @@ void PlotFromTree(){
                     }
                 }
                 
+            }
+            
+            if(NumberOfTrackletsPassingEtaCut==0){
+                continue;
             }
             
             CentV0M->Fill(fEvent->fCentralityV0M);
@@ -1005,24 +1281,29 @@ void PlotFromTree(){
             
             for (Int_t j=0; j<fEvent->fNDimuons; j++) {
                 dimu = (DimuonLight*)fDimuons->At(j);
-                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut)){
+                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut)){
                     //(fEvent->fNPileupVtx == 0) &&
                     //  (TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (dimu->fEta < HighDimuEtaCut ) && (dimu->fEta > LowDimuEtaCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut)
                     // fEvent->fNPileupVtx == 0) && (TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut)
                     DimuSeenNoMassCut++;
                     
+                    int centint = 99;
+                    
                     if((dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
                         double mass = dimu->fInvMass;
                         int massint = int((mass-MinInvMass)/SizeBinInvMass);
                        double cent = fEvent->fCentralitySPDTracklets;
-                       int centint = GetCent(cent);
                        double zv = fEvent->fVertexZ;
                        int zvint = floor(zv) + ZvtxCut;
+                        int centint = GetCent(cent);
+                     //   centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                         DimuonCounter[centint][zvint][massint]++;
                         if(cent <= CentSPDTrackletsCentral){
+                     //   if(centint==0){
                             DimuC++;
                         }
                         else if(cent > CentSPDTrackletsPeriph){
+                      //  else if(centint == 4){
                            DimuP++;
                         }
                     }
@@ -1030,10 +1311,12 @@ void PlotFromTree(){
                     hnseg->Fill(dimu->fInvMass);
                     hPtWrtMassInv[0]->Fill(dimu->fInvMass, dimu->fPt);
                     if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
+                  //  if(centint==0){
                         InvMass_Central->Fill(dimu->fInvMass);
                         hPtWrtMassInv[1]->Fill(dimu->fInvMass, dimu->fPt);
                     }
                     if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
+                  //  if(centint==4){
                         InvMass_Periph->Fill(dimu->fInvMass);
                         hPtWrtMassInv[2]->Fill(dimu->fInvMass, dimu->fPt);
                     }
@@ -1044,9 +1327,10 @@ void PlotFromTree(){
                         double massME = dimu->fInvMass;
                         int massintME = int((massME-MinInvMass)/SizeBinInvMass);
                        double centME = fEvent->fCentralitySPDTracklets;
-                       int centintME = GetCent(centME);
+                        int centintME = GetCent(centME);
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
+                     //   int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -1082,7 +1366,7 @@ void PlotFromTree(){
 // ***********************************
             for (Int_t j=0; j<fEvent->fNCorrelations; j++) {
                 correl = (CorrelationLight*)fCorrelations->At(j);
-                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) &&
+                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) &&
                     Float_t DeltaPhi = correl->fDeltaPhi;
                     if(DeltaPhi < -TMath::Pi()/2){
                         DeltaPhi += 2* TMath::Pi();
@@ -1105,19 +1389,22 @@ void PlotFromTree(){
                     int centint = GetCent(cent);
                     double zv = fEvent->fVertexZ;
                     int zvint = floor(zv) + ZvtxCut;
+                  //  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
                         if(cent <= CentSPDTrackletsCentral){
+                      //  if(centint == 0){
                             YCentral->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                         else if(cent > CentSPDTrackletsPeriph){
+                      //  else if(centint ==4){
                             YPeriph->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                     }
                 }
             }
             
-            if(TMath::Abs(fEvent->fVertexZ) < ZvtxCut){
+            if((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
                 hnseg10->Fill(fEvent->fCentralityV0M, NumberCloseEtaTracklets); //fEvent->fNTracklets
             }
             
@@ -1132,11 +1419,14 @@ void PlotFromTree(){
                   int centint = GetCent(cent);
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
+               //   int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
                 if(cent <= CentSPDTrackletsCentral){
+              //  if(centint==0){
                     TklC++;
                 }
                 else if(cent > CentSPDTrackletsPeriph){
+               // else if(centint==4){
                     TklP++;
                 }
                 
@@ -1144,7 +1434,7 @@ void PlotFromTree(){
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
-                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts
+                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts
                             Float_t DeltaPhi = tracklet1->fPhi - tracklet2->fPhi;
                             if(DeltaPhi < -TMath::Pi()/2){
                                 DeltaPhi += 2* TMath::Pi();
@@ -1158,11 +1448,14 @@ void PlotFromTree(){
                                int centint = GetCent(cent);
                                double zv = fEvent->fVertexZ;
                                int zvint = floor(zv) + ZvtxCut;
+                              //  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                                CorrelationsTkl[centint][zvint]->Fill(DeltaPhi,DeltaEta);
                                 if(cent <= CentSPDTrackletsCentral){
+                              //  if(centint==0){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
                                 }
                                 else if(cent > CentSPDTrackletsPeriph){
+                              //  else if(centint==4){
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
                                 }
                    }
@@ -1172,7 +1465,7 @@ void PlotFromTree(){
     // Event mixing
                 
                 if(doMixedEvents){
-                    if((TMath::Abs(fEvent->fVertexZ) < ZvtxCut)){
+                    if((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
                         for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                           tracklet1 = (TrackletLight*)fTracklets->At(j);
                             if(TMath::Abs(tracklet1->fEta) < TklEtaCut){
@@ -1180,6 +1473,7 @@ void PlotFromTree(){
                               int centintME = GetCent(centME);
                               double zvME = fEvent->fVertexZ;
                               int zvintME = floor(zvME) + ZvtxCut;
+                           //     int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
                             
 
                               for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
@@ -1198,12 +1492,14 @@ void PlotFromTree(){
                                   
                                   
                                       if(cent <= CentSPDTrackletsCentral){
+                              //    if(centintME ==0){
                                           YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
                                           if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
                                               NormTklCentral += 1;
                                           }
                                       }
                                       else if(cent > CentSPDTrackletsPeriph){
+                             //     else if(centintME==4){
                                           YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
                                           if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
                                               NormTklPeriph += 1;
@@ -1221,6 +1517,7 @@ void PlotFromTree(){
             
             
             
+    }
     }
     
     cout << "Reading of events finished" <<endl;
@@ -1823,17 +2120,24 @@ void PlotFromTree(){
         Yield_Difference_MassBin[i+1]->Draw("E");
     }
     
+    TFile *FitFile;
+    FitFile = new TFile(FitFileName,"RECREATE");
+    
     TCanvas* c8 = new TCanvas;
+    // ROOT THAT Yield in bins of mass
     c8->SetTitle("Yields in Mass Bins CtrlPeriphDiff");
     //Correlation yield DeltaEta wrt DeltaPhi TH2 -> Central, Periph, Difference [MassBins]
     c8->Divide(NbinsInvMass,3);
     for(int i=1; i<=NbinsInvMass; i++){
         c8->cd(i);
         Yield_Central_MassBin[i-1]->Draw("E");
+        Yield_Central_MassBin[i-1]->Write();
         c8->cd(NbinsInvMass+i);
         Yield_Periph_MassBin[i-1]->Draw("E");
+        Yield_Periph_MassBin[i-1]->Write();
         c8->cd(2*NbinsInvMass+i);
         Yield_Difference_MassBin[i-1]->Draw("E");
+        Yield_Difference_MassBin[i-1]->Write();
     }
     
     for(int i=1; i<NbinsInvMass+1; i++){
@@ -1842,15 +2146,20 @@ void PlotFromTree(){
     }
     
     TCanvas* c10 = new TCanvas;
+    // ROOT THAT yields phi bins
     c10->SetTitle("Yields wrt mass Central Periph");
     // Yields wrt mass -> Periph, Central [Phi bins]
     c10->Divide(6,4);
     for(int i=1; i<NbinsDeltaPhi+1; i++){
         c10->cd(i);
         YieldWrtMass_Central[i-1]->Draw("E");
+        YieldWrtMass_Central[i-1]->Write();
         c10->cd(NbinsDeltaPhi+i);
         YieldWrtMass_Periph[i-1]->Draw("E");
+        YieldWrtMass_Periph[i-1]->Write();
     }
+    
+    FitFile->Close();
     
     TCanvas* c11a = new TCanvas;
     c11a->SetTitle("Pt wrt Mass CentralPeriphAll");
@@ -1991,28 +2300,43 @@ void PlotFromTree(){
     
     }
     
+    TFile *f = new TFile(FitFileName,"UPDATE");
+    
     TCanvas*c15=new TCanvas();
+    // ROOT THAT Fouriers
     c15->SetTitle("Fourier coefs of yields wrt Phi");
     // Fourier coefficients of Yields wrt Phi [Mass bins] -> Extraction method 2
     c15->Divide(2,2);
     c15->cd(1);
     coefficients0->Draw();
+    coefficients0->Write();
     c15->cd(2);
     baselines0->Draw();
+    baselines0->Write();
     c15->cd(3);
     coefficients1->Draw();
+    coefficients1->Write();
     c15->cd(4);
     coefficients2->Draw();
+    coefficients2->Write();
             
 
     // Plot du V2 JPsi Tracklet
     TCanvas*c16=new TCanvas();
+    // ROOT THAT Extraction 2 plot
     c16->SetTitle("Extraction method 2");
     //V2_2 Jpsi-tkl wrt Mass fit (Extraction method 2)
     c2b0->Add(coefficients0, baselines0);
     V2JPsiTkl->Divide(coefficients2, c2b0);
     
     V2JPsiTkl->Draw();
+    V2JPsiTkl->Write();
+    
+    hnseg->Write();
+    InvMass_Central->Write();
+    InvMass_Periph->Write();
+
+    f->Close();
     
     
     TFile *outputFile;
@@ -2037,6 +2361,7 @@ void PlotFromTree(){
 //    cinvmassphibin->Divide(4,3);
     TCanvas *cinvmass = new TCanvas("cinvmass","Fitting All Phi - Different Centralities",10,10,700,500);
     cinvmass->SetTitle("Inv Mass Fits");
+    // ROOT THAT Inv mass fits
     cinvmass->Divide(1,3);
     
     TFitResultPtr res;
@@ -2044,9 +2369,24 @@ void PlotFromTree(){
     TFitResultPtr resperiph;
     TFitResult resu;
     char histoname[50];
-    double startvalues[16] = {30000, 3.096916, 0.07, 0.9, 10, 2, 15, 500,  3000,  0.01,     1000000,  1,      1,         1,   1,   1};
-    double lowvalues[16] =   {10,    3.05,     0.03, 0.7, 1,  1, 5,  0.01, 1,     0.0001,   100,      0.0001, 0.000001, -10, -10, -10};
-    double highvalues[16] = {100000, 3.15,     0.1,  1.1, 30, 5, 25, 5000, 10000, 100,      5000000,  100,    10,        10,  10,  10};
+    //Values OK for 20M evts
+//    double startvalues[16] = {800, 3.096916, 0.07, 0.9, 10, 2, 15, 15,   10,     0.1,          50000,   0.01,        1,         1,   1,   1};
+//    double lowvalues[16] =   {1,    3.05,    0.03, 0.7, 1,  1, 5,  0.01, 0.0001,  0.000000001,  10,    0.0000000001, 0.000001, -10, -10, -10};
+//    double highvalues[16] = {100000, 3.15,   0.1,  1.1, 30, 5, 25, 50,   100000, 10,           100000, 10,     10,        10,  10,  10};
+    
+    double startvalues[16] = {1100, 3.096916, 0.07,  0.9, 10, 2, 15, 20,    90,      0.01,     80000,      1.4,      1,         1,   1,   1};
+    double lowvalues[16] =   {10,    3.05,     0.03, 0.7, 1,  1, 5,  0.001,  1,    0.00001,   1000,        0.0001, 0.00000001, -10, -10, -10};
+    double highvalues[16] = {100000, 3.15,     1,  1.1, 30, 5, 25, 10000, 1000000, 100,      10000000,  100,    10,        10,  10,  10};
+    
+//    for(int index=0; index<16; index++){
+//        if(index==0 || index==7 || index==8 || index==10){
+//            startvalues[index]*=nevent1/20000000;
+//            lowvalues[index]*=nevent1/20000000;
+//            highvalues[index]*=nevent1/20000000;
+//        }
+//    }
+    //Values adapted to the number of events considered
+    
     sprintf(histoname,"hnseg");
     if(!CombineFits){
         res = FittingAllInvMassBin(histoname, cinvmass, 0);
@@ -2118,7 +2458,7 @@ void PlotFromTree(){
     
     // Combined fit of inv mass and V2_2
             if(CombineFits){
-                TVirtualFitter * virminuit = TVirtualFitter::Fitter(0,16);
+                TBackCompFitter * virminuit = (TBackCompFitter *) TVirtualFitter::Fitter(0,16);
                    for (int i = 0; i < 16; ++i) {
                      virminuit->SetParameter(i, fitV2_2->GetParName(i), fitV2_2->GetParameter(i), 0.01, lowvalues[i],highvalues[i]);
                    }
@@ -2149,18 +2489,19 @@ void PlotFromTree(){
                  virminuit->ReleaseParameter(7);
                 virminuit->ExecuteCommand("MIGRAD",arglist,2);
                 virminuit->ExecuteCommand("MIGRAD",arglist,2);
-                
-                TBackCompFitter * minuit = (TBackCompFitter *) TVirtualFitter::GetFitter();
-                resu = minuit->GetFitResult();
+                resu = virminuit->GetFitResult();
+              //  resu = minuit->GetFitResult();
+                std::cout << "pront";
+                resu.GetCovarianceMatrix().Print();
 
                    //get result
                    for (int i = 0; i < 16; ++i) {
-                     minParams[i] = minuit->GetParameter(i);
-                     parErrors[i] = minuit->GetParError(i);
+                     minParams[i] = virminuit->GetParameter(i);
+                     parErrors[i] = virminuit->GetParError(i);
                    }
                    double chi2, edm, errdef;
                    int nvpar, nparx;
-                   minuit->GetStats(chi2,edm,errdef,nvpar,nparx);
+                   virminuit->GetStats(chi2,edm,errdef,nvpar,nparx);
 
                    fitV2_2->SetParameters(minParams);
                    fitV2_2->SetParErrors(parErrors);
@@ -2264,9 +2605,9 @@ void PlotFromTree(){
             fitFcn->SetParErrors(parErrors);
            signalFcnJPsi->SetParameters(minParams);
             signalFcnPsi2S->SetParameters(minParams);
-        //   auto covMatrix = res->GetCovarianceMatrix();
-        //   std::cout << "Covariance matrix from the fit ";
-        //   covMatrix.Print();
+         //  auto covMatrix = res->GetCovarianceMatrix();
+           std::cout << "Covariance matrix from the fit ";
+           resu.GetCovarianceMatrix().Print();
            Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))/0.01;
             std::cout << "STATUS COV " << resu.CovMatrixStatus() <<endl;
            Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), resu.GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.01;
@@ -2309,9 +2650,12 @@ void PlotFromTree(){
     }
     
     
+    //Combining or not fit for Central-Periph method Ext1
+    
+    
     int niterations = 1;
     if(CombineFits){
-        niterations = 50;
+        niterations = 1;
     }
     cinvmass->cd();
     sprintf(histoname,"InvMass_Central");
@@ -2511,7 +2855,7 @@ void PlotFromTree(){
                 if(CombineFits){
                       double valuepar = par[k] + rand.Gaus(0,parerr[k]);
                       fitY_1Periph->FixParameter(k,valuepar);
-                      std::cout<<"valuepar: " << valuepar << " k " << k <<endl;
+//                      std::cout<<"valuepar: " << valuepar << " k " << k <<endl;
                 }
                 if(!CombineFits){
                     fitY_1Periph->FixParameter(k,par[k]);
@@ -2976,7 +3320,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    // this results in an ok fit for the polynomial function
    // however the non-linear part (lorenzian) does not
    // respond well.
-    Double_t params[12] = {1,1,1,1,1,1,1,1,1,1,1,1};
+    Double_t params[12] = {10,1,1,1,1,1,1,1,1,1,1,1};
    fitFcn->SetParameters(params);
     TVirtualFitter::Fitter(histo)->SetMaxIterations(100000);
     TVirtualFitter::Fitter(histo)->SetPrecision();
@@ -2990,7 +3334,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->SetParLimits(4,1,30);
     fitFcn->SetParLimits(5,1,5);
     fitFcn->SetParLimits(6,5,25);
-    fitFcn->SetParLimits(7,0.1,1000000);
+    fitFcn->SetParLimits(7,0.001,1000000);
     fitFcn->SetParLimits(8,0.1,1000000);
     fitFcn->SetParLimits(9,0.01,20);
     fitFcn->SetParLimits(10,0.01,1000000);
@@ -3182,4 +3526,17 @@ int GetCent(double cent){
 //    else{
 //        return 13;
 //    }
+}
+
+int GetCentPM(int Ntkl, int zvtx_idx, int groupnumber){
+
+    if(Ntkl==0){
+        return 4;
+    }
+
+    for(int cent_index=0;cent_index<5;cent_index++){
+        if(LimitsPM[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
+            return cent_index;
+        }
+    }
 }
