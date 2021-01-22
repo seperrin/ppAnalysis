@@ -25,8 +25,10 @@
 # include "TMinuit.h"
 # include "TRandom.h"
 # include <iostream>
+# include <fstream>
 # include <string>
 # include "TH1F.h"
+# include "TH1I.h"
 # include "TH1D.h"
 # include "TH2F.h"
 # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
@@ -45,7 +47,7 @@ void PlotFromTreeCINT(){
 // ************************************
 
     double ZvtxCut = 10;
-    double DPhiCut = 0.01*100000;
+    double DPhiCut = 0.01;
     double LowDimuYCut = -4;
     double HighDimuYCut = -2.5;
     double LowDimuPtCut = 0;
@@ -74,28 +76,50 @@ void PlotFromTreeCINT(){
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     int barWidth = 50;
     
+    Char_t Group_Period[50] = "Group8_LHC18m_CINTSPD";
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT","Group1_LHC16j_CINT","Group1_LHC16k_CINT","Group1_LHC16o_CINT","Group1_LHC16p_CINT","Group1_LHC17i_CINT","Group1_LHC17k_CINT","Group1_LHC17l_CINT"};
+    Char_t *arrayOfPeriods[] = {"Group8_CINTSPD"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
     const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
 // *************************
 // Initialiser les graphes *
 // *************************
     
     TH1F* hnseg(NULL);
+    TH1I* hnseg_num(NULL);
     TH1* PMSliced[20]={NULL};
     TH2F* PercentileMethod(NULL);
     TH2F* PercentileMethodLimits(NULL);
     TH1F* hnseg_raw(NULL);
-    TH1F* hnseg_den(NULL);
+    TH1I* hnseg_raw_num(NULL);
+    TH1I* hnseg_den(NULL);
     TH1F* hnseg_spdtkl(NULL);
+    TH1I* hnseg_spdtkl_num(NULL);
     TH1F* hnseg_spdtklval(NULL);
-    TH1F* hnseg_spdtklval_dist(NULL);
+    TH1I* hnseg_spdtklval_num(NULL);
+    TH1I* hnseg_spdtklval_dist(NULL);
+    TH1I* hnseg_Ntkl_dist(NULL);
     TProfile* hn(NULL);
     
     
     hnseg = new TH1F("hnseg",
                      "Mean Ntkl wrt Zvtx",
-                     21,-10,10);
+                     81,-10,10);
     hnseg->SetXTitle("Zvtx");
     hnseg->SetYTitle("Mean Ntkl");
+    
+    hnseg_num = new TH1I("hnseg_num",
+                     "Mean Ntkl wrt Zvtx - Numerator",
+                     81,-10,10);
+    hnseg_num->SetXTitle("Zvtx");
+    hnseg_num->SetYTitle("Sum Ntkl");
     
     PercentileMethod = new TH2F("PercentileMethod",
                      "Ntkl wrt Zvtx",
@@ -111,37 +135,61 @@ void PlotFromTreeCINT(){
     
     hnseg_raw = new TH1F("hnseg_raw",
                      "Mean raw Ntkl wrt Zvtx",
-                     21,-10,10);
+                     81,-10,10);
     hnseg_raw->SetXTitle("Zvtx");
     hnseg_raw->SetYTitle("Mean raw Ntkl");
     
-    hnseg_den = new TH1F("hnseg_den",
+    hnseg_raw_num = new TH1I("hnseg_raw_num",
+                     "Mean raw Ntkl wrt Zvtx - Numerator",
+                     81,-10,10);
+    hnseg_raw_num->SetXTitle("Zvtx");
+    hnseg_raw_num->SetYTitle("Mean raw Ntkl");
+    
+    hnseg_den = new TH1I("hnseg_den",
                      "Zvtx distribution",
-                     21,-10,10);
+                     81,-10,10);
     hnseg_den->SetXTitle("Zvtx");
     hnseg_den->SetYTitle("Count");
     
     hnseg_spdtkl = new TH1F("hnseg_spdtkl",
                      "Mean SPDTkl wrt Zvtx",
-                     21,-10,10);
+                     81,-10,10);
     hnseg_spdtkl->SetXTitle("Zvtx");
     hnseg_spdtkl->SetYTitle("Mean SPDTkl");
     
-    hnseg_spdtklval = new TH1F("hnseg_spdtklval",
-                        "Mean SPDTklVal wrt Zvtx",
-                        21,-10,10);
-       hnseg_spdtklval->SetXTitle("Zvtx");
-       hnseg_spdtklval->SetYTitle("Mean SPDTklVal");
+    hnseg_spdtkl_num = new TH1I("hnseg_spdtkl_num",
+                     "Mean SPDTkl wrt Zvtx - Numerator",
+                     81,-10,10);
+    hnseg_spdtkl_num->SetXTitle("Zvtx");
+    hnseg_spdtkl_num->SetYTitle("Mean SPDTkl");
     
-    hnseg_spdtklval_dist = new TH1F("hnseg_spdtklval_dist",
+    hnseg_spdtklval = new TH1F("hnseg_spdtklval",
+                     "Mean SPDTklVal wrt Zvtx",
+                     81,-10,10);
+    hnseg_spdtklval->SetXTitle("Zvtx");
+    hnseg_spdtklval->SetYTitle("Mean SPDTklVal");
+    
+    hnseg_spdtklval_num = new TH1I("hnseg_spdtklval_num",
+                        "Mean SPDTklVal wrt Zvtx - Numerator",
+                        81,-10,10);
+       hnseg_spdtklval_num->SetXTitle("Zvtx");
+       hnseg_spdtklval_num->SetYTitle("Mean SPDTklVal");
+    
+    hnseg_spdtklval_dist = new TH1I("hnseg_spdtklval_dist",
                      "Distribution of SPDTkl value",
                      160,0,160);
     hnseg_spdtklval_dist->SetXTitle("SPDTkl value");
     hnseg_spdtklval_dist->SetYTitle("Count");
     
+    hnseg_Ntkl_dist = new TH1I("hnseg_Ntkl_dist",
+                     "Distribution of Ntkl value",
+                     160,0,160);
+    hnseg_Ntkl_dist->SetXTitle("Ntkl value");
+    hnseg_Ntkl_dist->SetYTitle("Count");
+    
     hn = new TProfile("hn",
                      "Mean SPDTklVal wrt Zvtx TPro",
-                     21,-10,10);
+                     81,-10,10);
     hn->SetXTitle("Zvtx");
     hn->SetYTitle("Mean SPDTklVal");
 
@@ -149,9 +197,19 @@ void PlotFromTreeCINT(){
 // Analyse                 *
 // *************************
     
-    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        sprintf(filePMLim,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_PMLim.pdf",Group_Period,Group_Period);
+        sprintf(filePMLimSaveName,"PercentileMethodStudy/AccountNtklNonZero/%s/%s_PMLim.txt",Group_Period,Group_Period);
+        sprintf(filePM,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_PM.pdf",Group_Period,Group_Period);
+        sprintf(fileNmean,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_Nmean.pdf",Group_Period,Group_Period);
+        sprintf(fileNmeanROOT,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_Nmean.root",Group_Period,Group_Period);
+        
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
     // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
-    TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
     std::cout << "1" <<std::endl;
         TTree* theTree = NULL;
         fileIn.GetObject("MyMuonTree",theTree);
@@ -191,13 +249,14 @@ void PlotFromTreeCINT(){
         for (Int_t i=0;i<nevent;i++) {
             if(i%100000 == 0){
                     std::cout << "[";
-                    int pos = barWidth * i / nevent;
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
                     for (int k = 0; k < barWidth; ++k) {
                         if (k < pos) std::cout << "=";
                         else if (k == pos) std::cout << ">";
                         else std::cout << " ";
                     }
-                    std::cout << "] " << int(i * 100 / nevent) << "%     " << i << "/" << nevent;
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
                     std::cout.flush();
                 std::cout << std::endl;
             }
@@ -222,14 +281,16 @@ void PlotFromTreeCINT(){
                 
             }
             
-            if(fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0){
-                hnseg_spdtkl->Fill(fEvent->fVertexZ, fEvent->fCentralitySPDTracklets);
-               hnseg_spdtklval->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+                hnseg_spdtkl_num->Fill(fEvent->fVertexZ, fEvent->fCentralitySPDTracklets);
+               hnseg_spdtklval_num->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
                 hn->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
                 hnseg_den->Fill(fEvent->fVertexZ);
-                hnseg_raw->Fill(fEvent->fVertexZ, fEvent->fNTracklets);
-                hnseg->Fill(fEvent->fVertexZ, NumberCloseEtaTracklets);
+                hnseg_raw_num->Fill(fEvent->fVertexZ, fEvent->fNTracklets);
+                hnseg_num->Fill(fEvent->fVertexZ, NumberCloseEtaTracklets);
                 PercentileMethod->Fill(fEvent->fVertexZ,NumberCloseEtaTracklets);
+                hnseg_Ntkl_dist->Fill(NumberCloseEtaTracklets);
                }
             hnseg_spdtklval_dist->Fill(fEvent->fSPDTrackletsValue);
             
@@ -238,6 +299,7 @@ void PlotFromTreeCINT(){
             
             
         }
+    }
     
     TCanvas*cPMproj=new TCanvas();
     cPMproj->Divide(4,5);
@@ -275,7 +337,33 @@ void PlotFromTreeCINT(){
         }
     }
     
+
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
     cout << "Reading of events finished" <<endl;
+    
+    std::ofstream filePMLimSave(filePMLimSaveName, std::ofstream::out);
+    
+    filePMLimSave << "{   ";
+    for(int z_idx=1; z_idx<21; z_idx++){
+        filePMLimSave << "{";
+        for(int cent_idx=1; cent_idx<6; cent_idx++){
+            filePMLimSave << PercentileMethodLimits->GetBinContent(z_idx, cent_idx);
+            if(cent_idx!=5){
+                filePMLimSave << " ";
+            }
+        }
+        if(z_idx!=20){
+            filePMLimSave << "},\n";
+        }
+        else{
+            filePMLimSave << "}   }\n";
+        }
+    }
+    cout <<filePMLimSave.is_open() <<endl;
+    
+    filePMLimSave.close();
 
     std::cout << "==================== Analysis Terminated ====================" << std::endl;
     
@@ -289,7 +377,7 @@ void PlotFromTreeCINT(){
     TCanvas*c1=new TCanvas();
     c1->Divide(2,1);
     c1->cd(1);
-    hnseg->Divide(hnseg_den);
+    hnseg->Divide(hnseg_num, hnseg_den);
     hnseg->SetFillColor(18);
     hnseg->Draw();
 //    c1->cd(2);
@@ -300,18 +388,26 @@ void PlotFromTreeCINT(){
     hnseg_den->SetFillColor(18);
     hnseg_den->Draw();
     
+    TCanvas*c1solo=new TCanvas();
+        hnseg->Draw();
+    c1solo->SaveAs(fileNmean);
+    
+    TFile *outputFileNmean;
+        outputFileNmean = new TFile(fileNmeanROOT,"RECREATE");
+        hnseg->Write();
+    
     TCanvas*c2=new TCanvas();
-    hnseg_raw->Divide(hnseg_den);
+    hnseg_raw->Divide(hnseg_raw_num, hnseg_den);
     hnseg_raw->SetFillColor(18);
     hnseg_raw->Draw();
     
     TCanvas*c3=new TCanvas();
-    hnseg_spdtkl->Divide(hnseg_den);
+    hnseg_spdtkl->Divide(hnseg_spdtkl_num, hnseg_den);
     hnseg_spdtkl->SetFillColor(18);
     hnseg_spdtkl->Draw();
     
     TCanvas*c4=new TCanvas();
-    hnseg_spdtklval->Divide(hnseg_den);
+    hnseg_spdtklval->Divide(hnseg_spdtklval_num, hnseg_den);
     hnseg_spdtklval->SetFillColor(18);
     hnseg_spdtklval->Draw();
     
@@ -323,13 +419,19 @@ void PlotFromTreeCINT(){
     hnseg_spdtklval_dist->SetFillColor(18);
     hnseg_spdtklval_dist->Draw("e");
     
+    TCanvas*c456=new TCanvas();
+    hnseg_Ntkl_dist->SetFillColor(18);
+    hnseg_Ntkl_dist->Draw("e");
+    
     TCanvas*cPM=new TCanvas();
     PercentileMethod->SetFillColor(18);
     PercentileMethod->Draw("colz");
+    cPM->SaveAs(filePM);
     
     TCanvas*cPMLim=new TCanvas();
     PercentileMethodLimits->SetFillColor(18);
     PercentileMethodLimits->Draw("colz");
+    cPMLim->SaveAs(filePMLim);
     
     
 }
