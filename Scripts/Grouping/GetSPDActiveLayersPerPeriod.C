@@ -40,11 +40,11 @@ void GetSPDActiveLayersPerRun(Int_t runNumber = 274364, TString ocbLocation = "a
 {
   gStyle->SetOptStat(0);
 
-    std::cout << "AE" << endl;
+   // std::cout << "AE" << endl;
   AliITSOnlineCalibrationSPDhandler *spdHandler = new AliITSOnlineCalibrationSPDhandler();
-    std::cout << "AE2" << endl;
+   // std::cout << "AE2" << endl;
   spdHandler->ReadDeadFromDB(runNumber, ocbLocation.Data());
-    std::cout << "AE3" << endl;
+  //  std::cout << "AE3" << endl;
   AliCDBManager::Instance();
   AliCDBManager::Instance()->SetRun(runNumber);
   AliCDBManager::Instance()->SetDefaultStorage(ocbLocation.Data());

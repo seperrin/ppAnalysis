@@ -28,7 +28,7 @@ void MakeGroupsPerPeriod()
 
     for (Int_t iPeriod = 0; iPeriod < numberOfPeriods; iPeriod++)
     {
-        std::vector<int> vectorRunList = runListToVector(Form("runList_%s.txt", arrayOfPeriods[iPeriod][1].Data()), "\n");
+        std::vector<int> vectorRunList = runListToVector(Form("../../runList_%s_mcp1_rct0.txt", arrayOfPeriods[iPeriod][1].Data()), "\n");
         Int_t numberOfRunsPeriod = (int)vectorRunList.size();
 
         for (Int_t iRun = 0; iRun < numberOfRunsPeriod; iRun++)
