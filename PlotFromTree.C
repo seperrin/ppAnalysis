@@ -54,246 +54,247 @@ int GetCent(double cent);
 int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
 
 int LimitsPM[12][20][5] =
-{       {   {31, 17, 12, 7, 0}, //Group 1
-            {32, 18, 13, 7, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {40, 22, 16, 9, 0},
-            {40, 23, 16, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {42, 23, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {39, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 19, 14, 8, 0}  },
-        {   {30, 17, 12, 7, 0}, //Group 2
-            {32, 18, 13, 7, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 22, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {40, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {34, 19, 13, 8, 0}  },
-        {   {30, 17, 12, 7, 0}, //Group 3
-            {32, 18, 13, 7, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 22, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {40, 22, 16, 9, 0},
-            {40, 23, 16, 10, 0},
-            {39, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {34, 19, 13, 8, 0}   },
-        {   {29, 16, 11, 7, 0},  //Group 4
-            {31, 17, 12, 7, 0},
-            {32, 18, 13, 7, 0},
-            {34, 19, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {38, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 7, 0}  },
-        {   {29, 16, 12, 7, 0}, //Group 5
-            {31, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {36, 20, 15, 8, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {39, 22, 16, 9, 0},
-            {40, 22, 16, 9, 0},
-            {41, 23, 16, 10, 0},
-            {41, 23, 17, 10, 0},
-            {42, 23, 17, 10, 0},
-            {41, 23, 16, 10, 0},
-            {39, 22, 16, 9, 0},
-            {37, 20, 15, 9, 0},
-            {35, 19, 14, 8, 0}  },
-        {   {27, 15, 11, 6, 0}, //Group 6
-            {28, 16, 11, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 15, 8, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {38, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0}   },
-        {   {27, 15, 11, 6, 0}, //Group 7
-            {29, 16, 11, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 15, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 20, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {33, 18, 13, 8, 0},
-            {31, 17, 12, 7, 0}   },
-        {   {27, 15, 11, 6, 0}, //Group 8
-            {29, 16, 11, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 15, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0},
-            {31, 17, 12, 7, 0}   },
-        {   {27, 15, 11, 6, 0}, //Group 9
-            {29, 16, 11, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 14, 8, 0},
-            {34, 19, 13, 8, 0},
-            {32, 17, 13, 7, 0}   },
-        {   {27, 15, 11, 6, 0}, //Group 10
-            {29, 16, 11, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 7, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 15, 8, 0},
-            {35, 20, 14, 8, 0},
-            {33, 19, 13, 8, 0},
-            {31, 17, 13, 7, 0},
-            {30, 17, 12, 7, 0}   },
-        {   {29, 16, 12, 7, 0}, //Group 11
-            {31, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {33, 19, 13, 8, 0},
-            {31, 17, 13, 7, 0},
-            {30, 16, 12, 7, 0}   },
-        {   {29, 16, 12, 7, 0}, //Group 12
-            {31, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {36, 20, 14, 8, 0},
-            {36, 20, 15, 8, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 7, 0},
-            {31, 17, 12, 7, 0}   }
+{       {   {31 17 13 7 0}, //Group 1
+            {32 18 13 8 0},
+            {34 19 14 8 0},
+            {36 20 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {38 22 16 9 0},
+            {38 22 16 9 0},
+            {39 22 16 10 0},
+            {40 23 16 10 0},
+            {41 23 17 10 0},
+            {41 23 17 10 0},
+            {41 24 17 10 0},
+            {42 24 17 10 0},
+            {41 23 17 10 0},
+            {39 22 16 10 0},
+            {37 21 15 9 0},
+            {35 20 14 8 0}   },
+        {   {31 17 13 7 0}, //Group 2
+            {33 18 13 8 0},
+            {34 19 14 8 0},
+            {36 20 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {38 21 16 9 0},
+            {39 22 16 9 0},
+            {39 22 16 9 0},
+            {39 22 16 10 0},
+            {39 22 16 10 0},
+            {39 22 16 10 0},
+            {40 23 16 10 0},
+            {39 22 16 10 0},
+            {38 21 15 9 0},
+            {35 20 15 9 0},
+            {34 19 14 8 0}   },
+        {   {31 17 12 7 0}, //Group 3
+            {32 18 13 8 0},
+            {34 19 14 8 0},
+            {36 20 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {38 21 16 9 0},
+            {39 22 16 9 0},
+            {39 22 16 9 0},
+            {39 22 16 10 0},
+            {40 22 16 10 0},
+            {40 23 16 10 0},
+            {40 23 17 10 0},
+            {39 22 16 10 0},
+            {38 21 15 9 0},
+            {36 20 15 9 0},
+            {34 19 14 8 0}   },
+        {   {29 16 12 7 0}, //Group 4
+            {31 17 13 7 0},
+            {32 18 13 8 0},
+            {34 19 14 8 0},
+            {35 20 14 8 0},
+            {35 20 14 9 0},
+            {35 20 14 8 0},
+            {35 20 14 9 0},
+            {36 20 15 9 0},
+            {36 20 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {38 21 16 9 0},
+            {38 22 16 9 0},
+            {39 22 16 9 0},
+            {39 22 16 9 0},
+            {38 22 16 9 0},
+            {36 21 15 9 0},
+            {34 19 14 8 0},
+            {33 18 13 8 0}   },
+        {   {29 16 12 7 0}, //Group 5
+            {31 17 13 7 0},
+            {32 18 13 8 0},
+            {34 19 14 8 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {36 20 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {39 22 16 9 0},
+            {39 22 16 9 0},
+            {40 23 16 10 0},
+            {41 23 17 10 0},
+            {41 23 17 10 0},
+            {42 24 17 10 0},
+            {41 23 17 10 0},
+            {39 22 16 9 0},
+            {37 21 15 9 0},
+            {35 20 14 8 0}   },
+        {   {27 15 11 7 0}, //Group 6
+            {29 16 12 7 0},
+            {30 17 12 7 0},
+            {31 18 13 8 0},
+            {32 18 13 8 0},
+            {33 18 13 8 0},
+            {33 18 13 8 0},
+            {33 19 14 8 0},
+            {34 19 14 8 0},
+            {35 20 14 9 0},
+            {36 20 15 9 0},
+            {36 21 15 9 0},
+            {37 21 15 9 0},
+            {38 21 16 9 0},
+            {39 22 16 9 0},
+            {39 22 16 10 0},
+            {38 22 16 9 0},
+            {37 21 15 9 0},
+            {34 19 14 8 0},
+            {33 18 13 8 0}   },
+        {   {27 15 11 7 0}, //Group 7
+            {29 16 12 7 0},
+            {30 17 12 7 0},
+            {31 18 13 8 0},
+            {32 18 13 8 0},
+            {33 18 13 8 0},
+            {33 18 13 8 0},
+            {33 19 14 8 0},
+            {34 19 14 8 0},
+            {34 19 14 8 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {36 20 15 9 0},
+            {36 21 15 9 0},
+            {37 21 15 9 0},
+            {38 21 15 9 0},
+            {37 21 15 9 0},
+            {35 20 14 9 0},
+            {33 19 14 8 0},
+            {31 18 13 8 0}   },
+        {   {28 15 11 7 0}, //Group 8
+            {29 16 12 7 0},
+            {30 17 12 7 0},
+            {32 18 13 8 0},
+            {33 18 13 8 0},
+            {33 19 13 8 0},
+            {33 18 13 8 0},
+            {33 19 14 8 0},
+            {33 19 14 8 0},
+            {34 19 14 8 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {36 20 15 9 0},
+            {36 21 15 9 0},
+            {37 21 15 9 0},
+            {36 20 15 9 0},
+            {34 19 14 8 0},
+            {33 18 13 8 0},
+            {31 17 13 7 0}   },
+        {   {27 15 11 7 0}, //Group 9
+            {29 16 12 7 0},
+            {30 17 12 7 0},
+            {31 18 13 8 0},
+            {32 18 13 8 0},
+            {33 18 13 8 0},
+            {32 18 13 8 0},
+            {33 19 14 8 0},
+            {34 19 14 8 0},
+            {34 20 14 8 0},
+            {35 20 15 9 0},
+            {36 20 15 9 0},
+            {37 21 15 9 0},
+            {37 21 15 9 0},
+            {38 21 16 9 0},
+            {38 22 16 9 0},
+            {37 21 15 9 0},
+            {36 20 15 9 0},
+            {34 19 14 8 0},
+            {32 18 13 8 0}   },
+        {   {28 15 11 7 0}, //Group 10
+            {29 16 12 7 0},
+            {30 17 12 7 0},
+            {32 18 13 8 0},
+            {33 18 13 8 0},
+            {33 19 13 8 0},
+            {33 18 13 8 0},
+            {33 19 14 8 0},
+            {33 19 14 8 0},
+            {34 19 14 8 0},
+            {34 19 14 8 0},
+            {35 20 14 8 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {36 20 15 9 0},
+            {36 20 15 9 0},
+            {35 20 14 8 0},
+            {34 19 14 8 0},
+            {32 18 13 8 0},
+            {30 17 12 7 0}   },
+        {   {30 16 12 7 0}, //Group 11
+            {31 17 13 7 0},
+            {32 18 13 8 0},
+            {34 19 14 8 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {35 20 14 8 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {35 20 15 9 0},
+            {36 20 15 9 0},
+            {36 20 15 9 0},
+            {35 20 14 8 0},
+            {34 19 14 8 0},
+            {32 18 13 8 0},
+            {30 17 12 7 0}   },
+        {   {29 17 12 7 0}, //Group 12
+            {31 17 13 7 0},
+            {32 18 13 8 0},
+            {34 19 14 8 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {35 20 14 9 0},
+            {35 20 14 9 0},
+            {35 20 15 9 0},
+            {35 20 15 9 0},
+            {36 20 15 9 0},
+            {36 20 15 9 0},
+            {36 20 15 9 0},
+            {36 20 15 9 0},
+            {36 21 15 9 0},
+            {37 21 15 9 0},
+            {36 20 15 9 0},
+            {34 19 14 8 0},
+            {33 18 13 8 0},
+            {31 17 12 7 0}   }
+
 };
 
 Double_t mJpsi =  3.096916;
@@ -1109,8 +1110,8 @@ void PlotFromTree(){
                        
                        double cent = fEvent->fCentralitySPDTracklets;
                        int zv = floor(fEvent->fVertexZ) + ZvtxCut;
-                       int centint = GetCent(cent);
-             //          int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
+              //         int centint = GetCent(cent);
+                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
                        int phint = 0;
                        double phi = dimu->fPhi;
                        if(phi < -TMath::Pi()/2){
@@ -1142,8 +1143,8 @@ void PlotFromTree(){
                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
                        double cent = fEvent->fCentralitySPDTracklets;
                        int zv = floor(fEvent->fVertexZ) + ZvtxCut;
-                       int centint = GetCent(cent);
-                   //    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
+                   //    int centint = GetCent(cent);
+                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
                        if(PoolsSizeTkl[centint][zv]<100){
                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
@@ -1295,28 +1296,28 @@ void PlotFromTree(){
                        double cent = fEvent->fCentralitySPDTracklets;
                        double zv = fEvent->fVertexZ;
                        int zvint = floor(zv) + ZvtxCut;
-                        int centint = GetCent(cent);
-                     //   centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                  //      int centint = GetCent(cent);
+                        centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                         DimuonCounter[centint][zvint][massint]++;
-                        if(cent <= CentSPDTrackletsCentral){
-                     //   if(centint==0){
+                     //   if(cent <= CentSPDTrackletsCentral){
+                        if(centint==0){
                             DimuC++;
                         }
-                        else if(cent > CentSPDTrackletsPeriph){
-                      //  else if(centint == 4){
+                      //  else if(cent > CentSPDTrackletsPeriph){
+                        else if(centint == 4){
                            DimuP++;
                         }
                     }
                     
                     hnseg->Fill(dimu->fInvMass);
                     hPtWrtMassInv[0]->Fill(dimu->fInvMass, dimu->fPt);
-                    if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
-                  //  if(centint==0){
+                  //  if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
+                    if(centint==0){
                         InvMass_Central->Fill(dimu->fInvMass);
                         hPtWrtMassInv[1]->Fill(dimu->fInvMass, dimu->fPt);
                     }
-                    if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
-                  //  if(centint==4){
+                  //  if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
+                    if(centint==4){
                         InvMass_Periph->Fill(dimu->fInvMass);
                         hPtWrtMassInv[2]->Fill(dimu->fInvMass, dimu->fPt);
                     }
@@ -1326,11 +1327,11 @@ void PlotFromTree(){
                         if((dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
                         double massME = dimu->fInvMass;
                         int massintME = int((massME-MinInvMass)/SizeBinInvMass);
-                       double centME = fEvent->fCentralitySPDTracklets;
-                        int centintME = GetCent(centME);
+                     //  double centME = fEvent->fCentralitySPDTracklets;
+                     //   int centintME = GetCent(centME);
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
-                     //   int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -1385,19 +1386,19 @@ void PlotFromTree(){
                     if((correl->fDimuonInvMass > MinInvMass) && (correl->fDimuonInvMass < MaxInvMass)){
                     double mass = correl->fDimuonInvMass;
                      int massint = int((mass-MinInvMass)/SizeBinInvMass);
-                    double cent = fEvent->fCentralitySPDTracklets;
-                    int centint = GetCent(cent);
+                   // double cent = fEvent->fCentralitySPDTracklets;
+                  //  int centint = GetCent(cent);
                     double zv = fEvent->fVertexZ;
                     int zvint = floor(zv) + ZvtxCut;
-                  //  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
-                        if(cent <= CentSPDTrackletsCentral){
-                      //  if(centint == 0){
+                      //  if(cent <= CentSPDTrackletsCentral){
+                        if(centint == 0){
                             YCentral->Fill(DeltaPhi,correl->fDeltaEta);
                         }
-                        else if(cent > CentSPDTrackletsPeriph){
-                      //  else if(centint ==4){
+                      //  else if(cent > CentSPDTrackletsPeriph){
+                        else if(centint ==4){
                             YPeriph->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                     }
@@ -1415,18 +1416,18 @@ void PlotFromTree(){
 // TREATEMENT OF TRACKLET V2
             if(doTracklets){
                 
-                  double cent = fEvent->fCentralitySPDTracklets;
-                  int centint = GetCent(cent);
+                 // double cent = fEvent->fCentralitySPDTracklets;
+                //  int centint = GetCent(cent);
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
-               //   int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
-                if(cent <= CentSPDTrackletsCentral){
-              //  if(centint==0){
+              //  if(cent <= CentSPDTrackletsCentral){
+                if(centint==0){
                     TklC++;
                 }
-                else if(cent > CentSPDTrackletsPeriph){
-               // else if(centint==4){
+               // else if(cent > CentSPDTrackletsPeriph){
+                else if(centint==4){
                     TklP++;
                 }
                 
@@ -1444,18 +1445,18 @@ void PlotFromTree(){
                             }
                             Float_t DeltaEta = TMath::Abs(tracklet1->fEta - tracklet2->fEta);
 
-                               double cent = fEvent->fCentralitySPDTracklets;
-                               int centint = GetCent(cent);
+                            //   double cent = fEvent->fCentralitySPDTracklets;
+                          //     int centint = GetCent(cent);
                                double zv = fEvent->fVertexZ;
                                int zvint = floor(zv) + ZvtxCut;
-                              //  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                                int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                                CorrelationsTkl[centint][zvint]->Fill(DeltaPhi,DeltaEta);
-                                if(cent <= CentSPDTrackletsCentral){
-                              //  if(centint==0){
+                              //  if(cent <= CentSPDTrackletsCentral){
+                                if(centint==0){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
                                 }
-                                else if(cent > CentSPDTrackletsPeriph){
-                              //  else if(centint==4){
+                              //  else if(cent > CentSPDTrackletsPeriph){
+                                else if(centint==4){
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
                                 }
                    }
@@ -1469,11 +1470,11 @@ void PlotFromTree(){
                         for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                           tracklet1 = (TrackletLight*)fTracklets->At(j);
                             if(TMath::Abs(tracklet1->fEta) < TklEtaCut){
-                              double centME = fEvent->fCentralitySPDTracklets;
-                              int centintME = GetCent(centME);
+                           //   double centME = fEvent->fCentralitySPDTracklets;
+                            //  int centintME = GetCent(centME);
                               double zvME = fEvent->fVertexZ;
                               int zvintME = floor(zvME) + ZvtxCut;
-                           //     int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                                int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
                             
 
                               for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
@@ -1491,15 +1492,15 @@ void PlotFromTree(){
                                         }
                                   
                                   
-                                      if(cent <= CentSPDTrackletsCentral){
-                              //    if(centintME ==0){
+                              //        if(cent <= CentSPDTrackletsCentral){
+                                  if(centintME ==0){
                                           YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
                                           if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
                                               NormTklCentral += 1;
                                           }
                                       }
-                                      else if(cent > CentSPDTrackletsPeriph){
-                             //     else if(centintME==4){
+                             //         else if(cent > CentSPDTrackletsPeriph){
+                                  else if(centintME==4){
                                           YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
                                           if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
                                               NormTklPeriph += 1;
