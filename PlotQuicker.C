@@ -37,7 +37,10 @@
 // FUNCTIONS
 
 void PlotQuicker();
-
+Double_t myFunc(double x);
+Double_t myFunc2(double x);
+TH1I* hPlotDimuPhi(NULL);
+TH1I* hPlotTklPhi(NULL);
 
 void PlotQuicker(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
@@ -76,9 +79,9 @@ void PlotQuicker(){
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     int barWidth = 50;
     
-    Char_t Group_Period[50] = "Group8_LHC18m_XY";
+    Char_t Group_Period[50] = "Group1_LHC16h";
    // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group8_LHC18m_XY"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -106,10 +109,10 @@ void PlotQuicker(){
     TH1I* hnseg_spdtklval_num(NULL);
     TH1I* hnseg_spdtklval_dist(NULL);
     TH1I* hnseg_Ntkl_dist(NULL);
-    TH1I* hPlotDimuPhi(NULL);
-    TH1I* hPlotTklPhi(NULL);
     TH2F* hPlotXY(NULL);
     TProfile* hn(NULL);
+    TH1I* hPlotTklTklDeltaPhi(NULL);
+    TH1I* hPlotDimuTklDeltaPhi(NULL);
     
     
     hPlotXY = new TH2F("hPlotXY",
@@ -129,6 +132,18 @@ void PlotQuicker(){
                         100,0,TMath::Pi()*2);
        hPlotTklPhi->SetXTitle("Phi");
        hPlotTklPhi->SetYTitle("Tracklet count");
+    
+    hPlotTklTklDeltaPhi = new TH1I("hPlotTklTklDeltaPhi",
+                     "DeltaPhi Distribution for TklTkl",
+                     100,-TMath::Pi()/2,TMath::Pi()*1.5);
+    hPlotTklTklDeltaPhi->SetXTitle("DeltaPhi");
+    hPlotTklTklDeltaPhi->SetYTitle("Tracklet-Tracklet count");
+    
+    hPlotDimuTklDeltaPhi = new TH1I("hPlotDimuTklDeltaPhi",
+                     "DeltaPhi Distribution for DimuTkl",
+                     100,-TMath::Pi()/2,TMath::Pi()*1.5);
+    hPlotDimuTklDeltaPhi->SetXTitle("DeltaPhi");
+    hPlotDimuTklDeltaPhi->SetYTitle("Dimuon-Tracklet count");
     
     hnseg = new TH1F("hnseg",
                      "Mean Ntkl wrt Zvtx",
@@ -292,7 +307,7 @@ void PlotQuicker(){
                 trac = (TrackletLight*)fTracklets->At(j);
                 if((TMath::Abs(trac->fEta) < 1)){
                         NumberCloseEtaTracklets++;
-                    if(fEvent->fVertexZ>-10 && fEvent->fVertexZ<10){
+                    if(fEvent->fVertexZ>0 && fEvent->fVertexZ<1){
                         hPlotTklPhi->Fill(trac->fPhi);
                     }
                 }
@@ -311,7 +326,7 @@ void PlotQuicker(){
                 hnseg_Ntkl_dist->Fill(NumberCloseEtaTracklets);
                 
                 
-                if(fEvent->fVertexZ>-10 && fEvent->fVertexZ<10){
+                if(fEvent->fVertexZ>0 && fEvent->fVertexZ<1){
                     for (Int_t j=0; j<fEvent->fNDimuons; j++) {
                     dimu = (DimuonLight*)fDimuons->At(j);
                         hPlotDimuPhi->Fill(dimu->fPhi);
@@ -389,6 +404,45 @@ void PlotQuicker(){
 
     std::cout << "==================== Analysis Terminated ====================" << std::endl;
     
+    double tkl1 = 0;
+    double tkl2 = 0;
+    double tkl3 = 0;
+    double dimuon = 0;
+    
+    TF1 *fPhiTkl = new TF1("fPhiTkl","myFunc(x)",0,TMath::Pi()*2);
+    TF1 *fPhiDimu = new TF1("fPhiDimu","myFunc2(x)",0,TMath::Pi()*2);
+    
+    for(int essai=0; essai<10000000;essai++){
+        tkl1=fPhiTkl->GetRandom();
+        tkl2=fPhiTkl->GetRandom();
+        tkl3=fPhiTkl->GetRandom();
+        
+        double DeltaPhiTklTkl = tkl1-tkl2;
+        double DeltaPhiDimuTkl = tkl3-dimuon;
+        
+        if(DeltaPhiTklTkl < -TMath::Pi()/2){
+            DeltaPhiTklTkl += 2* TMath::Pi();
+        }
+        if(DeltaPhiTklTkl > 1.5*TMath::Pi()){
+            DeltaPhiTklTkl -= 2* TMath::Pi();
+        }
+        if(DeltaPhiDimuTkl < -TMath::Pi()/2){
+            DeltaPhiDimuTkl += 2* TMath::Pi();
+        }
+        if(DeltaPhiDimuTkl > 1.5*TMath::Pi()){
+            DeltaPhiDimuTkl -= 2* TMath::Pi();
+        }
+        
+        hPlotTklTklDeltaPhi->Fill(DeltaPhiTklTkl);
+        hPlotDimuTklDeltaPhi->Fill(DeltaPhiDimuTkl);
+    }
+    
+    TCanvas*cDeltaPhiTklTkl=new TCanvas();
+    hPlotTklTklDeltaPhi->Draw();
+    
+    TCanvas*cDeltaPhiDimuTkl=new TCanvas();
+    hPlotDimuTklDeltaPhi->Draw();
+    
     
     
 // ***********************************
@@ -451,4 +505,8 @@ void PlotQuicker(){
     
 }
     
+Double_t myFunc(double x){
+    return hPlotTklPhi->GetBinContent(floor(100*x/(2*TMath::Pi()))); }
 
+Double_t myFunc2(double x){
+    return hPlotDimuPhi->GetBinContent(floor(100*x/(2*TMath::Pi()))); }
