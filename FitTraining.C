@@ -10,6 +10,7 @@
  #include <TFitResultPtr.h>
  #include <TPaveText.h>
  #include <TGraph.h>
+ #include <TGraphErrors.h>
  #include <TMatrixD.h>
  #include <TLorentzVector.h>
  #include <string>
@@ -1168,9 +1169,14 @@ void FitTraining(){
     
     Char_t fileLogName[200] = "Log_FitTraining.txt";
     std::ofstream fileLog(fileLogName, std::ofstream::out);
-
+    
+    double Epsilons[NbinsDeltaPhi];
+    double Sigmas[NbinsDeltaPhi];
+    double Zeroes[NbinsDeltaPhi];
+    
     for(int i=0; i<NbinsDeltaPhi; i++){ //Change
         fileLog << "Bin " << i << " in DeltaPhi Central" <<endl;
+        
         for(int t=0; t<niterations; t++){
             fileLog << "Interation " << t <<endl;
         TVirtualPad* subpad = c10_fit->cd(i+1);
@@ -1358,14 +1364,37 @@ void FitTraining(){
                 
                 fileLog << "There were " << failures << " failures"<<endl;
                 fileLog << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12<<endl;
+                
+                if(NewOutliers==0){
+                    Epsilons[i]=moyparerr12;
+                    Sigmas[i]=typeApar12;
+                    Zeroes[i]=0;
+                }
             }
-            
             
             Yields_Central_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, moypar12);
             Yields_Central_1->SetBinError(i+1,sqrt(pow(moyparerr12,2)+pow(typeApar12,2)));
         }
+        
     }
+    
+        TCanvas* cscatter = new TCanvas;
+        
+    
+           TGraphErrors *gr2 = new TGraphErrors(NbinsDeltaPhi,Epsilons,Sigmas,Zeroes,Zeroes);
+          // TGraph *gr3 = new TGraph (n, K3, chi);
+           gr2->SetTitle("Error of the S/B fit wrt Type A uncertainty on Yield, N=100 iterations");
+           gr2->GetXaxis()->SetTitle("Error of the S/B fit");
+    gr2->GetYaxis()->SetRangeUser(0.000001,1);
+    cscatter->SetLogy();
+           gr2->GetYaxis()->SetTitle("Type A uncertainty on Yield");
+    gr2->SetMarkerColor(4);
+    gr2->SetMarkerStyle(5);
+           gr2->Draw("AP");
+    
 
+        
+    
     cinvmass->cd();
     sprintf(histoname,"InvMass_Periph");
     res = FittingAllInvMassBin(histoname, cinvmass, 2); //ZZZZZ
