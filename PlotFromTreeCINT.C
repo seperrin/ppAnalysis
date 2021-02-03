@@ -76,9 +76,9 @@ void PlotFromTreeCINT(){
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     int barWidth = 50;
     
-    Char_t Group_Period[50] = "Group8_LHC18m_CINTSPD";
-   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT","Group1_LHC16j_CINT","Group1_LHC16k_CINT","Group1_LHC16o_CINT","Group1_LHC16p_CINT","Group1_LHC17i_CINT","Group1_LHC17k_CINT","Group1_LHC17l_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group8_CINTSPD"};
+    Char_t Group_Period[50] = "Group12_LHC18m_CINT7CENT";
+   // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
+    Char_t *arrayOfPeriods[] = {"Group12_LHC18m_CINT7CENT"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
