@@ -38,7 +38,7 @@
 
  // FUNCTIONS
 
- void FitTraining();
+ void FitExt2UncA();
  Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par);
  Double_t BackFcnV2(Double_t *x,Double_t *par);
  Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par);
@@ -64,14 +64,14 @@ TH1F* V2JPsiTkl(NULL);
 
 Char_t FitFileName[200];
 
-void FitTraining(){
+void FitExt2UncA(){
     
     sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesRun2.root");
     
     TH1::SetDefaultSumw2();
         bool doTracklets = kFALSE;
         bool doMixedEvents = kFALSE;
-    bool Extraction2Combined = kFALSE;
+    bool Extraction2Combined = kTRUE;
         bool CombineFits = kTRUE;
         
     // ************************************
@@ -824,996 +824,219 @@ void FitTraining(){
     
    ROOT::Math::Minimizer* minim{NULL};
     
+    TCanvas*c16=new TCanvas();
+    // ROOT THAT Extraction 2 plot
+    c16->SetTitle("Extraction method 2");
+    
     char histoname[50];
-                                            //Values OK for 20M evts
-                                            double startvalues[16] = {800, 3.096916, 0.07, 0.9, 10, 2, 15, 15,   90,     0.1,          600000,   1.4,        1,         1,   1,   1};
-                                            double lowvalues[16] =   {10,    3.05,    0.03, 0.7, 1,  1, 5, 0.00000001, 0.001,  0.00001,  10,    0.0001, 0.00000001, -10, -10, -10};
-                                            double highvalues[16] = {100000, 3.15,   1,  1.1, 30, 5, 25, 10000,   1000000, 100,           10000000, 100,     10,        100,  10,  10};
-
-                                        //    double startvalues[16] = {13200, 3.096916, 0.07,  0.9, 10, 2, 15, 250,          1500,      0.1,     60000,      1.4,      1,         1,   1,   1};
-                                        //    double lowvalues[16] =   {160,    3.05,     0.03, 0.7, 1,  1, 5,  0.00000017,  0.01,    0.00001,   100,        0.0001, 0.00000001, -10, -10, -10};
-                                        //    double highvalues[16] = {1700000, 3.15,     1,    1.1, 30, 5, 25, 170000,       8000000, 100,      10000000,      1000,    10,         100,  10,  10};
-
-                                            int nEntrieshnseg = hnseg->GetEntries();
-                                            for(int index=0; index<16; index++){
-                                                if(index==0 || index==7){
-                                                    startvalues[index] *= (nEntrieshnseg/877032.0);
-                                                    lowvalues[index]*= (nEntrieshnseg/877032.0);
-                                                    highvalues[index]*= (nEntrieshnseg/877032.0);
-                                                }
-                                                else if(index==8){
-                                                    startvalues[index]*= (nEntrieshnseg/877032.0);
-                                                    highvalues[index]*= (nEntrieshnseg/877032.0);
-                                                }
-                                            }
-                                            //Values adapted to the number of events considered
-
-                                            sprintf(histoname,"hnseg");
-                                            if(!Extraction2Combined){
-                                                res = FittingAllInvMassBin(histoname, cinvmass, 0);
-                                            }
-                                            double par[16];
-
-                                            // Parameter setting (either from mass fit either start values)
-                                            cout << "Parameter Setting"<<endl;
-                                            for(int i=0; i <16; i++){
-                                                if(!Extraction2Combined){
-                                                    par[i] = res->Parameter(i);
-                                                    if(i>11){
-                                                        par[i] = 0.1;
-                                                    }
-                                                }
-                                                if(Extraction2Combined){
-                                                    par[i] = startvalues[i];
-                                                }
-                                            }
-
-                                            TCanvas*c16=new TCanvas();
-                                            // ROOT THAT Extraction 2 plot
-                                            c16->SetTitle("Extraction method 2");
-
-                                            //Definition and design of function on V2 plot
-                                            c16->cd();
-                                            TF1 *fitV2_2 = new TF1("fitV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
-                                            fitV2_2->SetNpx(500);
-                                            fitV2_2->SetLineWidth(4);
-                                            fitV2_2->SetLineColor(kMagenta);
-                                            fitV2_2->SetParameters(par);
-                                            TF1 *fitJustV2_2 = new TF1("fitJustV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-                                            fitJustV2_2->SetNpx(500);
-                                            fitJustV2_2->SetLineWidth(0);
-                                            fitJustV2_2->SetLineColor(kWhite);
-                                            TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2,2.1,5.1,16);
-                                            backFcnV2_2->SetLineColor(kRed);
-                                            TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
-                                            signalFcnJPsiV2_2->SetLineColor(kBlue);
-                                            signalFcnJPsiV2_2->SetNpx(500);
-
-                                            if(!Extraction2Combined){
-                                               TVirtualFitter::Fitter(V2JPsiTkl)->SetMaxIterations(10000);
-                                               TVirtualFitter::Fitter(V2JPsiTkl)->SetPrecision();
-                                                for(int i=0; i<=11; i++){
-                                                    fitV2_2->FixParameter(i,par[i]);
-                                                }
-                                            }
-
-                                               fitV2_2->SetParName(0,"Norm_{JPsi}");
-                                               fitV2_2->SetParName(1,"M_{JPsi}");
-                                               fitV2_2->SetParName(2,"Sigma_{JPsi}");
-                                               fitV2_2->SetParName(3,"a_{1}");
-                                               fitV2_2->SetParName(4,"n_{1}");
-                                               fitV2_2->SetParName(5,"a_{2}");
-                                               fitV2_2->SetParName(6,"n_{2}");
-                                               fitV2_2->SetParName(7,"Norm_{Psi2S}");
-                                               fitV2_2->SetParName(8,"Norm_{TailLowM}");
-                                               fitV2_2->SetParName(9,"Exp_{TailLowM}");
-                                               fitV2_2->SetParName(10,"Norm_{TailHighM}");
-                                               fitV2_2->SetParName(11,"Exp_{TailHighM}");
-                                                fitV2_2->SetParName(12,"V2_2 JPsi");
-                                                fitV2_2->SetParName(13,"V2_2 Bkg M2");
-                                            fitV2_2->SetParName(14,"V2_2 Bkg M1");
-                                            fitV2_2->SetParName(15,"V2_2 Nkg M0");
-//
-                                            fitJustV2_2->SetParName(0,"V2_2 JPsi");
-                                                fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
-                                            fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
-                                            fitJustV2_2->SetParName(3,"V2_2 Nkg M0");
-
-                                               double minParams[16];
-                                               double parErrors[16];
-
-                                            // Combined fit of inv mass and V2_2
-                                                    if(Extraction2Combined){
-                                                        cout << "THERE ARE " << hnseg->GetEntries() << " ENTRIES IN HNSEG"<<endl;
-                                                        cout << "Setting parameters with stated limits"<<endl;
-                                                        TBackCompFitter * virminuit = (TBackCompFitter *) TVirtualFitter::Fitter(0,16);
-                                                           for (int i = 0; i < 16; ++i) {
-                                                             virminuit->SetParameter(i, fitV2_2->GetParName(i), fitV2_2->GetParameter(i), 0.01, lowvalues[i],highvalues[i]);
-                                                           }
-                                                        virminuit->FixParameter(1);
-                                                        virminuit->FixParameter(2);
-                                                        virminuit->FixParameter(3);
-                                                        virminuit->FixParameter(4);
-                                                        virminuit->FixParameter(5);
-                                                        virminuit->FixParameter(6);
-                                                           virminuit->SetFCN(FcnCombinedAllMass);
-
-                                                           double arglist[100];
-                                                           arglist[0] = 1;
-                                                           // set print level
-                                                           virminuit->ExecuteCommand("SET PRINT",arglist,2);
-
-                                                           // minimize
-                                                           arglist[0] = 10000; // number of function calls
-                                                           arglist[1] = 0.01; // tolerance
-                                                        cout<< "First fit"<<endl;
-                                                           virminuit->ExecuteCommand("MIGRAD",arglist,2);
-
-                                                        gStyle->SetOptFit(1011);
-
-                                                           virminuit->ReleaseParameter(1);
-                                                        cout<< "MJPsi has been released"<<endl;
-                                                        virminuit->ExecuteCommand("MIGRAD",arglist,2);
-                                                         virminuit->ReleaseParameter(2);
-                                                        cout<< "SigJPsi has been released"<<endl;
-                                                        virminuit->ExecuteCommand("MIGRAD",arglist,2);
-                                                         virminuit->ReleaseParameter(7);
-                                                        cout<< "NormPsi2S has been released"<<endl;
-                                                        virminuit->ExecuteCommand("MIGRAD",arglist,2);
-                                                        cout<< "Repeat"<<endl;
-                                                        virminuit->ExecuteCommand("MIGRAD",arglist,2);
-                                                        cout<<"Ask for fit result"<<endl;
-                                                        resu = virminuit->GetTFitResult();
-                                                     //   virminuit->GetMinimizer()->PrintResults();
-                                                       // virminuit->PrintResults(2,0);
-                                                 //       std::cout << "COV STATUS " << minim->CovMatrixStatus() <<endl;
-                                                      //  auto rest = static_cast<TFitResultPtr>(virminuit->GetTFitResult());
-                                                       // resu = virminuit->Result();
-                                                      //  resu = minuit->GetFitResult();
-                                                        std::cout << "THE FIT HAS BEEN FINISHED"<<endl;
-                                                     //   resu->Print();
-                                                        std::cout << resu <<endl;
-                                                        std::cout << "THE RESU"<<endl;
-                                                       // std::cout << &rest->GetCovarianceMatrix() <<endl;
-                                                     //   resu->GetCovarianceMatrix().Print();
-
-                                                           //get result
-                                                           for (int i = 0; i < 16; ++i) {
-                                                             minParams[i] = virminuit->GetParameter(i);
-                                                             parErrors[i] = virminuit->GetParError(i);
-                                                           }
-                                                           double chi2, edm, errdef;
-                                                           int nvpar, nparx;
-                                                           virminuit->GetStats(chi2,edm,errdef,nvpar,nparx);
-
-                                                           fitV2_2->SetParameters(minParams);
-                                                           fitV2_2->SetParErrors(parErrors);
-                                                        fitJustV2_2->SetParameters(&minParams[12]);
-                                                        fitJustV2_2->SetParErrors(&parErrors[12]);
-                                                           fitV2_2->SetChisquare(chi2);
-                                                           int ndf = npfits-nvpar;
-                                                           fitV2_2->SetNDF(ndf);
-
-                                                    }
-                                            //Fit of V2
-                                            if(!Extraction2Combined){
-                                                res = V2JPsiTkl->Fit("fitV2_2","SBMERI+","ep");
-                                                Double_t para[16];
-                                                fitV2_2->GetParameters(para);
-                                                backFcnV2_2->SetParameters(para);
-                                                signalFcnJPsiV2_2->SetParameters(para);
-                                            }
-
-                                            if(Extraction2Combined){
-                                                backFcnV2_2->SetParameters(minParams);
-                                                signalFcnJPsiV2_2->SetParameters(minParams);
-                                            }
-
-                                            fitV2_2->Draw("same");
-                                            if(Extraction2Combined){
-                                                V2JPsiTkl->GetListOfFunctions()->Add(fitJustV2_2);
-                                            }
-                                            signalFcnJPsiV2_2->Draw("same");
-                                            backFcnV2_2->Draw("same");
-                                              // draw the legend
-                                              TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-                                              legend->SetTextFont(72);
-                                              legend->SetTextSize(0.04);
-                                            Char_t message[80];
-                                            sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
-                                             legend->AddEntry(fitV2_2,message);
-                                            if(Extraction2Combined){
-                                                if(1 == 3){
-                                                       sprintf(message,"The fit is a success");
-                                                }
-                                                else{
-                                                       sprintf(message,"The fit is a failure");
-                                                }
-                                            }
-                                            if(!Extraction2Combined){
-                                                if(res->CovMatrixStatus() == 3){
-                                                       sprintf(message,"The fit is a success");
-                                                }
-                                                else{
-                                                       sprintf(message,"The fit is a failure");
-                                                }
-                                            }
-                                                   legend->AddEntry(fitV2_2,message);
-                                            legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
-                                            legend->AddEntry(backFcnV2_2,"Background");
-                                              legend->AddEntry(V2JPsiTkl,"Data","lpe");
-                                              legend->Draw();
-
-                                            //Plot of inv mass
-                                            if(Extraction2Combined){
-                                                TFile *file0 = new TFile(FitFileName);
-
-                                                    cinvmass->cd(1);
-                                                   cinvmass->SetFillColor(33);
-                                                   cinvmass->SetFrameFillColor(41);
-                                                   cinvmass->SetGrid();
-                                                   TH1F *histo = (TH1F*)file0->Get(histoname);
-                                                   // create a TF1 with the range from 0 to 3 and 6 parameters
-                                                   TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,2.1,5.1,12);
-                                                   fitFcn->SetNpx(500);
-                                                   fitFcn->SetLineWidth(4);
-                                                   fitFcn->SetLineColor(kMagenta);
-
-                                                    fitFcn->SetParName(0,"Norm_{JPsi}");
-                                                    fitFcn->SetParName(1,"M_{JPsi}");
-                                                    fitFcn->SetParName(2,"Sigma_{JPsi}");
-                                                    fitFcn->SetParName(3,"a_{1}");
-                                                    fitFcn->SetParName(4,"n_{1}");
-                                                    fitFcn->SetParName(5,"a_{2}");
-                                                    fitFcn->SetParName(6,"n_{2}");
-                                                    fitFcn->SetParName(7,"Norm_{Psi2S}");
-                                                    fitFcn->SetParName(8,"Norm_{TailLowM}");
-                                                    fitFcn->SetParName(9,"Exp_{TailLowM}");
-                                                    fitFcn->SetParName(10,"Norm_{TailHighM}");
-                                                    fitFcn->SetParName(11,"Exp_{TailHighM}");
-
-                                                   // improve the picture:
-                                                   TF1 *backFcn = new TF1("backFcn",ExpBkg,2.1,5.1,4);
-                                                   backFcn->SetLineColor(kRed);
-                                                   TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,2.1,5.1,8);
-                                                   TF1 *signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,2.1,5.1,8);
-                                                   TPaveText *pave = new TPaveText(0.15,0.5,0.3,0.65,"brNDC");
-                                                   signalFcnJPsi->SetLineColor(kBlue);
-                                                   signalFcnJPsi->SetNpx(500);
-                                                    signalFcnPsi2S->SetLineColor(kGreen);
-                                                    signalFcnPsi2S->SetNpx(500);
-                                                    histo->GetListOfFunctions()->Add(fitFcn);
-                                                   // writes the fit results into the par array
-                                                    gStyle->SetOptFit(1011);
-                                                    fitFcn->SetParameters(minParams);
-                                                    fitFcn->SetParErrors(parErrors);
-                                                   signalFcnJPsi->SetParameters(minParams);
-                                                    signalFcnPsi2S->SetParameters(minParams);
-                                                 //  auto covMatrix = res->GetCovarianceMatrix();
-                                                   std::cout << "Covariance matrix from the fit ";
-                                                   resu->GetCovarianceMatrix().Print();
-                                                   Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))/0.01;
-                                                    std::cout << "STATUS COV " << resu->CovMatrixStatus() <<endl;
-                                                   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), resu->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.01;
-                                                    std::cout << "Erreur integrale " << integralerror <<endl;
-
-                                                    std::cout << "Fitted " << histoname << std::endl;
-                                                    std::cout << "Nb JPsi total: " << integral << std::endl;
-                                                    std::cout << "integral error: " << integralerror << std::endl;
-                                                histo->Draw();
-                                                fitFcn->Draw("same");
-                                                   signalFcnJPsi->Draw("same");
-                                                    signalFcnPsi2S->Draw("same");
-                                                   backFcn->SetParameters(&minParams[8]);
-                                                   backFcn->Draw("same");
-                                                   // draw the legend
-                                                    char str[50];
-                                                    sprintf(str, "N_{JPsi} %f +/- %f", integral, integralerror);
-                                                   pave->AddText(str);
-                                                    sprintf(str, "M_{Psi2S} = %f, Sig_{Psi2S} = %f", mPsip, ratSigma*minParams[2]);
-                                                    pave->AddText(str);
-                                                   pave->Draw();
-                                                   TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-                                                   legend->SetTextFont(72);
-                                                   legend->SetTextSize(0.03);
-                                                    Char_t message[80];
-                                                    sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
-                                                     legend->AddEntry(fitV2_2,message);
-                                                    if(resu->CovMatrixStatus() == 3){
-                                                               sprintf(message,"The fit is a success");
-                                                           }
-                                                           else{
-                                                               sprintf(message,"The fit is a failure");
-                                                           }
-                                                           legend->AddEntry(fitV2_2,message);
-                                                   legend->AddEntry(histo,"Data","lpe");
-                                                   legend->AddEntry(backFcn,"Background fit","l");
-                                                   legend->AddEntry(signalFcnJPsi,"JPsi Signal fit","l");
-                                                    legend->AddEntry(signalFcnPsi2S,"Psi2S Signal fit","l");
-                                                   legend->Draw();
-                                            }
-    
-    
-    
-    
-    
-    
-    
-    //Combining or not fit for Central-Periph method Ext1
-    
-    
-    int niterations = 1;
-    if(CombineFits){
-        niterations = 100;
-    }
-    cinvmass->cd();
-    sprintf(histoname,"InvMass_Central");
-   res = FittingAllInvMassBin(histoname, cinvmass, 1); //ZZZZZZZ
-
-    TCanvas* chnsegsigma = new TCanvas;
-    chnsegsigma->cd();
-    hnsegSigma->Draw("colz");
-
-    double parerr[12];
-    TCanvas* c10_fit = new TCanvas;
-       c10_fit->Divide(6,4);
+    int niterations = 100;
     TRandom rand = 0;
     rand.SetSeed(1234);
-    for(int j=0; j<12; j++){
-        parerr[j] = res->ParError(j);
+    
+    sprintf(histoname,"hnseg");
+        res = FittingAllInvMassBin(histoname, cinvmass, 0);
+    double par[16];
+    double parerr[16];
+    
+    if(!Extraction2Combined){
+        niterations = 1;
     }
-    for(int j=0; j <16; j++){
-        par[j] = res->Parameter(j);
-        if(j>11){
-            par[j] = 3;
-        }
-    }
-
     double par12[niterations];
     double parerr12[niterations];
-    
-    Char_t fileLogName[200] = "Log_FitTraining.txt";
-    std::ofstream fileLog(fileLogName, std::ofstream::out);
-    
-    double Epsilons[NbinsDeltaPhi];
-    double Sigmas[NbinsDeltaPhi];
-    double Zeroes[NbinsDeltaPhi];
-    
-    for(int i=0; i<NbinsDeltaPhi; i++){ //Change
-        fileLog << "Bin " << i << " in DeltaPhi Central" <<endl;
-        
-        for(int t=0; t<niterations; t++){
-            fileLog << "Interation " << t <<endl;
-        TVirtualPad* subpad = c10_fit->cd(i+1);
-            c10_fit->cd(i+1);
-            if(t==niterations-1){
-                subpad->Clear();
-            }
-        TF1 *fitY_1Central = new TF1("fitY_1Central",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
-          fitY_1Central->SetNpx(500);
-          fitY_1Central->SetLineWidth(4);
-          fitY_1Central->SetLineColor(kMagenta);
-          fitY_1Central->SetParameters(par);
-           TVirtualFitter::Fitter(YieldWrtMass_Central[i])->SetMaxIterations(10000);
-           TVirtualFitter::Fitter(YieldWrtMass_Central[i])->SetPrecision();
-        //  histo->Fit("fitFcn","0");
-          // second try: set start values for some parameters
-        for(int k=0; k<=11; k++){
-            if(CombineFits){
-                double valuepar = par[k] + rand.Gaus(0,parerr[k]);
-                fitY_1Central->FixParameter(k,valuepar);
-                std::cout<<"valuepar: " << valuepar << " i " << k <<endl;
-            }
-            if(!CombineFits){
-                fitY_1Central->FixParameter(k,par[k]);
-            }
-        }
-            fitY_1Central->SetParLimits(12,0,10000);
 
-           fitY_1Central->SetParName(0,"Norm_{JPsi}");
-           fitY_1Central->SetParName(1,"M_{JPsi}");
-           fitY_1Central->SetParName(2,"Sigma_{JPsi}");
-           fitY_1Central->SetParName(3,"a_{1}");
-           fitY_1Central->SetParName(4,"n_{1}");
-           fitY_1Central->SetParName(5,"a_{2}");
-           fitY_1Central->SetParName(6,"n_{2}");
-           fitY_1Central->SetParName(7,"Norm_{Psi2S}");
-           fitY_1Central->SetParName(8,"Norm_{TailLowM}");
-           fitY_1Central->SetParName(9,"Exp_{TailLowM}");
-           fitY_1Central->SetParName(10,"Norm_{TailHighM}");
-           fitY_1Central->SetParName(11,"Exp_{TailHighM}");
-            fitY_1Central->SetParName(12,"Y_1 JPsi");
-            fitY_1Central->SetParName(13,"Y_1 Bkg M2");
-        fitY_1Central->SetParName(14,"Y_1 Bkg M1");
-        fitY_1Central->SetParName(15,"Y_1 Nkg M0");
-
-          rescent = YieldWrtMass_Central[i]->Fit("fitY_1Central","SMERIQ+","ep");
-            rescent->Print("V");
-            fileLog << "Chi2: " << rescent->Chi2() <<endl;
-            fileLog << "Status: " << int(rescent->Status()) <<endl;
-            fileLog << "Prob: " << rescent->Prob() <<endl;
-            fileLog << "IsValid: " << rescent->IsValid() <<endl;
-            fileLog << "HasMinosError(12): " << rescent->HasMinosError(12) <<endl;
-            
-          Double_t param[16];
-            Double_t paramerrs[16];
-          fitY_1Central->GetParameters(param);
-            for(int i=0; i<16; i++){
-                paramerrs[i] = fitY_1Central->GetParError(i);
-            }
-
-            if(rescent->CovMatrixStatus() == 3){
-            par12[t] = param[12];
-            parerr12[t] = paramerrs[12];
-                YieldValue->Fill(param[12]);
-                YieldError->Fill(paramerrs[12]);
-            }
-            else{
-                par12[t]=parerr12[t]=0;
-            }
-
-            std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
-            std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
-            
-            fileLog << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
-            fileLog << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
-
-        TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2,2.1,5.1,16);
-        backFcnY_1Central->SetLineColor(kRed);
-        TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
-          // writes the fit results into the par array
-
-            if(t==niterations-1){
-                YieldWrtMass_Central[i]->GetListOfFunctions()->Clear();
-                YieldWrtMass_Central[i]->GetListOfFunctions()->Add(fitY_1Central);
-            }
-        signalFcnJPsiY_1Central->SetLineColor(kBlue);
-        signalFcnJPsiY_1Central->SetNpx(500);
-        backFcnY_1Central->SetParameters(param);
-        signalFcnJPsiY_1Central->SetParameters(param);
-        signalFcnJPsiY_1Central->Draw("same");
-        backFcnY_1Central->Draw("same");
-
-            if(!CombineFits){
-                Yields_Central_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]);
-                Yields_Central_1->SetBinError(i+1,fitY_1Central->GetParError(12));
-            }
-
-          // writes the fit results into the par array
-           gStyle->SetOptFit(1011);
-          // draw the legend
-          TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-          legend->SetTextFont(72);
-          legend->SetTextSize(0.04);
-        Char_t message[80];
-        sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
-         legend->AddEntry(fitY_1Central,message);
-        if(rescent->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
-               }
-               else{
-                   sprintf(message,"The fit is a failure");
-               }
-               legend->AddEntry(fitY_1Central,message);
-        legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
-        legend->AddEntry(backFcnY_1Central,"Background");
-          legend->AddEntry(YieldWrtMass_Central[i],"Data","lpe");
-          legend->Draw();
-        }
-        
-        TCanvas* cyo = new TCanvas;
-        cyo->Divide(2,1);
-        cyo->cd(1);
-        YieldValue->Draw();
-        cyo->cd(2);
-        YieldError->Draw();
-
-        if(CombineFits){
-            double moypar12 = 0;
-            double moyparerr12 = 0;
-            double typeApar12 = 0;
-            double sigparerr12 = 0;
-            int failures = 0;
-            int NewOutliers = 1;
-            double SigmaCutOutliers = 10;
-            
-            while(NewOutliers !=0){
-                moypar12 = 0;
-                moyparerr12 = 0;
-                typeApar12 = 0;
-                sigparerr12 = 0;
-                int failures = 0;
-                failures = 0;
-                NewOutliers = 0;
-                for(int z=0; z<niterations; z++){
-                    moypar12 += par12[z];
-                    moyparerr12 += parerr12[z];
-                    if(par12[z]==0 && parerr12[z]==0){
-                        failures++;
-                    }
-                }
-                moypar12/=(niterations-failures);   // Moyenne de par12
-                moyparerr12/=(niterations-failures); //Incertitude fit 2
-                for(int z=0; z<niterations; z++){
-                    if(par12[z]!=0 || parerr12[z]!=0){
-                        typeApar12 += pow(moypar12-par12[z],2);
-                    }
-                    if(par12[z]!=0 || parerr12[z]!=0){
-                        sigparerr12 += pow(moyparerr12-parerr12[z],2);
-                    }
-                }
-                
-                typeApar12/=((niterations-failures)*(niterations-1-failures));
-                typeApar12 = sqrt(typeApar12); // Incertitude de type A (répétabitilé) issue du fit 1 propagé
-                
-                sigparerr12/=((niterations-failures)*(niterations-1-failures));
-                sigparerr12 = sqrt(sigparerr12); // Ecart-type valeurs des erreurs.
-                
-                std::cout << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12 << ", sigparerr12: "<<sigparerr12<<endl;
-                 fileLog << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12 << ", sigparerr12: "<<sigparerr12<<endl;
-                
-                for(int z=0; z<niterations; z++){
-                    if(par12[z]!=0 || parerr12[z]!=0){
-                        if(TMath::Abs(par12[z]-moypar12)>(SigmaCutOutliers*typeApar12) && TMath::Abs(parerr12[z]-moyparerr12)>(SigmaCutOutliers*sigparerr12)){
-                            NewOutliers++;
-                            std::cout << "Iteration with Yield Value: " << par12[z] << " and Error: " << parerr12[z] << " is an outlier. Suppressed"<<endl;
-                            fileLog << "Iteration with Yield Value: " << par12[z] << " and Error: " << parerr12[z] << " is an outlier. Suppressed"<<endl;
-                            par12[z] =0;
-                            parerr12[z] =0;
+    for(int trial = 0; trial<niterations; trial++){
+                // Parameter setting (either from mass fit either start values)
+                cout << "Parameter Setting"<<endl;
+        if(!Extraction2Combined){
+                for(int i=0; i <16; i++){
+                        par[i] = res->Parameter(i);
+                        if(i>11){
+                            par[i] = 0.1;
                         }
-                    }
-                }
-
-                std::cout << "There were " << failures << " failures"<<endl;
-                std::cout << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12<<endl;
-                
-                fileLog << "There were " << failures << " failures"<<endl;
-                fileLog << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12<<endl;
-                
-                if(NewOutliers==0){
-                    Epsilons[i]=moyparerr12;
-                    Sigmas[i]=typeApar12;
-                    Zeroes[i]=0;
-                }
-            }
             
-            Yields_Central_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, moypar12);
-            Yields_Central_1->SetBinError(i+1,sqrt(pow(moyparerr12,2)+pow(typeApar12,2)));
+                }
+        }
+        if(Extraction2Combined){
+            for(int i=0; i <12; i++){
+                        parerr[i] = res->ParError(i);
+                        par[i] = res->Parameter(i);
+                cout << "par " << i << " = " << par[i] << " before Gauss" << endl;
+                        par[i] += rand.Gaus(0,parerr[i]);
+                cout << "par " << i << " = " << par[i] << " after Gauss" << endl;
+                }
+            for(int i=12; i<16; i++){
+                par[i] = 0.1;
+            }
+        }
+
+                //Definition and design of function on V2 plot
+                c16->cd();
+                TF1 *fitV2_2 = new TF1("fitV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
+                fitV2_2->SetNpx(500);
+                fitV2_2->SetLineWidth(4);
+                fitV2_2->SetLineColor(kMagenta);
+                fitV2_2->SetParameters(par);
+                TF1 *fitJustV2_2 = new TF1("fitJustV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
+                fitJustV2_2->SetNpx(500);
+                fitJustV2_2->SetLineWidth(0);
+                fitJustV2_2->SetLineColor(kWhite);
+                TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2,2.1,5.1,16);
+                backFcnV2_2->SetLineColor(kRed);
+                TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+                signalFcnJPsiV2_2->SetLineColor(kBlue);
+                signalFcnJPsiV2_2->SetNpx(500);
+        
+        if(trial==niterations-1){
+            V2JPsiTkl->GetListOfFunctions()->Clear();
+            V2JPsiTkl->GetListOfFunctions()->Add(fitV2_2);
+        }
+
+
+                   TVirtualFitter::Fitter(V2JPsiTkl)->SetMaxIterations(10000);
+                   TVirtualFitter::Fitter(V2JPsiTkl)->SetPrecision();
+                    for(int i=0; i<=11; i++){
+                        fitV2_2->FixParameter(i,par[i]);
+                    }
+                
+
+                   fitV2_2->SetParName(0,"Norm_{JPsi}");
+                   fitV2_2->SetParName(1,"M_{JPsi}");
+                   fitV2_2->SetParName(2,"Sigma_{JPsi}");
+                   fitV2_2->SetParName(3,"a_{1}");
+                   fitV2_2->SetParName(4,"n_{1}");
+                   fitV2_2->SetParName(5,"a_{2}");
+                   fitV2_2->SetParName(6,"n_{2}");
+                   fitV2_2->SetParName(7,"Norm_{Psi2S}");
+                   fitV2_2->SetParName(8,"Norm_{TailLowM}");
+                   fitV2_2->SetParName(9,"Exp_{TailLowM}");
+                   fitV2_2->SetParName(10,"Norm_{TailHighM}");
+                   fitV2_2->SetParName(11,"Exp_{TailHighM}");
+                    fitV2_2->SetParName(12,"V2_2 JPsi");
+                    fitV2_2->SetParName(13,"V2_2 Bkg M2");
+                fitV2_2->SetParName(14,"V2_2 Bkg M1");
+                fitV2_2->SetParName(15,"V2_2 Nkg M0");
+//
+                fitJustV2_2->SetParName(0,"V2_2 JPsi");
+                    fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
+                fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
+                fitJustV2_2->SetParName(3,"V2_2 Nkg M0");
+
+
+                //Fit of V2
+                    resu = V2JPsiTkl->Fit("fitV2_2","SBMERI+","ep");
+                    Double_t para[16];
+                    fitV2_2->GetParameters(para);
+                    backFcnV2_2->SetParameters(para);
+                    signalFcnJPsiV2_2->SetParameters(para);
+        
+        if(resu->CovMatrixStatus() == 3){
+        par12[trial] = para[12];
+        parerr12[trial] = resu->ParError(12);
+        }
+        else{
+            par12[trial]=parerr12[trial]=0;
+        }
+
+        if(trial==niterations-1){
+                fitV2_2->Draw("same");
+                signalFcnJPsiV2_2->Draw("same");
+                backFcnV2_2->Draw("same");
+                  // draw the legend
+                  TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+                  legend->SetTextFont(72);
+                  legend->SetTextSize(0.04);
+                Char_t message[80];
+                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
+                 legend->AddEntry(fitV2_2,message);
+                    if(resu->CovMatrixStatus() == 3){
+                           sprintf(message,"The fit is a success");
+                    }
+                    else{
+                           sprintf(message,"The fit is a failure");
+                    }
+                
+                       legend->AddEntry(fitV2_2,message);
+                legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+                legend->AddEntry(backFcnV2_2,"Background");
+                  legend->AddEntry(V2JPsiTkl,"Data","lpe");
+                  legend->Draw();
         }
         
     }
     
-        TCanvas* cscatter = new TCanvas;
+    if(Extraction2Combined){
+        double moypar12 = 0;
+        double moyparerr12 = 0;
+        double typeApar12 = 0;
+        double sigparerr12 = 0;
+        int failures = 0;
+        int NewOutliers = 1;
+        double SigmaCutOutliers = 10;
         
-    
-           TGraphErrors *gr2 = new TGraphErrors(NbinsDeltaPhi,Epsilons,Sigmas,Zeroes,Zeroes);
-          // TGraph *gr3 = new TGraph (n, K3, chi);
-           gr2->SetTitle("Error of the S/B fit wrt Type A uncertainty on Yield, N=100 iterations");
-           gr2->GetXaxis()->SetTitle("Error of the S/B fit");
-    gr2->GetYaxis()->SetRangeUser(0.000001,1);
-    cscatter->SetLogy();
-           gr2->GetYaxis()->SetTitle("Type A uncertainty on Yield");
-    gr2->SetMarkerColor(4);
-    gr2->SetMarkerStyle(5);
-           gr2->Draw("AP");
-    
-
-        
-    
-    cinvmass->cd();
-    sprintf(histoname,"InvMass_Periph");
-    res = FittingAllInvMassBin(histoname, cinvmass, 2); //ZZZZZ
-
-       for(int j=0; j<12; j++){
-           parerr[j] = res->ParError(j);
-       }
-       for(int j=0; j <16; j++){
-           par[j] = res->Parameter(j);
-           if(j>11){
-               par[j] = 3;
-           }
-       }
-
-    double baseline = 1;
-    double errbaseline = 1;
-
-       for(int i=0; i<NbinsDeltaPhi; i++){ //Change
-           fileLog << "Bin " << i << " in DeltaPhi Periph" <<endl;
-           for(int t=0; t<niterations; t++){
-               fileLog << "Interation " << t <<endl;
-               TVirtualPad* subpad = c10_fit->cd(NbinsDeltaPhi+i+1); //Change
-               c10_fit->cd(NbinsDeltaPhi+i+1); //Change
-               if(t==niterations-1){
-                   subpad->Clear();
-               }
-           TF1 *fitY_1Periph = new TF1("fitY_1Periph",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
-             fitY_1Periph->SetNpx(500);
-             fitY_1Periph->SetLineWidth(4);
-             fitY_1Periph->SetLineColor(kMagenta);
-             fitY_1Periph->SetParameters(par);
-              TVirtualFitter::Fitter(YieldWrtMass_Periph[i])->SetMaxIterations(10000);
-              TVirtualFitter::Fitter(YieldWrtMass_Periph[i])->SetPrecision();
-           //  histo->Fit("fitFcn","0");
-             // second try: set start values for some parameters
-            for(int k=0; k<=11; k++){
-                if(CombineFits){
-                      double valuepar = par[k] + rand.Gaus(0,parerr[k]);
-                      fitY_1Periph->FixParameter(k,valuepar);
-//                      std::cout<<"valuepar: " << valuepar << " k " << k <<endl;
-                }
-                if(!CombineFits){
-                    fitY_1Periph->FixParameter(k,par[k]);
+        while(NewOutliers !=0){
+            moypar12 = 0;
+            moyparerr12 = 0;
+            typeApar12 = 0;
+            sigparerr12 = 0;
+            int failures = 0;
+            failures = 0;
+            NewOutliers = 0;
+            for(int z=0; z<niterations; z++){
+                moypar12 += par12[z];
+                moyparerr12 += parerr12[z];
+                if(par12[z]==0 && parerr12[z]==0){
+                    failures++;
                 }
             }
-              fitY_1Periph->SetParLimits(12,0,10000);
+            moypar12/=(niterations-failures);   // Moyenne de par12
+            moyparerr12/=(niterations-failures); //Incertitude fit 2
+            for(int z=0; z<niterations; z++){
+                if(par12[z]!=0 || parerr12[z]!=0){
+                    typeApar12 += pow(moypar12-par12[z],2);
+                }
+                if(par12[z]!=0 || parerr12[z]!=0){
+                    sigparerr12 += pow(moyparerr12-parerr12[z],2);
+                }
+            }
+            
+            typeApar12/=((niterations-failures)*(niterations-1-failures));
+            typeApar12 = sqrt(typeApar12); // Incertitude de type A (répétabitilé) issue du fit 1 propagé
+            
+            sigparerr12/=((niterations-failures)*(niterations-1-failures));
+            sigparerr12 = sqrt(sigparerr12); // Ecart-type valeurs des erreurs.
+            
+            std::cout << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12 << ", sigparerr12: "<<sigparerr12<<endl;
 
-              fitY_1Periph->SetParName(0,"Norm_{JPsi}");
-              fitY_1Periph->SetParName(1,"M_{JPsi}");
-              fitY_1Periph->SetParName(2,"Sigma_{JPsi}");
-              fitY_1Periph->SetParName(3,"a_{1}");
-              fitY_1Periph->SetParName(4,"n_{1}");
-              fitY_1Periph->SetParName(5,"a_{2}");
-              fitY_1Periph->SetParName(6,"n_{2}");
-              fitY_1Periph->SetParName(7,"Norm_{Psi2S}");
-              fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
-              fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
-              fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
-              fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
-               fitY_1Periph->SetParName(12,"Y_1 JPsi");
-               fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
-           fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
-           fitY_1Periph->SetParName(15,"Y_1 Nkg M0");
+            for(int z=0; z<niterations; z++){
+                if(par12[z]!=0 || parerr12[z]!=0){
+                    if(TMath::Abs(par12[z]-moypar12)>(SigmaCutOutliers*typeApar12) && TMath::Abs(parerr12[z]-moyparerr12)>(SigmaCutOutliers*sigparerr12)){
+                        NewOutliers++;
+                        std::cout << "Iteration with Yield Value: " << par12[z] << " and Error: " << parerr12[z] << " is an outlier. Suppressed"<<endl;
+                    
+                        par12[z] =0;
+                        parerr12[z] =0;
+                    }
+                }
+            }
 
-             resperiph = YieldWrtMass_Periph[i]->Fit("fitY_1Periph","SMERIQ+","ep");
-               fileLog << "Chi2: " << resperiph->Chi2() <<endl;
-               fileLog << "Status: " << int(resperiph->Status()) <<endl;
-               fileLog << "Prob: " << resperiph->Prob() <<endl;
-               fileLog << "IsValid: " << resperiph->IsValid() <<endl;
-               fileLog << "HasMinosError(12): " << resperiph->HasMinosError(12) <<endl;
-               Double_t param[16];
-               Double_t paramerrs[16];
-             fitY_1Periph->GetParameters(param);
-
-               for(int i=0; i<16; i++){
-                               paramerrs[i] = fitY_1Periph->GetParError(i);
-                           }
-
-                           if(resperiph->CovMatrixStatus() == 3){
-                           par12[t] = param[12];
-                           parerr12[t] = paramerrs[12];
-                           }
-                           else{
-                               par12[t]=parerr12[t]=0;
-                           }
-               std::cout << "COV status Periph t=" << t << " : " << resperiph->CovMatrixStatus()<<endl;
-               std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
-               
-               fileLog << "COV status Periph t=" << t << " : " << resperiph->CovMatrixStatus()<<endl;
-               fileLog << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
-
-           TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2,2.1,5.1,16);
-           backFcnY_1Periph->SetLineColor(kRed);
-           TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
-             // writes the fit results into the par array
-
-               if(t==niterations-1){
-                   YieldWrtMass_Periph[i]->GetListOfFunctions()->Clear();
-                   YieldWrtMass_Periph[i]->GetListOfFunctions()->Add(fitY_1Periph);
-               }
-
-           signalFcnJPsiY_1Periph->SetLineColor(kBlue);
-           signalFcnJPsiY_1Periph->SetNpx(500);
-           backFcnY_1Periph->SetParameters(param);
-           signalFcnJPsiY_1Periph->SetParameters(param);
-           signalFcnJPsiY_1Periph->Draw("same");
-           backFcnY_1Periph->Draw("same");
-
-               if(!CombineFits){
-                   if(i==2){
-                       baseline = param[12];
-                       errbaseline = fitY_1Periph->GetParError(12);
-                   }
-                   if(i==3){
-                       baseline += param[12];
-                       baseline /= 2;
-                       errbaseline = sqrt(pow(errbaseline,2)+pow(fitY_1Periph->GetParError(12),2));
-                   }
-                 Yields_Periph_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]);
-                 Yields_Periph_1->SetBinError(i+1,fitY_1Periph->GetParError(12));
-               }
-
-             // writes the fit results into the par array
-              gStyle->SetOptFit(1011);
-             // draw the legend
-             TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-             legend->SetTextFont(72);
-             legend->SetTextSize(0.04);
-           Char_t message[80];
-           sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
-            legend->AddEntry(fitY_1Periph,message);
-           if(resperiph->CovMatrixStatus() == 3){
-                      sprintf(message,"The fit is a success");
-                  }
-                  else{
-                      sprintf(message,"The fit is a failure");
-                  }
-                  legend->AddEntry(fitY_1Periph,message);
-           legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
-           legend->AddEntry(backFcnY_1Periph,"Background");
-             legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
-             legend->Draw();
-           }
-           if(CombineFits){
-                  double moypar12 = 0;
-                  double moyparerr12 = 0;
-                  double typeApar12 = 0;
-               double sigparerr12 = 0;
-                    int NewOutliers = 1;
-                    double SigmaCutOutliers = 10;
-                  int failures = 0;
-               
-               while(NewOutliers !=0){
-                   moypar12 = 0;
-                   moyparerr12 = 0;
-                   typeApar12 = 0;
-                   sigparerr12 = 0;
-                      failures = 0;
-                      NewOutliers = 0;
-                  for(int z=0; z<niterations; z++){
-                      moypar12 += par12[z];
-                      moyparerr12 += parerr12[z];
-                      if(par12[z]==0 && parerr12[z]==0){
-                          failures++;
-                      }
-                  }
-                  moypar12/=(niterations-failures);   // Moyenne de par12
-                  moyparerr12/=(niterations-failures); //Incertitude fit 2
-                  for(int z=0; z<niterations; z++){
-                      if(par12[z]!=0 || parerr12[z]!=0){
-                          typeApar12 += pow(moypar12-par12[z],2);
-                      }
-                      if(par12[z]!=0 || parerr12[z]!=0){
-                          sigparerr12 += pow(moyparerr12-parerr12[z],2);
-                      }
-                  }
-                  typeApar12/=((niterations-failures)*(niterations-1-failures));
-                  typeApar12 = sqrt(typeApar12); // Incertitude de type A (répétabitilé) issue du fit 1 propagé
-
-               sigparerr12/=((niterations-failures)*(niterations-1-failures));
-               sigparerr12 = sqrt(sigparerr12); // Ecart-type valeurs des erreurs.
-                   
-                   std::cout << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12 << ", sigparerr12: "<<sigparerr12<<endl;
-                   fileLog << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12 << ", sigparerr12: "<<sigparerr12<<endl;
-               
-               for(int z=0; z<niterations; z++){
-                   if(par12[z]!=0 || parerr12[z]!=0){
-                       if(TMath::Abs(par12[z]-moypar12)>(SigmaCutOutliers*typeApar12) && TMath::Abs(parerr12[z]-moyparerr12)>(SigmaCutOutliers*sigparerr12)){
-                           NewOutliers++;
-                           std::cout << "Iteration with Yield Value: " << par12[z] << " and Error: " << parerr12[z] << " is an outlier. Suppressed"<<endl;
-                           fileLog << "Iteration with Yield Value: " << par12[z] << " and Error: " << parerr12[z] << " is an outlier. Suppressed"<<endl;
-                           par12[z] =0;
-                           parerr12[z] =0;
-                       }
-                   }
-               }
-               
-                  std::cout << "There were " << failures << " failures"<<endl;
-                  std::cout << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12<<endl;
-                  
-                  fileLog << "There were " << failures << " failures"<<endl;
-                  fileLog << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12<<endl;
-               }
-               
-                  Yields_Periph_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, moypar12);
-                  Yields_Periph_1->SetBinError(i+1,sqrt(pow(moyparerr12,2)+pow(typeApar12,2)));
-
-               if(i==2){
-                   baseline = moypar12;
-                   errbaseline = sqrt(pow(moyparerr12,2)+pow(typeApar12,2));
-               }
-               if(i==3){
-                   baseline += moypar12;
-                   baseline /= 2;
-                   errbaseline = sqrt(pow(errbaseline,2)+pow(sqrt(pow(moyparerr12,2)+pow(typeApar12,2)),2));
-               }
-           }
-
-       }
-
-    {
-        TCanvas* c17 = new TCanvas;
-        c17->Divide(1,3);
-        //Creer canvas pour imprimer les plots Periph yield et Central yield wrt phi et leur difference
-        c17->cd(1);
-        Yields_Central_1->Draw();
-        c17->cd(2);
-        Yields_Periph_1->Draw();
-        c17->cd(3);
-        Yields_Difference_1->Add(Yields_Central_1,Yields_Periph_1,1,-1);
-        Yields_Difference_1->Draw();
-
-             TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
-             fitFcnV2_2->SetNpx(500);
-             fitFcnV2_2->SetLineWidth(4);
-             fitFcnV2_2->SetLineColor(kMagenta);
-             // first try without starting values for the parameters
-             // This defaults to 1 for each param.
-             // this results in an ok fit for the polynomial function
-             // however the non-linear part (lorenzian) does not
-             // respond well.
-              Double_t params[3] = {1,1,1};
-             fitFcnV2_2->SetParameters(params);
-              TVirtualFitter::Fitter(Yields_Difference_1)->SetMaxIterations(10000);
-              TVirtualFitter::Fitter(Yields_Difference_1)->SetPrecision();
-           //  histo->Fit("fitFcn","0");
-             // second try: set start values for some parameters
-
-              fitFcnV2_2->SetParName(0,"a0");
-              fitFcnV2_2->SetParName(1,"a1");
-              fitFcnV2_2->SetParName(2,"a2");
-
-             TFitResultPtr res = Yields_Difference_1->Fit("fitFcnV2_2","SBMERI+","ep");
-            Double_t par[3];
-            fitFcnV2_2->GetParameters(par);
-             // improve the pictu
-           //   std::cout << "integral error: " << integralerror << std::endl;
-             fitFcnV2_2->Draw("same");
-             // draw the legend
-             TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-             legend->SetTextFont(72);
-             legend->SetTextSize(0.04);
-               Char_t message[80];
-               sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
-               legend->AddEntry(fitFcnV2_2,message);
-        sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
-        legend->AddEntry(fitFcnV2_2,message);
-        if(res->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
-               }
-               else{
-                   sprintf(message,"The fit is a failure");
-               }
-               legend->AddEntry(fitFcnV2_2,message);
-             legend->AddEntry(Yields_Difference_1,"Data","lpe");
-             legend->Draw();
-
-    }
-
-
-    double baselineTKL = 1;
-    double errbaselineTKL = 1;
-
-    if(doTracklets){
-
-        TCanvas* c6TKL = new TCanvas;
-            //Tracklets yield DeltaEta wrt DeltaPhi TH2 -> Projected for Periph and Central
-
-            c6TKL->Divide(2,2);
-            c6TKL->cd(1);
-            YieldTkl_allC->Draw("E");
-            c6TKL->cd(2);
-            YieldTkl_Difference->Draw("E");
-            c6TKL->cd(3);
-            YieldTkl_Central->Draw("E");
-            c6TKL->cd(4);
-            YieldTkl_Periph->Draw("E");
-            c6TKL->Draw();
-            c6TKL->Modified();
-            c6TKL->ForceUpdate();
-
-        baselineTKL = (YieldTkl_Periph->GetBinContent(3) + YieldTkl_Periph->GetBinContent(4))/2;
-        errbaselineTKL = sqrt(pow(YieldTkl_Periph->GetBinError(3),2) + pow(YieldTkl_Periph->GetBinError(4),2));
-
-        TCanvas*c14TKL=new TCanvas();
-        //Tracklets Yield difference wrt Phi fit
-        c14TKL->cd();
-        // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
-            TH1F *histo = YieldTkl_Difference;
-          // create a TF1 with the range from 0 to 3 and 6 parameters
-          TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,-TMath::Pi()/2,1.5*TMath::Pi(),3);
-          fitFcnV2TKL->SetNpx(500);
-          fitFcnV2TKL->SetLineWidth(4);
-          fitFcnV2TKL->SetLineColor(kMagenta);
-          // first try without starting values for the parameters
-          // This defaults to 1 for each param.
-          // this results in an ok fit for the polynomial function
-          // however the non-linear part (lorenzian) does not
-          // respond well.
-           Double_t params[3] = {1,0.01,0.01};
-          fitFcnV2TKL->SetParameters(params);
-           TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
-           TVirtualFitter::Fitter(histo)->SetPrecision();
-        //  histo->Fit("fitFcn","0");
-          // second try: set start values for some parameters
-
-           fitFcnV2TKL->SetParName(0,"a0");
-           fitFcnV2TKL->SetParName(1,"a1");
-           fitFcnV2TKL->SetParName(2,"a2");
-//            fitFcnV2TKL->SetParName(3,"a3");
-//            fitFcnV2TKL->SetParName(4,"a4");
-//        fitFcnV2TKL->SetParName(5,"a5");
-//        fitFcnV2TKL->SetParName(6,"a6");
-//        fitFcnV2TKL->SetParName(7,"a7");
-//        fitFcnV2TKL->SetParName(8,"a8");
-//        fitFcnV2TKL->SetParName(9,"a9");
-//        fitFcnV2TKL->SetParName(10,"a10");
-//        fitFcnV2TKL->SetParName(11,"a11");
-//        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
-
-          TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
-          // improve the pictu
-        //   std::cout << "integral error: " << integralerror << std::endl;
-            Double_t par[3];
-            fitFcnV2TKL->GetParameters(par);
-          fitFcnV2TKL->Draw("same");
-          // draw the legend
-          TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-          legend->SetTextFont(72);
-          legend->SetTextSize(0.04);
-            Char_t message[80];
-            sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
-            legend->AddEntry(fitFcnV2TKL,message);
-        sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baselineTKL,par[2]/(par[0] + baselineTKL),(par[2]/(par[0] + baselineTKL)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL/baselineTKL,2))));
-        legend->AddEntry(fitFcnV2TKL,message);
-        if(res->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
-               }
-               else{
-                   sprintf(message,"The fit is a failure");
-               }
-               legend->AddEntry(fitFcnV2TKL,message);
-          legend->AddEntry(histo,"Data","lpe");
-          legend->Draw();
-
+            std::cout << "There were " << failures << " failures"<<endl;
+            std::cout << "moypar12: " << moypar12 << ", moyparerr12: " << moyparerr12 << ", typeApar12: "<<typeApar12<<endl;
+            
+        }
+        
+        cout << "Value of V2 is " << moypar12 <<endl;
+        cout << "Value of V2 error is " << sqrt(pow(moyparerr12,2)+pow(typeApar12,2)) <<endl;
     }
     
-    
-    
-//        for (int i=0;i<6;i++){
-//               sprintf(histoname,Form("bin%d_0",i+1)); // ZZZZZZZ
-//               res = FittingAllInvMassBin(histoname, c11b_0, i);
-//           }
-//    for (int i=0;i<6;i++){
-//        sprintf(histoname,Form("bin%d_1",i+1));
-//        res = FittingAllInvMassBin(histoname, c11b_1, i);
-//    }
-//    for (int i=0;i<6;i++){
-//        sprintf(histoname,Form("bin%d_2",i+1));
-//        res = FittingAllInvMassBin(histoname, c11b_2, i);
-//    }
-    
-    
-    
-    
-    
-//    for(int i=0; i<12; i++){
-//  //  histoname = "Inv Mass, Phi: " + std::to_string(0) + " pi/6 to " + std::to_string(1) + " pi/6";
-//        sprintf(histoname,"InvMassPhiBin_%d",i);
-//        FittingAllInvMassPhiBin(histoname, cinvmassphibin, i);
-//    }
-    std::cout << "===== Dimuons counted =====" <<std::endl;
-    std::cout<< "DimuCentralSeen " << DimuCentralSeen <<std::endl;
-    std::cout<< "DimuPeriphSeen " << DimuPeriphSeen <<std::endl;
-    std::cout<< "DimuSeenMassCut " << DimuSeenMassCut <<std::endl;
-    std::cout<< "DimuSeenNoMassCut " << DimuSeenNoMassCut <<std::endl;
-    std::cout << "EventRejected: " << EventRejected <<std::endl;
-    std::cout << "EventPileUpVtx: " << EventPileUpVtx <<std::endl;
-    std::cout << "EventPileUpMult: " << EventPileUpMult <<std::endl;
-    std::cout << "EventNC: " << EventNC <<std::endl;
-    std::cout << "cmul  " << cmul <<std::endl;
-    std::cout <<"countsigma :" << countsigma <<std::endl;
 }
+
     
-
-
-
-
-
-
-
-
-
-// FITTING INVARIANT MASS METHODS
+    
+    
+    
+    
+    
+//FITTING METHODS
 
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par)
 // Par 0->7: signal, 8->11 Bkg, 12: v2 JPsi, 13->15: V2 bkg
