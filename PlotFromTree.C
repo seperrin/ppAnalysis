@@ -54,246 +54,246 @@ int GetCent(double cent);
 int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
 
 int LimitsPM[12][20][5] =
-{       {   {31 17 13 7 0}, //Group 1
-            {32 18 13 8 0},
-            {34 19 14 8 0},
-            {36 20 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {38 22 16 9 0},
-            {38 22 16 9 0},
-            {39 22 16 10 0},
-            {40 23 16 10 0},
-            {41 23 17 10 0},
-            {41 23 17 10 0},
-            {41 24 17 10 0},
-            {42 24 17 10 0},
-            {41 23 17 10 0},
-            {39 22 16 10 0},
-            {37 21 15 9 0},
-            {35 20 14 8 0}   },
-        {   {31 17 13 7 0}, //Group 2
-            {33 18 13 8 0},
-            {34 19 14 8 0},
-            {36 20 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {38 21 16 9 0},
-            {39 22 16 9 0},
-            {39 22 16 9 0},
-            {39 22 16 10 0},
-            {39 22 16 10 0},
-            {39 22 16 10 0},
-            {40 23 16 10 0},
-            {39 22 16 10 0},
-            {38 21 15 9 0},
-            {35 20 15 9 0},
-            {34 19 14 8 0}   },
-        {   {31 17 12 7 0}, //Group 3
-            {32 18 13 8 0},
-            {34 19 14 8 0},
-            {36 20 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {38 21 16 9 0},
-            {39 22 16 9 0},
-            {39 22 16 9 0},
-            {39 22 16 10 0},
-            {40 22 16 10 0},
-            {40 23 16 10 0},
-            {40 23 17 10 0},
-            {39 22 16 10 0},
-            {38 21 15 9 0},
-            {36 20 15 9 0},
-            {34 19 14 8 0}   },
-        {   {29 16 12 7 0}, //Group 4
-            {31 17 13 7 0},
-            {32 18 13 8 0},
-            {34 19 14 8 0},
-            {35 20 14 8 0},
-            {35 20 14 9 0},
-            {35 20 14 8 0},
-            {35 20 14 9 0},
-            {36 20 15 9 0},
-            {36 20 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {38 21 16 9 0},
-            {38 22 16 9 0},
-            {39 22 16 9 0},
-            {39 22 16 9 0},
-            {38 22 16 9 0},
-            {36 21 15 9 0},
-            {34 19 14 8 0},
-            {33 18 13 8 0}   },
-        {   {29 16 12 7 0}, //Group 5
-            {31 17 13 7 0},
-            {32 18 13 8 0},
-            {34 19 14 8 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {36 20 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {39 22 16 9 0},
-            {39 22 16 9 0},
-            {40 23 16 10 0},
-            {41 23 17 10 0},
-            {41 23 17 10 0},
-            {42 24 17 10 0},
-            {41 23 17 10 0},
-            {39 22 16 9 0},
-            {37 21 15 9 0},
-            {35 20 14 8 0}   },
-        {   {27 15 11 7 0}, //Group 6
-            {29 16 12 7 0},
-            {30 17 12 7 0},
-            {31 18 13 8 0},
-            {32 18 13 8 0},
-            {33 18 13 8 0},
-            {33 18 13 8 0},
-            {33 19 14 8 0},
-            {34 19 14 8 0},
-            {35 20 14 9 0},
-            {36 20 15 9 0},
-            {36 21 15 9 0},
-            {37 21 15 9 0},
-            {38 21 16 9 0},
-            {39 22 16 9 0},
-            {39 22 16 10 0},
-            {38 22 16 9 0},
-            {37 21 15 9 0},
-            {34 19 14 8 0},
-            {33 18 13 8 0}   },
-        {   {27 15 11 7 0}, //Group 7
-            {29 16 12 7 0},
-            {30 17 12 7 0},
-            {31 18 13 8 0},
-            {32 18 13 8 0},
-            {33 18 13 8 0},
-            {33 18 13 8 0},
-            {33 19 14 8 0},
-            {34 19 14 8 0},
-            {34 19 14 8 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {36 20 15 9 0},
-            {36 21 15 9 0},
-            {37 21 15 9 0},
-            {38 21 15 9 0},
-            {37 21 15 9 0},
-            {35 20 14 9 0},
-            {33 19 14 8 0},
-            {31 18 13 8 0}   },
-        {   {28 15 11 7 0}, //Group 8
-            {29 16 12 7 0},
-            {30 17 12 7 0},
-            {32 18 13 8 0},
-            {33 18 13 8 0},
-            {33 19 13 8 0},
-            {33 18 13 8 0},
-            {33 19 14 8 0},
-            {33 19 14 8 0},
-            {34 19 14 8 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {36 20 15 9 0},
-            {36 21 15 9 0},
-            {37 21 15 9 0},
-            {36 20 15 9 0},
-            {34 19 14 8 0},
-            {33 18 13 8 0},
-            {31 17 13 7 0}   },
-        {   {27 15 11 7 0}, //Group 9
-            {29 16 12 7 0},
-            {30 17 12 7 0},
-            {31 18 13 8 0},
-            {32 18 13 8 0},
-            {33 18 13 8 0},
-            {32 18 13 8 0},
-            {33 19 14 8 0},
-            {34 19 14 8 0},
-            {34 20 14 8 0},
-            {35 20 15 9 0},
-            {36 20 15 9 0},
-            {37 21 15 9 0},
-            {37 21 15 9 0},
-            {38 21 16 9 0},
-            {38 22 16 9 0},
-            {37 21 15 9 0},
-            {36 20 15 9 0},
-            {34 19 14 8 0},
-            {32 18 13 8 0}   },
-        {   {28 15 11 7 0}, //Group 10
-            {29 16 12 7 0},
-            {30 17 12 7 0},
-            {32 18 13 8 0},
-            {33 18 13 8 0},
-            {33 19 13 8 0},
-            {33 18 13 8 0},
-            {33 19 14 8 0},
-            {33 19 14 8 0},
-            {34 19 14 8 0},
-            {34 19 14 8 0},
-            {35 20 14 8 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {36 20 15 9 0},
-            {36 20 15 9 0},
-            {35 20 14 8 0},
-            {34 19 14 8 0},
-            {32 18 13 8 0},
-            {30 17 12 7 0}   },
-        {   {30 16 12 7 0}, //Group 11
-            {31 17 13 7 0},
-            {32 18 13 8 0},
-            {34 19 14 8 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {35 20 14 8 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {35 20 15 9 0},
-            {36 20 15 9 0},
-            {36 20 15 9 0},
-            {35 20 14 8 0},
-            {34 19 14 8 0},
-            {32 18 13 8 0},
-            {30 17 12 7 0}   },
-        {   {29 17 12 7 0}, //Group 12
-            {31 17 13 7 0},
-            {32 18 13 8 0},
-            {34 19 14 8 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {35 20 14 9 0},
-            {35 20 14 9 0},
-            {35 20 15 9 0},
-            {35 20 15 9 0},
-            {36 20 15 9 0},
-            {36 20 15 9 0},
-            {36 20 15 9 0},
-            {36 20 15 9 0},
-            {36 21 15 9 0},
-            {37 21 15 9 0},
-            {36 20 15 9 0},
-            {34 19 14 8 0},
-            {33 18 13 8 0},
-            {31 17 12 7 0}   }
+{       {   {31, 17, 13, 7, 0}, //Group 1
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 22, 16, 9, 0},
+            {38, 22, 16, 9, 0},
+            {39, 22, 16, 10, 0},
+            {40, 23, 16, 10, 0},
+            {41, 23, 17, 10, 0},
+            {41, 23, 17, 10, 0},
+            {41, 24, 17, 10, 0},
+            {42, 24, 17, 10, 0},
+            {41, 23, 17, 10, 0},
+            {39, 22, 16, 10, 0},
+            {37, 21, 15, 9, 0},
+            {35, 20, 14, 8, 0}   },
+        {   {31, 17, 13, 7, 0}, //Group 2
+            {33, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 10, 0},
+            {39, 22, 16, 10, 0},
+            {39, 22, 16, 10, 0},
+            {40, 23, 16, 10, 0},
+            {39, 22, 16, 10, 0},
+            {38, 21, 15, 9, 0},
+            {35, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0}   },
+        {   {31, 17, 12, 7, 0}, //Group 3
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 10, 0},
+            {40, 22, 16, 10, 0},
+            {40, 23, 16, 10, 0},
+            {40, 23, 17, 10, 0},
+            {39, 22, 16, 10, 0},
+            {38, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0}   },
+        {   {29, 16, 12, 7, 0}, //Group 4
+            {31, 17, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 16, 9, 0},
+            {38, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {38, 22, 16, 9, 0},
+            {36, 21, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {33, 18, 13, 8, 0}   },
+        {   {29, 16, 12, 7, 0}, //Group 5
+            {31, 17, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {40, 23, 16, 10, 0},
+            {41, 23, 17, 10, 0},
+            {41, 23, 17, 10, 0},
+            {42, 24, 17, 10, 0},
+            {41, 23, 17, 10, 0},
+            {39, 22, 16, 9, 0},
+            {37, 21, 15, 9, 0},
+            {35, 20, 14, 8, 0}   },
+        {   {27, 15, 11, 7, 0}, //Group 6
+            {29, 16, 12, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 16, 9, 0},
+            {39, 22, 16, 9, 0},
+            {39, 22, 16, 10, 0},
+            {38, 22, 16, 9, 0},
+            {37, 21, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {33, 18, 13, 8, 0}   },
+        {   {27, 15, 11, 7, 0}, //Group 7
+            {29, 16, 12, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {35, 20, 14, 9, 0},
+            {33, 19, 14, 8, 0},
+            {31, 18, 13, 8, 0}   },
+        {   {28, 15, 11, 7, 0}, //Group 8
+            {29, 16, 12, 7, 0},
+            {30, 17, 12, 7, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 14, 8, 0},
+            {33, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {33, 18, 13, 8, 0},
+            {31, 17, 13, 7, 0}   },
+        {   {27, 15, 11, 7, 0}, //Group 9
+            {29, 16, 12, 7, 0},
+            {30, 17, 12, 7, 0},
+            {31, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {32, 18, 13, 8, 0},
+            {33, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {34, 20, 14, 8, 0},
+            {35, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {38, 21, 16, 9, 0},
+            {38, 22, 16, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {32, 18, 13, 8, 0}   },
+        {   {28, 15, 11, 7, 0}, //Group 10
+            {29, 16, 12, 7, 0},
+            {30, 17, 12, 7, 0},
+            {32, 18, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 13, 8, 0},
+            {33, 18, 13, 8, 0},
+            {33, 19, 14, 8, 0},
+            {33, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {35, 20, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {32, 18, 13, 8, 0},
+            {30, 17, 12, 7, 0}   },
+        {   {30, 16, 12, 7, 0}, //Group 11
+            {31, 17, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {35, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {35, 20, 14, 8, 0},
+            {34, 19, 14, 8, 0},
+            {32, 18, 13, 8, 0},
+            {30, 17, 12, 7, 0}   },
+        {   {29, 17, 12, 7, 0}, //Group 12
+            {31, 17, 13, 7, 0},
+            {32, 18, 13, 8, 0},
+            {34, 19, 14, 8, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 14, 9, 0},
+            {35, 20, 15, 9, 0},
+            {35, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {36, 21, 15, 9, 0},
+            {37, 21, 15, 9, 0},
+            {36, 20, 15, 9, 0},
+            {34, 19, 14, 8, 0},
+            {33, 18, 13, 8, 0},
+            {31, 17, 12, 7, 0}   }
 
 };
 
@@ -309,9 +309,15 @@ TH1F* V2JPsiTkl(NULL);
 void PlotFromTree(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kFALSE;
-    bool doMixedEvents = kFALSE;
+    bool doTracklets = kTRUE;
+    bool doMixedEvents = kTRUE;
     bool CombineFits = kFALSE;
+    bool KeepOnlyOne = kFALSE;
+    int valueOnlyOne = 3;
+    bool AdditionalCutNtkl = kTRUE;
+    int valueAdditionalCutNtkl = 3; //<=
+    int preciseZbinFocus = 10;
+    int preciseCentFocus = 0;
     
 // ************************************
 // Définitions de paramètres          *
@@ -324,7 +330,7 @@ void PlotFromTree(){
     double LowDimuYCut = -4;
     double HighDimuYCut = -2.5;
     double LowDimuPtCut = 0;
-    double HighDimuPtCut = 99999;
+    double HighDimuPtCut = 9999;
 //    double MinMultCentral = 37;
 //    double MaxMultPeriph = 23;
     double CentSPDTrackletsCentral = 1;
@@ -363,13 +369,14 @@ void PlotFromTree(){
   //  Char_t Group_Period[50] = "Group1";
     Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
     Char_t fileInLoc[200];
     Char_t FitFileName[200];
     
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesRun2.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesTest.root");
 
 // *************************
 // Initialiser les graphes *
@@ -449,9 +456,12 @@ void PlotFromTree(){
     TH2F* YTklPeriph(NULL);
     TH2F* YTklPeriphME(NULL);
     TH2F* YTklDifference(NULL);
-    TH1F* YTklCentral_proj_tampon(NULL);
-    TH1F* YTklPeriph_proj_tampon(NULL);
-    TH1F* YTklDifference_proj_tampon(NULL);
+    TH1D* YTklCentral_proj_tampon(NULL);
+    TH1D* Correl_tampon(NULL);
+    TH1D* YTklPeriph_proj_tampon(NULL);
+    TH1D* YTklDifference_proj_tampon(NULL);
+    TH1D* YTklCentralME_proj_tampon(NULL);
+    TH1D* YTklPeriphME_proj_tampon(NULL);
     
     YCentral = new TH2F("YCentral",
                       "Yield delta eta wrt delta phi - Central",
@@ -988,6 +998,7 @@ void PlotFromTree(){
     std::vector <double> Pools[NbBinsCent][NbBinsZvtx]; //[12]
     int PoolsSize[NbBinsCent][NbBinsZvtx] = {0}; //[12]
     std::vector <double> PoolsTkl[NbBinsCent][NbBinsZvtx];
+    std::vector <int> PoolsTklEventTracker[NbBinsCent][NbBinsZvtx];
     int PoolsSizeTkl[NbBinsCent][NbBinsZvtx] = {0};
     int DimuonCounter[NbBinsCent][NbBinsZvtx][NbinsInvMass] = {0};
     int DimuonCounterZint[NbBinsCent][NbinsInvMass] = {0};
@@ -1104,6 +1115,18 @@ void PlotFromTree(){
                     continue;
                 }
                 
+                if(KeepOnlyOne){
+                    if(NumberOfTrackletsPassingEtaCut != valueOnlyOne){
+                        continue;
+                    }
+                }
+                
+                if(AdditionalCutNtkl){
+                   if(NumberOfTrackletsPassingEtaCut <= valueAdditionalCutNtkl){
+                       continue;
+                   }
+               }
+                
                 for (Int_t j=0; j<fEvent->fNDimuons; j++) {
                    dimu = (DimuonLight*)fDimuons->At(j);
                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
@@ -1153,6 +1176,8 @@ void PlotFromTree(){
                                    double trackletMEEta = trackletME->fEta;
                                    PoolsTkl[centint][zv].push_back(trackletMEPhi);
                                    PoolsTkl[centint][zv].push_back(trackletMEEta);
+                                   PoolsTklEventTracker[centint][zv].push_back(i);
+                                   PoolsTklEventTracker[centint][zv].push_back(i);
                                }
                                
                            }
@@ -1260,6 +1285,18 @@ void PlotFromTree(){
                 continue;
             }
             
+            if(KeepOnlyOne){
+                if(valueOnlyOne!=NumberOfTrackletsPassingEtaCut){
+                    continue;
+                }
+            }
+            
+            if(AdditionalCutNtkl){
+                if(NumberOfTrackletsPassingEtaCut <= valueAdditionalCutNtkl){
+                    continue;
+                }
+            }
+            
             CentV0M->Fill(fEvent->fCentralityV0M);
 //            CentTKL->Fill(fEvent->fCentralityTKL);
 //            CentCL0->Fill(fEvent->fCentralityCL0);
@@ -1355,6 +1392,7 @@ void PlotFromTree(){
                                             CorrelationsME[centintME][zvintME][massintME]->Fill(correlMEPhi,correlMEEta);
                            }
                         }
+                        
                     }
                                        
                                        
@@ -1365,9 +1403,11 @@ void PlotFromTree(){
 // ***********************************
 // Boucle sur les correlations, notés j    *
 // ***********************************
+            int counter_one = 0;
             for (Int_t j=0; j<fEvent->fNCorrelations; j++) {
                 correl = (CorrelationLight*)fCorrelations->At(j);
                 if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) &&
+                    counter_one++;
                     Float_t DeltaPhi = correl->fDeltaPhi;
                     if(DeltaPhi < -TMath::Pi()/2){
                         DeltaPhi += 2* TMath::Pi();
@@ -1375,10 +1415,12 @@ void PlotFromTree(){
                     if(DeltaPhi > 1.5*TMath::Pi()){
                         DeltaPhi -= 2* TMath::Pi();
                     }
-                    hnseg2->Fill(correl->fDimuonPt);
-                    hnseg3->Fill(correl->fDimuonEta);
-                    hnseg4->Fill(correl->fDimuonY);
-                    hnseg5->Fill(correl->fDimuonPhi);
+                    if (counter_one==1){
+                        hnseg2->Fill(correl->fDimuonPt);
+                        hnseg3->Fill(correl->fDimuonEta);
+                        hnseg4->Fill(correl->fDimuonY);
+                        hnseg5->Fill(correl->fDimuonPhi);
+                    }
                     hnseg6->Fill(DeltaPhi);
                     hnseg7->Fill(correl->fDeltaEta);
                     hnseg8->Fill(DeltaPhi, correl->fDeltaEta);
@@ -1416,10 +1458,12 @@ void PlotFromTree(){
 // TREATEMENT OF TRACKLET V2
             if(doTracklets){
                 
+                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
                  // double cent = fEvent->fCentralitySPDTracklets;
                 //  int centint = GetCent(cent);
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
+              //  cout << NumberOfTrackletsPassingEtaCut << " " << zvint << " " <<GroupNum<<endl;
                   int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
               //  if(cent <= CentSPDTrackletsCentral){
@@ -1430,7 +1474,7 @@ void PlotFromTree(){
                 else if(centint==4){
                     TklP++;
                 }
-                
+                }
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
@@ -1478,6 +1522,9 @@ void PlotFromTree(){
                             
 
                               for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
+                                  if(i==PoolsTklEventTracker[centintME][zvintME].at(k)){
+                                      continue;
+                                  }
                                           double correlTklMEPhi = PoolsTkl[centintME][zvintME].at(k) - tracklet1->fPhi;
                                           if(correlTklMEPhi < -TMath::Pi()/2){
                                               correlTklMEPhi += 2* TMath::Pi();
@@ -1512,6 +1559,7 @@ void PlotFromTree(){
                         }
                         
                     }
+                    
                 }
             
             }
@@ -1543,13 +1591,42 @@ void PlotFromTree(){
 //        }
 //    }
     
+    
+    TCanvas* cCorrMEDimuTkl=new TCanvas();
+    cCorrMEDimuTkl->Divide(2,2);
+    cCorrMEDimuTkl->SetTitle("Correlations Dimu-Tkl [0:Central][10: z_vtz = 0][3: m de 3.0 à 3.3 GeV]");
+    cCorrMEDimuTkl->cd(1);
+    Correlations[preciseCentFocus][preciseZbinFocus][3]->DrawCopy("colz");
+    cCorrMEDimuTkl->cd(2);
+    CorrelationsME[preciseCentFocus][preciseZbinFocus][3]->DrawCopy("colz");
+    cCorrMEDimuTkl->cd(3);
+    Correl_tampon = (TH1D*)(Correlations[preciseCentFocus][preciseZbinFocus][3]->ProjectionX("_px",1,-1,"e"));
+    Correl_tampon->DrawCopy("e");
+    cCorrMEDimuTkl->cd(4);
+    Correl_tampon = (TH1D*)(CorrelationsME[preciseCentFocus][preciseZbinFocus][3]->ProjectionX("_px",1,-1,"e"));
+    Correl_tampon->DrawCopy("e");
+    
+    TCanvas* cCorrMETKL=new TCanvas();
+    cCorrMETKL->Divide(2,2);
+    cCorrMETKL->SetTitle("Correlations Tkl-Tkl [0:Central][10: z_vtz = 0]");
+    cCorrMETKL->cd(1);
+    CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+    cCorrMETKL->cd(2);
+    CorrelationsTklME[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+    cCorrMETKL->cd(3);
+    Correl_tampon = (TH1D*)(CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->ProjectionX("_px",1,-1,"e"));
+    Correl_tampon->DrawCopy("e");
+    cCorrMETKL->cd(4);
+    Correl_tampon = (TH1D*)(CorrelationsTklME[preciseCentFocus][preciseZbinFocus]->ProjectionX("_px",1,-1,"e"));
+    Correl_tampon->DrawCopy("e");
+    
     //TEST Michael
     YCentral->Scale(1./DimuC);
     YPeriph->Scale(1./DimuP);
     YDifference->Add(YCentral,YPeriph,1,-1);
     
     TCanvas*ctestemich = new TCanvas();
-    ctestemich->SetTitle("Test 2D Plots Michael");
+    ctestemich->SetTitle("Naïve Dimu-Tkl Yield definition TH2 Correlations / Nb Dimuons");
     ctestemich->Divide(1,3);
     ctestemich->cd(1);
     YCentral->DrawCopy("colz");
@@ -1560,7 +1637,7 @@ void PlotFromTree(){
     
     if(doTracklets){
         TCanvas*ctestemichTklSE = new TCanvas();
-        ctestemichTklSE->SetTitle("Test 2D Plots Michael Tkl SE");
+        ctestemichTklSE->SetTitle("Naïve Tkl-Tkl SE Yield definition TH2 Correlations / Nb ref tracklets");
         ctestemichTklSE->Divide(1,3);
         
         YTklCentral->Scale(1./TklC);
@@ -1574,6 +1651,20 @@ void PlotFromTree(){
         ctestemichTklSE->cd(3);
         YTklDifference->DrawCopy("colz");
         
+        TCanvas*ctestemichTklSEProj = new TCanvas();
+        ctestemichTklSEProj->SetTitle("Naïve Tkl-Tkl SE Yield definition TH2 Correlations / Nb ref tracklets - Projected");
+        ctestemichTklSEProj->Divide(1,3);
+        YTklCentral_proj_tampon = (TH1D*)(YTklCentral->ProjectionX("_px",1,-1,"e"));
+        YTklPeriph_proj_tampon = (TH1D*)(YTklPeriph->ProjectionX("_px",1,-1,"e"));
+        YTklDifference_proj_tampon = (TH1D*)(YTklDifference->ProjectionX("_px",1,-1,"e"));
+        ctestemichTklSEProj->cd(1);
+        
+        YTklCentral_proj_tampon->DrawCopy("e");
+        ctestemichTklSEProj->cd(2);
+        YTklPeriph_proj_tampon->DrawCopy("e");
+        ctestemichTklSEProj->cd(3);
+        YTklDifference_proj_tampon->DrawCopy("e");
+        
         if(doMixedEvents){
             YTklCentral->Scale(TklC);
             YTklPeriph->Scale(TklP);
@@ -1585,30 +1676,46 @@ void PlotFromTree(){
             YTklPeriph->Scale(1./TklP);
             
             TCanvas*ctestemichTklME = new TCanvas();
-            ctestemichTklME->SetTitle("Test 2D Plots Michael Tkl ME");
+            ctestemichTklME->SetTitle("Naïve Tkl-Tkl ME Yield definition TH2 Correlations ME / Nb ref tracklets");
             ctestemichTklME->Divide(1,3);
             ctestemichTklME->cd(1);
             YTklCentralME->DrawCopy("colz");
             ctestemichTklME->cd(2);
             YTklPeriphME->DrawCopy("colz");
             
+            TCanvas*ctestemichTklMEProj = new TCanvas();
+            ctestemichTklMEProj->SetTitle("Naïve Tkl-Tkl ME Yield definition TH2 Correlations ME / Nb ref tracklets - Projected");
+            ctestemichTklMEProj->Divide(1,3);
+            YTklCentralME_proj_tampon = (TH1D*)(YTklCentralME->ProjectionX("_px",1,-1,"e"));
+            YTklPeriphME_proj_tampon = (TH1D*)(YTklPeriphME->ProjectionX("_px",1,-1,"e"));
+            ctestemichTklMEProj->cd(1);
+            
+            YTklCentralME_proj_tampon->DrawCopy("e");
+            ctestemichTklMEProj->cd(2);
+            YTklPeriphME_proj_tampon->DrawCopy("e");
+            
         }
         
-        YTklCentral_proj_tampon = (TH1F*)(YTklCentral->ProjectionX("YTklCentral_proj",0,-1,"e"));
-        YTklPeriph_proj_tampon = (TH1F*)(YTklPeriph->ProjectionX("YTklPeriph_proj",0,-1,"e"));
+        YTklCentral_proj_tampon = (TH1D*)(YTklCentral->ProjectionX("_px",1,-1,"e"));
+        YTklPeriph_proj_tampon = (TH1D*)(YTklPeriph->ProjectionX("_px",1,-1,"e"));
         YTklDifference->Add(YTklCentral,YTklPeriph,1,-1);
-        YTklDifference_proj_tampon = (TH1F*)(YTklDifference->ProjectionX("YTklDifference_proj",0,-1,"e"));
+        YTklDifference_proj_tampon = (TH1D*)(YTklDifference->ProjectionX("YTklDifference_proj",1,-1,"e"));
         
         TCanvas*ctestemichTkl1D = new TCanvas();
-        ctestemichTkl1D->SetTitle("Test 2D Plots Michael Tkl 1D");
-        ctestemichTkl1D->Divide(1,3);
+        ctestemichTkl1D->SetTitle("Final Yields (SE/ME) Tkl-Tkl");
+        ctestemichTkl1D->Divide(3,2);
         ctestemichTkl1D->cd(1);
         YTklCentral_proj_tampon->DrawCopy("E");
         ctestemichTkl1D->cd(2);
         YTklPeriph_proj_tampon->DrawCopy("E");
         ctestemichTkl1D->cd(3);
         YTklDifference_proj_tampon->DrawCopy("E");
-       
+        ctestemichTkl1D->cd(4);
+        YTklCentral->DrawCopy("colz");
+        ctestemichTkl1D->cd(5);
+        YTklPeriph->DrawCopy("colz");
+        ctestemichTkl1D->cd(6);
+        YTklDifference->DrawCopy("colz");
     }
     
     
@@ -1616,9 +1723,9 @@ void PlotFromTree(){
     if(doMixedEvents){
     
         TCanvas*cteste0before = new TCanvas();
-           cteste0before->SetTitle("Test on norm before");
+           cteste0before->SetTitle("Test on norm before, CorrelationsME[0][10][3]");
         cteste0before->cd();
-        CorrelationsME[0][0][3]->DrawCopy("colz");
+        CorrelationsME[preciseCentFocus][preciseZbinFocus][3]->DrawCopy("colz");
         
         
         cout << "Normalisation of CorrelationsME based on max of Eta projected applied" <<endl;
@@ -1630,7 +1737,7 @@ void PlotFromTree(){
                     for(int k=0; k<10; k++){
                         float maxME = 0;
                         int maxindexME = 0;
-                        hnseg8ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionY("hnseg8ME_proj",0,-1,"e"));
+                        hnseg8ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionY("hnseg8ME_proj",1,-1,"e")); //Change underflow
                         for(int l=1; l<hnseg8ME_proj->GetNbinsX()+1; l++){
                             float valueME = hnseg8ME_proj_tampon->GetBinContent(l);
                            // cout << "valueME " << valueME <<endl;
@@ -1734,16 +1841,19 @@ void PlotFromTree(){
     {
     
     TCanvas*cteste = new TCanvas();
-    cteste->SetTitle("Test on Yields computation");
+    cteste->SetTitle("SE Projected, ME projected and division Dimu-Tkl");
     cteste->Divide(1,3);
         
         TCanvas*ctestesum = new TCanvas();
-        ctestesum->SetTitle("Test on Yields computation sum");
+        ctestesum->SetTitle("Sommation des yields selon z");
         ctestesum->Divide(5,2);
         
+        TCanvas*ctestefin = new TCanvas();
+        ctestefin->SetTitle("Yield[0][3] final sommé selon z");
+        
         TCanvas*ctesteproj = new TCanvas();
-        ctesteproj->SetTitle("Test on projection SE");
-        ctesteproj->Divide(1,2);
+        ctesteproj->SetTitle("Projction SE et ME Dimu-Tkl");
+        ctesteproj->Divide(2,2);
     
         cout << "Converting count histograms into yields, by dividing by the number of dimuons seen in each case and Mixed Event and summing on Z" <<endl;
         cout << "Calculation of Yields[Cent][mass]" <<endl;
@@ -1757,13 +1867,18 @@ void PlotFromTree(){
                    ProjCopy->Reset();
                    ProjCopy2->Reset();
                    if(doMixedEvents){
-                       ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionX("ME_proj",0,-1,"e"));
+                       ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionX("ME_proj",1,-1,"e")); //Change underflow
                    }
-                   if(i ==0 && k==3 && j==3){
+                   if(i ==preciseCentFocus && k==3 && j==preciseZbinFocus){
                        ctesteproj->cd(1);
-                       Correlations[i][j][k]->DrawCopy();
+                       Correlations[i][j][k]->DrawCopy("colz");
+                       ctesteproj->cd(2);
+                       if(doMixedEvents){
+                           CorrelationsME[i][j][k]->DrawCopy("colz");
+                       }
+                       
                    }
-                   SE_proj_tampon = (TH1F*)(Correlations[i][j][k]->ProjectionX("SE_proj",0,-1,"e"));
+                   SE_proj_tampon = (TH1F*)(Correlations[i][j][k]->ProjectionX("SE_proj",1,-1,"e")); //Change underflow
                    ProjCopy->Add(SE_proj_tampon);
                 //   ProjCopy->Sumw2();
                    if(doMixedEvents){
@@ -1776,9 +1891,13 @@ void PlotFromTree(){
                    else if(!doMixedEvents){
                        SoverMijk->Add(ProjCopy);
                    }
-                   if(i ==0 && k==3 && j==3){
-                       ctesteproj->cd(2);
+                   if(i ==preciseCentFocus && k==3 && j==preciseZbinFocus){
+                       ctesteproj->cd(3);
                        ProjCopy->DrawCopy();
+                       ctesteproj->cd(4);
+                        if(doMixedEvents){
+                            ProjCopy2->DrawCopy();
+                        }
                        cteste->cd(1);
                        ProjCopy->DrawCopy();
                        cout << "Relative error on SE bin 4 is: " << ProjCopy->GetBinError(4)/ProjCopy->GetBinContent(4) << endl;
@@ -1791,14 +1910,14 @@ void PlotFromTree(){
                        SoverMijk->DrawCopy();
                        cout << "Relative error on SE/ME bin 4 is: " << SoverMijk->GetBinError(4)/SoverMijk->GetBinContent(4) << endl;
                    }
-                   if(i ==0 && k==3 && j<5){
+                   if(i ==preciseCentFocus && k==3 && j<5){
                        ctestesum->cd(j+1);
                        SoverMijk->DrawCopy();
                        cout << "Relative error on Mijk " << j << ", bin 4 is: " << SoverMijk->GetBinError(4)/SoverMijk->GetBinContent(4) << endl;
                        cout << "Error on Mijk " << j << ", bin 4 is: " << SoverMijk->GetBinError(4) << endl;
                    }
                    SoverMik->Add(SoverMijk);
-                   if(i ==0 && k==3 && j<5){
+                   if(i ==preciseCentFocus && k==3 && j<5){
                        ctestesum->cd(5+j+1);
                        SoverMik->DrawCopy();
                        cout << "Relative error on Mik " << j << ", bin 4 is: " << SoverMik->GetBinError(4)/SoverMik->GetBinContent(4) << endl;
@@ -1811,8 +1930,11 @@ void PlotFromTree(){
                if(DimuonCounterZint[i][k] >0){
                    Yields[i][k]->Scale(1./DimuonCounterZint[i][k]);
                }
-           }
-       
+               if(i==preciseCentFocus && k==3){
+               ctestefin->cd();
+               Yields[i][k]->DrawCopy("colz");
+               }
+    }
    }
     }
     
@@ -1956,12 +2078,24 @@ void PlotFromTree(){
         }
         
         TCanvas*ctesteTkl = new TCanvas();
-        ctesteTkl->SetTitle("Test on Yields computation Tkl");
+        ctesteTkl->SetTitle("SE Projected, ME projected and division Tkl-Tkl");
         ctesteTkl->Divide(1,3);
             
             TCanvas*ctestesumTkl = new TCanvas();
-            ctestesumTkl->SetTitle("Test on Yields computation sum Tkl");
+            ctestesumTkl->SetTitle("Sommation des yields selon z Tkl-Tkl");
             ctestesumTkl->Divide(5,2);
+            
+            TCanvas*ctestefinTkl = new TCanvas();
+            ctestefinTkl->SetTitle("Yield[0] final sommé selon z Tkl-Tkl");
+            
+            TCanvas*ctesteprojTkl = new TCanvas();
+            ctesteprojTkl->SetTitle("Projction SE et ME Tkl-Tkl");
+            ctesteprojTkl->Divide(2,2);
+        
+        ctesteprojTkl->cd(1);
+        CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+        ctesteprojTkl->cd(2);
+        CorrelationsTklME[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
         
         cout << "Calculation of YieldsTkl[Cent]" <<endl;
         for(int i=0; i<NbBinsCent; i++){
@@ -1971,9 +2105,9 @@ void PlotFromTree(){
                           ProjCopyTkl->Reset();
                           ProjCopy2Tkl->Reset();
                           if(doMixedEvents){
-                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklME[i][j]->ProjectionX("ME_proj_Tkl",0,-1,"e"));
+                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklME[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
                           }
-                          SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",0,-1,"e"));
+                          SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
                           
                           ProjCopyTkl->Add(SE_proj_Tkl_tampon);
                           //   ProjCopy->Sumw2();
@@ -1987,7 +2121,11 @@ void PlotFromTree(){
                           else if(!doMixedEvents){
                               SoverMij->Add(ProjCopyTkl);
                           }
-                             if(i ==0 && j==3){
+                             if(i ==preciseCentFocus && j==preciseZbinFocus){
+                                 ctesteprojTkl->cd(3);
+                                 ProjCopyTkl->DrawCopy();
+                                 ctesteprojTkl->cd(4);
+                                 ProjCopy2Tkl->DrawCopy();
                                  ctesteTkl->cd(1);
                                  ProjCopyTkl->DrawCopy();
                                  cout << "Relative error on SE Tkl bin 4 is: " << ProjCopyTkl->GetBinError(4)/ProjCopyTkl->GetBinContent(4) << endl;
@@ -2000,14 +2138,14 @@ void PlotFromTree(){
                                  SoverMij->DrawCopy();
                                  cout << "Relative error on SE/ME Tkl bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
                              }
-                             if(i ==0 && j<5){
+                             if(i ==preciseCentFocus && j<5){
                                  ctestesumTkl->cd(j+1);
                                  SoverMij->DrawCopy();
                                  cout << "Relative error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
                                  cout << "Error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4) << endl;
                              }
                             SoverMi->Add(SoverMij);
-                             if(i ==0 && j<5){
+                             if(i ==preciseCentFocus && j<5){
                                  ctestesumTkl->cd(5+j+1);
                                  SoverMi->DrawCopy();
                                  cout << "Relative error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4)/SoverMik->GetBinContent(4) << endl;
@@ -2021,6 +2159,11 @@ void PlotFromTree(){
                           YieldsTkl[i]->Scale(1./RefTklCounterZint[i]);
                       }
               
+            if(i==preciseCentFocus){
+                ctestefinTkl->cd();
+                YieldsTkl[i]->DrawCopy("colz");
+            }
+            
           }
         
         cout << "Calculation of YieldsTkl for allC, central, periph" <<endl;
@@ -3101,7 +3244,7 @@ void PlotFromTree(){
            fitFcnV2TKL->SetParName(0,"a0");
            fitFcnV2TKL->SetParName(1,"a1");
            fitFcnV2TKL->SetParName(2,"a2");
-//            fitFcnV2TKL->SetParName(3,"a3");
+            fitFcnV2TKL->SetParName(3,"a3");
 //            fitFcnV2TKL->SetParName(4,"a4");
 //        fitFcnV2TKL->SetParName(5,"a5");
 //        fitFcnV2TKL->SetParName(6,"a6");
@@ -3203,7 +3346,7 @@ Double_t FourierV2(Double_t *x,Double_t *par)
 
 Double_t FourierV5(Double_t *x,Double_t *par)
 
-{ return par[0] + 2*par[2]*cos(2*x[0]) + 2*par[1]*cos(x[0]);} //+ 2*par[3]*cos(3*x[0]) + 2*par[4]*cos(4*x[0]);} + 2*par[5]*cos(5*x[0]) + 2*par[6]*cos(6*x[0]) + 2*par[7]*cos(7*x[0]) + 2*par[8]*cos(8*x[0]) + 2*par[9]*cos(9*x[0]) + 2*par[10]*cos(10*x[0]) + 2*par[11]*cos(11*x[0]);}
+{ return par[0] + 2*par[2]*cos(2*x[0]) + 2*par[1]*cos(x[0]);}// + 2*par[3]*cos(3*x[0]);}// + 2*par[4]*cos(4*x[0]);}// + 2*par[5]*cos(5*x[0]) + 2*par[6]*cos(6*x[0]) + 2*par[7]*cos(7*x[0]) + 2*par[8]*cos(8*x[0]) + 2*par[9]*cos(9*x[0]) + 2*par[10]*cos(10*x[0]) + 2*par[11]*cos(11*x[0]);}
 
 Double_t TwoCBE2E(Double_t *x,Double_t *par)
 
