@@ -76,12 +76,12 @@ void PlotFromTreeCINT(){
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     int barWidth = 50;
     
-    Char_t Group_Period[50] = "Group12_LHC18m_CINT7CENT";
-   // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group12_LHC18m_CINT7CENT"};
+    Char_t Group_Period[50] = "Group5_CINT";
+    Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
+  //  Char_t *arrayOfPeriods[] = {"Group3_LHC17h_CINT"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
-    const double binsCent[6] = {0,1,10,20,40,100};
+    const double binsCent[14] = {0,1,5,10,15,20,30,40,50,60,70,80,90,100};
     Char_t filePMLim[200];
     Char_t filePMLimSaveName[200];
     Char_t filePM[200];
@@ -123,13 +123,13 @@ void PlotFromTreeCINT(){
     
     PercentileMethod = new TH2F("PercentileMethod",
                      "Ntkl wrt Zvtx",
-                     20,-10,10,100,0,100);
+                     20,-10,10,150,0,150);
     PercentileMethod->SetXTitle("Zvtx");
     PercentileMethod->SetYTitle("Ntkl");
     
     PercentileMethodLimits = new TH2F("PercentileMethodLimits",
                      "Ntkl Limit wrt Zvtx and percentile",
-                                      20,-10,10,5,binsCent);
+                                      20,-10,10,13,binsCent);
     PercentileMethodLimits->SetXTitle("Zvtx");
     PercentileMethodLimits->SetYTitle("Percentile");
     
@@ -198,11 +198,11 @@ void PlotFromTreeCINT(){
 // *************************
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
-        sprintf(filePMLim,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_PMLim.pdf",Group_Period,Group_Period);
-        sprintf(filePMLimSaveName,"PercentileMethodStudy/AccountNtklNonZero/%s/%s_PMLim.txt",Group_Period,Group_Period);
-        sprintf(filePM,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_PM.pdf",Group_Period,Group_Period);
-        sprintf(fileNmean,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_Nmean.pdf",Group_Period,Group_Period);
-        sprintf(fileNmeanROOT,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/%s/%s_Nmean.root",Group_Period,Group_Period);
+        sprintf(filePMLim,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/ExtensiveCentClasses/%s/%s_PMLim.pdf",Group_Period,Group_Period);
+        sprintf(filePMLimSaveName,"PercentileMethodStudy/AccountNtklNonZero/ExtensiveCentClasses/%s/%s_PMLim.txt",Group_Period,Group_Period);
+        sprintf(filePM,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/ExtensiveCentClasses/%s/%s_PM.pdf",Group_Period,Group_Period);
+        sprintf(fileNmean,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/ExtensiveCentClasses/%s/%s_Nmean.pdf",Group_Period,Group_Period);
+        sprintf(fileNmeanROOT,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/PercentileMethodStudy/AccountNtklNonZero/ExtensiveCentClasses/%s/%s_Nmean.root",Group_Period,Group_Period);
         
         sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
         
@@ -272,17 +272,22 @@ void PlotFromTreeCINT(){
           //  cout << "Reading Event " << i <<endl;
             // Apply a cut on the TrackletEta at +-1
             int NumberCloseEtaTracklets = 0;
-            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                trac = (TrackletLight*)fTracklets->At(j);
-                if((TMath::Abs(trac->fEta) < 1)){
-                        NumberCloseEtaTracklets++;
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+                
+                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                    trac = (TrackletLight*)fTracklets->At(j);
+                    if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                            NumberCloseEtaTracklets++;
+                        
+                    }
                     
                 }
                 
-            }
-            
-        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
-            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+                if(NumberCloseEtaTracklets>0){
+                
+                
                 hnseg_spdtkl_num->Fill(fEvent->fVertexZ, fEvent->fCentralitySPDTracklets);
                hnseg_spdtklval_num->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
                 hn->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
@@ -297,7 +302,7 @@ void PlotFromTreeCINT(){
             // hnseg->Fill(fEvent->fVertexZ, NumberCloseEtaTracklets);
            //  hnseg_raw->Fill(fEvent->fVertexZ, fEvent->fNTracklets);
             
-            
+            }
         }
     }
     
@@ -323,12 +328,36 @@ void PlotFromTreeCINT(){
             }
             if(ratio<0.99){
                 PercentileMethodLimits->Fill((i-10)+0.5, 0.5);
-                if(ratio<0.90){
-                    PercentileMethodLimits->Fill((i-10)+0.5, 5.5);
-                    if(ratio<0.80){
-                        PercentileMethodLimits->Fill((i-10)+0.5, 15);
-                        if(ratio<0.60){
-                            PercentileMethodLimits->Fill((i-10)+0.5, 30);
+                if(ratio<0.95){
+                    PercentileMethodLimits->Fill((i-10)+0.5, 3);
+                    if(ratio<0.90){
+                        PercentileMethodLimits->Fill((i-10)+0.5, 7.5);
+                        if(ratio<0.85){
+                            PercentileMethodLimits->Fill((i-10)+0.5, 12.5);
+                            if(ratio<0.80){
+                                PercentileMethodLimits->Fill((i-10)+0.5, 17.5);
+                                if(ratio<0.70){
+                                    PercentileMethodLimits->Fill((i-10)+0.5, 25);
+                                    if(ratio<0.60){
+                                        PercentileMethodLimits->Fill((i-10)+0.5, 35);
+                                        if(ratio<0.50){
+                                            PercentileMethodLimits->Fill((i-10)+0.5, 45);
+                                            if(ratio<0.40){
+                                                PercentileMethodLimits->Fill((i-10)+0.5, 55);
+                                                if(ratio<0.30){
+                                                    PercentileMethodLimits->Fill((i-10)+0.5, 65);
+                                                    if(ratio<0.20){
+                                                        PercentileMethodLimits->Fill((i-10)+0.5, 75);
+                                                        if(ratio<0.10){
+                                                            PercentileMethodLimits->Fill((i-10)+0.5, 85);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -348,10 +377,10 @@ void PlotFromTreeCINT(){
     filePMLimSave << "{   ";
     for(int z_idx=1; z_idx<21; z_idx++){
         filePMLimSave << "{";
-        for(int cent_idx=1; cent_idx<6; cent_idx++){
+        for(int cent_idx=1; cent_idx<14; cent_idx++){
             filePMLimSave << PercentileMethodLimits->GetBinContent(z_idx, cent_idx);
-            if(cent_idx!=5){
-                filePMLimSave << " ";
+            if(cent_idx!=13){
+                filePMLimSave << ", ";
             }
         }
         if(z_idx!=20){
