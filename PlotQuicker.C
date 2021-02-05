@@ -39,8 +39,8 @@
 void PlotQuicker();
 Double_t myFunc(double x);
 Double_t myFunc2(double x);
-TH1I* hPlotDimuPhi(NULL);
-TH1I* hPlotTklPhi(NULL);
+TH2I* hPlotDimuEtaPhi(NULL);
+TH2I* hPlotTklEtaPhi(NULL);
 
 void PlotQuicker(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
@@ -111,8 +111,8 @@ void PlotQuicker(){
     TH1I* hnseg_Ntkl_dist(NULL);
     TH2F* hPlotXY(NULL);
     TProfile* hn(NULL);
-    TH1I* hPlotTklTklDeltaPhi(NULL);
-    TH1I* hPlotDimuTklDeltaPhi(NULL);
+    TH2I* hPlotTklTklDeltaEtaDeltaPhi(NULL);
+    TH2I* hPlotDimuTklDeltaEtaDeltaPhi(NULL);
     
     
     hPlotXY = new TH2F("hPlotXY",
@@ -121,29 +121,29 @@ void PlotQuicker(){
        hPlotXY->SetXTitle("X");
        hPlotXY->SetYTitle("Y");
     
-    hPlotDimuPhi = new TH1I("hPlotDimuPhi",
-                     "Phi Distribution for dimuons",
-                     100,0,TMath::Pi()*2);
-    hPlotDimuPhi->SetXTitle("Phi");
-    hPlotDimuPhi->SetYTitle("Dimuon count");
+    hPlotDimuEtaPhi = new TH2I("hPlotDimuEtaPhi",
+                     "EtaPhi Distribution for dimuons",
+                     720,0,TMath::Pi()*2,100,-6,0);
+    hPlotDimuEtaPhi->SetXTitle("Phi");
+    hPlotDimuEtaPhi->SetYTitle("Eta");
     
-    hPlotTklPhi = new TH1I("hPlotTklPhi",
-                        "Phi Distribution for tracklets",
-                        100,0,TMath::Pi()*2);
-       hPlotTklPhi->SetXTitle("Phi");
-       hPlotTklPhi->SetYTitle("Tracklet count");
+    hPlotTklEtaPhi = new TH2I("hPlotTklEtaPhi",
+                        "Eta Phi Distribution for tracklets",
+                        720,0,TMath::Pi()*2,100,-1,1);
+       hPlotTklEtaPhi->SetXTitle("Phi");
+       hPlotTklEtaPhi->SetYTitle("Eta");
     
-    hPlotTklTklDeltaPhi = new TH1I("hPlotTklTklDeltaPhi",
-                     "DeltaPhi Distribution for TklTkl",
-                     100,-TMath::Pi()/2,TMath::Pi()*1.5);
-    hPlotTklTklDeltaPhi->SetXTitle("DeltaPhi");
-    hPlotTklTklDeltaPhi->SetYTitle("Tracklet-Tracklet count");
+    hPlotTklTklDeltaEtaDeltaPhi = new TH2I("hPlotTklTklDeltaEtaDeltaPhi",
+                     "DeltaEta DeltaPhi Distribution for TklTkl",
+                     72,-TMath::Pi()/2,TMath::Pi()*1.5,100,0,2);
+    hPlotTklTklDeltaEtaDeltaPhi->SetXTitle("DeltaPhi");
+    hPlotTklTklDeltaEtaDeltaPhi->SetYTitle("DeltaEta");
     
-    hPlotDimuTklDeltaPhi = new TH1I("hPlotDimuTklDeltaPhi",
-                     "DeltaPhi Distribution for DimuTkl",
-                     100,-TMath::Pi()/2,TMath::Pi()*1.5);
-    hPlotDimuTklDeltaPhi->SetXTitle("DeltaPhi");
-    hPlotDimuTklDeltaPhi->SetYTitle("Dimuon-Tracklet count");
+    hPlotDimuTklDeltaEtaDeltaPhi = new TH2I("hPlotDimuTklDeltaEtaDeltaPhi",
+                     "DeltaEta DeltaPhi Distribution for DimuTkl",
+                     72,-TMath::Pi()/2,TMath::Pi()*1.5,100,0,6);
+    hPlotDimuTklDeltaEtaDeltaPhi->SetXTitle("DeltaPhi");
+    hPlotDimuTklDeltaEtaDeltaPhi->SetYTitle("DeltaEta");
     
     hnseg = new TH1F("hnseg",
                      "Mean Ntkl wrt Zvtx",
@@ -305,17 +305,17 @@ void PlotQuicker(){
             int NumberCloseEtaTracklets = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
-                if((TMath::Abs(trac->fEta) < 1)){
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
                         NumberCloseEtaTracklets++;
                     if(fEvent->fVertexZ>0 && fEvent->fVertexZ<1){
-                        hPlotTklPhi->Fill(trac->fPhi);
+                        hPlotTklEtaPhi->Fill(trac->fPhi,trac->fEta);
                     }
                 }
                 
             }
             
         //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
-            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>3 && fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
                 hnseg_spdtkl_num->Fill(fEvent->fVertexZ, fEvent->fCentralitySPDTracklets);
                hnseg_spdtklval_num->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
                 hn->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
@@ -329,7 +329,9 @@ void PlotQuicker(){
                 if(fEvent->fVertexZ>0 && fEvent->fVertexZ<1){
                     for (Int_t j=0; j<fEvent->fNDimuons; j++) {
                     dimu = (DimuonLight*)fDimuons->At(j);
-                        hPlotDimuPhi->Fill(dimu->fPhi);
+                        if((dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
+                            hPlotDimuEtaPhi->Fill(dimu->fPhi,dimu->fEta);
+                        }
                     }
                     
                   //  hPlotXY->Fill(fEvent->fVertexXSPD,fEvent->fVertexYSPD);
@@ -350,11 +352,11 @@ void PlotQuicker(){
         
     }
     
-    TCanvas* cDimuPhi=new TCanvas();
-    hPlotDimuPhi->Draw();
+    TCanvas* cDimuEtaPhi=new TCanvas();
+    hPlotDimuEtaPhi->Draw("colz");
     
-    TCanvas* cTklPhi=new TCanvas();
-    hPlotTklPhi->Draw();
+    TCanvas* cTklEtaPhi=new TCanvas();
+    hPlotTklEtaPhi->Draw("colz");
     
     TCanvas* cXY = new TCanvas();
     hPlotXY->Draw("colz");
@@ -404,21 +406,32 @@ void PlotQuicker(){
 
     std::cout << "==================== Analysis Terminated ====================" << std::endl;
     
-    double tkl1 = 0;
-    double tkl2 = 0;
-    double tkl3 = 0;
-    double dimuon = 0;
+    double tkl1phi = 0;
+    double tkl1eta = 0;
+    double tkl2phi = 0;
+    double tkl2eta = 0;
+    double tkl3phi = 0;
+    double tkl3eta = 0;
+    double dimuonphi = 0;
+    double dimuoneta = 0;
     
-    TF1 *fPhiTkl = new TF1("fPhiTkl","myFunc(x)",0,TMath::Pi()*2);
-    TF1 *fPhiDimu = new TF1("fPhiDimu","myFunc2(x)",0,TMath::Pi()*2);
+    TF2 *fPhiEtaTkl = new TF2("fPhiEtaTkl","myFunc(x,y)",0,TMath::Pi()*2,-1,1);
+    TF2 *fPhiEtaDimu = new TF2("fPhiEtaDimu","myFunc2(x,y)",0,TMath::Pi()*2,-6,0);
     
-    for(int essai=0; essai<10000000;essai++){
-        tkl1=fPhiTkl->GetRandom();
-        tkl2=fPhiTkl->GetRandom();
-        tkl3=fPhiTkl->GetRandom();
+    for(int essai=0; essai<1000000000;essai++){
+        if(essai%1000000 == 0){
+            cout << essai << "/1000000000"<<endl;
+        }
+        fPhiEtaTkl->GetRandom2(tkl1phi, tkl1eta);
+        fPhiEtaTkl->GetRandom2(tkl2phi, tkl2eta);
+        fPhiEtaTkl->GetRandom2(tkl3phi, tkl3eta);
+        fPhiEtaDimu->GetRandom2(dimuonphi, dimuoneta);
         
-        double DeltaPhiTklTkl = tkl1-tkl2;
-        double DeltaPhiDimuTkl = tkl3-dimuon;
+        
+        double DeltaPhiTklTkl = tkl1phi-tkl2phi;
+        double DeltaPhiDimuTkl = tkl3phi-dimuonphi;
+        double DeltaEtaTklTkl = TMath::Abs(tkl1eta-tkl2eta);
+        double DeltaEtaDimuTkl = tkl3eta-dimuoneta;
         
         if(DeltaPhiTklTkl < -TMath::Pi()/2){
             DeltaPhiTklTkl += 2* TMath::Pi();
@@ -433,15 +446,17 @@ void PlotQuicker(){
             DeltaPhiDimuTkl -= 2* TMath::Pi();
         }
         
-        hPlotTklTklDeltaPhi->Fill(DeltaPhiTklTkl);
-        hPlotDimuTklDeltaPhi->Fill(DeltaPhiDimuTkl);
+        if(DeltaEtaTklTkl>1.2){
+            hPlotTklTklDeltaEtaDeltaPhi->Fill(DeltaPhiTklTkl,DeltaEtaTklTkl);
+        }
+        hPlotDimuTklDeltaEtaDeltaPhi->Fill(DeltaPhiDimuTkl,DeltaEtaDimuTkl);
     }
     
-    TCanvas*cDeltaPhiTklTkl=new TCanvas();
-    hPlotTklTklDeltaPhi->Draw();
+    TCanvas*cDeltaEtaDeltaPhiTklTkl=new TCanvas();
+    hPlotTklTklDeltaEtaDeltaPhi->Draw("colz");
     
-    TCanvas*cDeltaPhiDimuTkl=new TCanvas();
-    hPlotDimuTklDeltaPhi->Draw();
+    TCanvas*cDeltaPhiDeltaEtaDimuTkl=new TCanvas();
+    hPlotDimuTklDeltaEtaDeltaPhi->Draw("colz");
     
     
     
@@ -505,8 +520,8 @@ void PlotQuicker(){
     
 }
     
-Double_t myFunc(double x){
-    return hPlotTklPhi->GetBinContent(floor(100*x/(2*TMath::Pi()))); }
+Double_t myFunc(double x, double y){
+    return hPlotTklEtaPhi->GetBinContent(floor(720*x/(2*TMath::Pi())),floor(100*(y+1)/2)); }
 
-Double_t myFunc2(double x){
-    return hPlotDimuPhi->GetBinContent(floor(100*x/(2*TMath::Pi()))); }
+Double_t myFunc2(double x, double y){
+    return hPlotDimuEtaPhi->GetBinContent(floor(720*x/(2*TMath::Pi())),floor(100*(y+6)/6)); }
