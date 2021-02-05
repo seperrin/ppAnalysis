@@ -360,7 +360,7 @@ void PlotSingleBin(){
     const int NbinsDeltaEtaTKL = 24;
     double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
     
-    const int NbinsDeltaPhiTKL = 24;
+    const int NbinsDeltaPhiTKL = 72;
     double SizeBinDeltaPhiTKL = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhiTKL;
     
     const int NbBinsCent = 5;
@@ -427,6 +427,7 @@ void PlotSingleBin(){
     TH2F* Correlations[NbBinsCent][NbinsInvMass]{ NULL };
     TH2F* CorrelationsTkl[NbBinsCent]{ NULL };
     TH2F* CorrelationsME[NbBinsCent][NbinsInvMass]{ NULL };
+    TH2F* CorrelationsMEMassSummed[NbBinsCent]{ NULL };
     TH2F* CorrelationsTklME[NbBinsCent]{ NULL };
     TH1F* Yield_tampon(NULL);
     TH1F* YieldTkl_tampon(NULL);
@@ -667,6 +668,11 @@ void PlotSingleBin(){
                 CorrelationsME[i][k]->SetYTitle("Correlation DeltaEta");
             
         }
+        CorrelationsMEMassSummed[i] = new TH2F(hname,
+                          "MixedEvent Correlation delta eta wrt delta phi - All Masses",
+                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+        CorrelationsMEMassSummed[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        CorrelationsMEMassSummed[i]->SetYTitle("Correlation DeltaEta");
         
     }
     
@@ -994,11 +1000,6 @@ void PlotSingleBin(){
     int RefTrackletsPeriph = 0;
     int cmul = 0;
     int barWidth = 50;
-    std::vector <double> Pools[NbBinsCent]; //[12]
-    int PoolsSize[NbBinsCent] = {0}; //[12]
-    std::vector <double> PoolsTkl[NbBinsCent];
-    std::vector <int> PoolsTklEventTracker[NbBinsCent];
-    int PoolsSizeTkl[NbBinsCent] = {0};
     int DimuonCounter[NbBinsCent][NbinsInvMass] = {0};
     int DimuonCounterZint[NbBinsCent][NbinsInvMass] = {0};
     int RefTklCounter[NbBinsCent] = {0};
@@ -1039,161 +1040,168 @@ void PlotSingleBin(){
     DimuonLight *dimu = 0;
     TTree* theTree = NULL;
     
-    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
-           
-           sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
-       TFile fileIn(fileInLoc);
-        
-        char str [20];
-        int GroupNum;
-
-        sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
-    
-    
-    
-    std::cout << "1" <<std::endl;
-        fileIn.GetObject("MyMuonTree",theTree);
-    std::cout << "2" <<std::endl;
-        //setting the branch address
-    std::cout << "3" <<std::endl;
-  //  theTree->SetBranchAddress("event", &fEvent);
-    TBranch *branch = theTree->GetBranch("event");
-//        auto bntrack = theTree->GetBranch("tracks");
-        //auto branch  = theTree->GetBranch("mcparticles.fPx");
-    std::cout << "3.5" <<std::endl;
-        branch->SetAddress(&fEvent);
-    std::cout << "4" <<std::endl;
-    auto nevent = theTree->GetEntries();
-    
-    std::cout << "5" <<std::endl;
-    fCorrelations = fEvent->fCorrelations;
-    fTracklets = fEvent->fTracklets;
-    fDimuons = fEvent->fDimuons;
-//            auto nevent = bntrack->GetEntries();
-    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
-
-    
-// ************************************
-// Boucle sur les evenements pour pools mixed-event, notés i *
-// ************************************
-    if(doMixedEvents){
-        cout << "MIXED EVENTS IS WANTED - WILL NOW PROCESS EVENTS AND ORGANISE POOLS" << endl;
-      //  Double_t px[1000], py[1000];
-            for (int i=0;i<nevent;i++) {
-                if(i%100000 == 0){
-                        std::cout << "[";
-                        double portion = double(i)/nevent;
-                        long pos = barWidth * portion;
-                        for (int k = 0; k < barWidth; ++k) {
-                            if (k < pos) std::cout << "=";
-                            else if (k == pos) std::cout << ">";
-                            else std::cout << " ";
-                        }
-                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods << " Pooling";
-                        std::cout.flush();
-                    std::cout << std::endl;
-                }
-//                if(doTracklets && (i%10!=0)){
+//    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+//
+//           sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+//       TFile fileIn(fileInLoc);
+//
+//        char str [20];
+//        int GroupNum;
+//
+//        sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
+//
+//
+//
+//    std::cout << "1" <<std::endl;
+//        fileIn.GetObject("MyMuonTree",theTree);
+//    std::cout << "2" <<std::endl;
+//        //setting the branch address
+//    std::cout << "3" <<std::endl;
+//  //  theTree->SetBranchAddress("event", &fEvent);
+//    TBranch *branch = theTree->GetBranch("event");
+////        auto bntrack = theTree->GetBranch("tracks");
+//        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+//    std::cout << "3.5" <<std::endl;
+//        branch->SetAddress(&fEvent);
+//    std::cout << "4" <<std::endl;
+//    auto nevent = theTree->GetEntries();
+//
+//    std::cout << "5" <<std::endl;
+//    fCorrelations = fEvent->fCorrelations;
+//    fTracklets = fEvent->fTracklets;
+//    fDimuons = fEvent->fDimuons;
+////            auto nevent = bntrack->GetEntries();
+//    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+//
+//
+//// ************************************
+//// Boucle sur les evenements pour pools mixed-event, notés i *
+//// ************************************
+//    if(doMixedEvents){
+//        cout << "MIXED EVENTS IS WANTED - WILL NOW PROCESS EVENTS AND ORGANISE POOLS" << endl;
+//      //  Double_t px[1000], py[1000];
+//            for (int i=0;i<nevent;i++) {
+//                if(i%100000 == 0){
+//                        std::cout << "[";
+//                        double portion = double(i)/nevent;
+//                        long pos = barWidth * portion;
+//                        for (int k = 0; k < barWidth; ++k) {
+//                            if (k < pos) std::cout << "=";
+//                            else if (k == pos) std::cout << ">";
+//                            else std::cout << " ";
+//                        }
+//                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods << " Pooling";
+//                        std::cout.flush();
+//                    std::cout << std::endl;
+//                }
+////                if(doTracklets && (i%10!=0)){
+////                    continue;
+////                }
+//                    theTree->GetEvent(i);
+//                cout << "=== EVENT " << i << " ==="<<endl;
+//                if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
+//                    cout << "Rejected Pileup"<<endl;
 //                    continue;
 //                }
-                    theTree->GetEvent(i);
-                if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
-                    continue;
-                }
-                if(floor(fEvent->fVertexZ) + ZvtxCut != ZvtxBin){
-                    continue;
-                }
-                
-                int NumberOfTrackletsPassingEtaCut = 0;
-                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                    trackletME = (TrackletLight*)fTracklets->At(j);
-                    if(TMath::Abs(trackletME->fEta) < TklEtaCut){
-                        NumberOfTrackletsPassingEtaCut++;
-                    }
-                    
-                }
-                
-                if(NumberOfTrackletsPassingEtaCut==0){
-                    continue;
-                }
-                
-                if(KeepOnlyOne){
-                    if(NumberOfTrackletsPassingEtaCut != valueOnlyOne){
-                        continue;
-                    }
-                }
-                
-                if(AdditionalCutNtkl){
-                   if(NumberOfTrackletsPassingEtaCut <= valueAdditionalCutNtkl){
-                       continue;
-                   }
-               }
-                
-                for (Int_t j=0; j<fEvent->fNDimuons; j++) {
-                   dimu = (DimuonLight*)fDimuons->At(j);
-                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
-                       
-                       double cent = fEvent->fCentralitySPDTracklets;
-                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
-              //         int centint = GetCent(cent);
-                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
-                       int phint = 0;
-                       double phi = dimu->fPhi;
-                       if(phi < -TMath::Pi()/2){
-                        phi += 2* TMath::Pi();
-                          }
-                          if(phi > 1.5*TMath::Pi()){
-                              phi -= 2* TMath::Pi();
-                          }
-                       phi = phi*6/TMath::Pi();
-                       phint = floor(phi) + 3;
-                       if(PoolsSize[centint]<100){ //[phint]
-                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                               trackletME = (TrackletLight*)fTracklets->At(j);
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
-                                   double trackletMEEta = trackletME->fEta;
-                                   Pools[centint].push_back(trackletMEPhi); //[phint]
-                                   Pools[centint].push_back(trackletMEEta); //[phint]
-                               }
-                               
-                           }
-                           PoolsSize[centint] += 1; //[phint]
-                       }
-                   }
-                }
-                
-                if(doTracklets){
-               
-                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
-                       double cent = fEvent->fCentralitySPDTracklets;
-                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
-                   //    int centint = GetCent(cent);
-                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
-                       if(PoolsSizeTkl[centint]<100){
-                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                               trackletME = (TrackletLight*)fTracklets->At(j);
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
-                                   double trackletMEEta = trackletME->fEta;
-                                   PoolsTkl[centint].push_back(trackletMEPhi);
-                                   PoolsTkl[centint].push_back(trackletMEEta);
-                                   PoolsTklEventTracker[centint].push_back(i);
-                                   PoolsTklEventTracker[centint].push_back(i);
-                               }
-                               
-                           }
-                           PoolsSizeTkl[centint] += 1;
-                       }
-                   }
-        
-                }
-                
-                
-            }
-    }
-        
-    }
+//                if(floor(fEvent->fVertexZ) + ZvtxCut != ZvtxBin){
+//                    cout << "Rejected Zcut"<<endl;
+//                    continue;
+//                }
+//
+//                int NumberOfTrackletsPassingEtaCut = 0;
+//                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+//                    trackletME = (TrackletLight*)fTracklets->At(j);
+//                    if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+//                        NumberOfTrackletsPassingEtaCut++;
+//                    }
+//
+//                }
+//
+//                if(NumberOfTrackletsPassingEtaCut==0){
+//                    cout << "Rejected Tkl Cuts"<<endl;
+//                    continue;
+//                }
+//
+//                if(KeepOnlyOne){
+//                    if(NumberOfTrackletsPassingEtaCut != valueOnlyOne){
+//                        continue;
+//                    }
+//                }
+//
+//                if(AdditionalCutNtkl){
+//                   if(NumberOfTrackletsPassingEtaCut <= valueAdditionalCutNtkl){
+//                       cout << "Rejected Additional tkl cut"<<endl;
+//                       continue;
+//                   }
+//               }
+//
+//                for (Int_t j=0; j<fEvent->fNDimuons; j++) {
+//                   dimu = (DimuonLight*)fDimuons->At(j);
+//                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
+//
+//                       double cent = fEvent->fCentralitySPDTracklets;
+//                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
+//              //         int centint = GetCent(cent);
+//                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
+//                       int phint = 0;
+//                       double phi = dimu->fPhi;
+//                       if(phi < -TMath::Pi()/2){
+//                        phi += 2* TMath::Pi();
+//                          }
+//                          if(phi > 1.5*TMath::Pi()){
+//                              phi -= 2* TMath::Pi();
+//                          }
+//                       phi = phi*6/TMath::Pi();
+//                       phint = floor(phi) + 3;
+//                       if(PoolsSize[centint]<100){ //[phint]
+//                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+//                               trackletME = (TrackletLight*)fTracklets->At(j);
+//                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+//                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+//                                   double trackletMEEta = trackletME->fEta;
+//                                   Pools[centint].push_back(trackletMEPhi); //[phint]
+//                                   Pools[centint].push_back(trackletMEEta); //[phint]
+//                               }
+//
+//                           }
+//                           PoolsSize[centint] += 1; //[phint]
+//                       }
+//                   }
+//                }
+//
+//                if(doTracklets){
+//
+//                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
+//                       double cent = fEvent->fCentralitySPDTracklets;
+//                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
+//                   //    int centint = GetCent(cent);
+//                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
+//                       if(PoolsSizeTkl[centint]<100){
+//                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+//                               trackletME = (TrackletLight*)fTracklets->At(j);
+//                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+//                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+//                                   double trackletMEEta = trackletME->fEta;
+//                                   PoolsTkl[centint].push_back(trackletMEPhi);
+//                                   PoolsTkl[centint].push_back(trackletMEEta);
+//                                   PoolsTklEventTracker[centint].push_back(i);
+//                                   PoolsTklEventTracker[centint].push_back(i);
+//                                       cout << "i " << i << " trackletMEPhi " << trackletMEPhi << " trackletMEEta " <<trackletMEEta<<endl;
+//
+//                               }
+//
+//                           }
+//                           PoolsSizeTkl[centint] += 1;
+//                       }
+//                   }
+//
+//                }
+//
+//
+//            }
+//    }
+//
+//    }
     
 // ************************************
 // Boucle sur les evenements, notés i *
@@ -1209,6 +1217,13 @@ void PlotSingleBin(){
         
         char str [20];
         int GroupNum;
+        
+        std::vector <double> Pools[NbBinsCent]; //[12]
+        std::vector <int> PoolsEventTracker[NbBinsCent];
+        int PoolsSize[NbBinsCent] = {0}; //[12]
+        std::vector <double> PoolsTkl[NbBinsCent];
+        std::vector <int> PoolsTklEventTracker[NbBinsCent];
+        int PoolsSizeTkl[NbBinsCent] = {0};
 
         sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
     
@@ -1236,6 +1251,8 @@ void PlotSingleBin(){
     fCorrelations = fEvent->fCorrelations;
     fTracklets = fEvent->fTracklets;
     fDimuons = fEvent->fDimuons;
+        int DimuMEcounter =0;
+        int TklMEcounter =0;
     
         for (int i=0;i<nevent;i++) {
             if(i%100000 == 0){
@@ -1276,7 +1293,7 @@ void PlotSingleBin(){
             int NumberOfTrackletsPassingEtaCut = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
-                if((TMath::Abs(trac->fEta) < TklEtaCut)){
+                if((TMath::Abs(trac->fEta) < TklEtaCut && (TMath::Abs(trac->fDPhi) < DPhiCut))){
                     NumberOfTrackletsPassingEtaCut++;
                     hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
                     hDPhi->Fill(trac->fDPhi);
@@ -1384,18 +1401,57 @@ void PlotSingleBin(){
                               phiME -= 2* TMath::Pi();
                           }
                        phintME = floor(phiME*6/TMath::Pi()) + 3;
+                            DimuMEcounter++;
+                            
+                            if(PoolsSize[centintME]>=10){
 
-                           for(int k=0; k< Pools[centintME].size(); k+=2){ //[phintME]
-                                       double correlMEPhi = Pools[centintME].at(k) - dimu->fPhi; //[phintME]
-                         //      cout << "Pools[centintME][zvintME].at(k) " << k << " : " << Pools[centintME][zvintME].at(k) <<endl; //[phintME]
-                                       if(correlMEPhi < -TMath::Pi()/2){
-                                           correlMEPhi += 2* TMath::Pi();
-                                       }
-                                       if(correlMEPhi > 1.5*TMath::Pi()){
-                                           correlMEPhi -= 2* TMath::Pi();
-                                       }
-                                       double correlMEEta = TMath::Abs(dimu->fEta - Pools[centintME].at(k+1)); //[phintME]
-                                            CorrelationsME[centintME][massintME]->Fill(correlMEPhi,correlMEEta);
+                               for(int k=0; k< Pools[centintME].size(); k+=2){ //[phintME]
+                                           double correlMEPhi = Pools[centintME].at(k) - dimu->fPhi; //[phintME]
+                             //      cout << ls[centintME][zvintME].at(k) " << k << " : " << Pools[centintME][zvintME].at(k) <<endl; //[phintME]
+                                           if(correlMEPhi < -TMath::Pi()/2){
+                                               correlMEPhi += 2* TMath::Pi();
+                                           }
+                                           if(correlMEPhi > 1.5*TMath::Pi()){
+                                               correlMEPhi -= 2* TMath::Pi();
+                                           }
+                                           double correlMEEta = TMath::Abs(dimu->fEta - Pools[centintME].at(k+1)); //[phintME]
+                                                CorrelationsME[centintME][massintME]->Fill(correlMEPhi,correlMEEta);
+                                                CorrelationsMEMassSummed[centintME]->Fill(correlMEPhi,correlMEEta);
+                                    }
+                            }
+                            if(PoolsSize[centintME] == 100){
+                                int valueDiscarded = PoolsEventTracker[centintME].front();
+                                while(PoolsEventTracker[centintME].front()==valueDiscarded){
+                                    PoolsEventTracker[centintME].erase(PoolsEventTracker[centintME].begin(),PoolsEventTracker[centintME].begin()+2);
+                                    Pools[centintME].erase(Pools[centintME].begin(),Pools[centintME].begin()+2);
+                                }
+                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                   trackletME = (TrackletLight*)fTracklets->At(j);
+                                   if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                       double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                       double trackletMEEta = trackletME->fEta;
+                                       Pools[centintME].push_back(trackletMEPhi);
+                                       Pools[centintME].push_back(trackletMEEta);
+                                       PoolsEventTracker[centintME].push_back(DimuMEcounter);
+                                       PoolsEventTracker[centintME].push_back(DimuMEcounter);
+                                   }
+    
+                               }
+                            }
+                            else if(PoolsSize[centintME] < 100){
+                               for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                   trackletME = (TrackletLight*)fTracklets->At(j);
+                                   if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                       double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                       double trackletMEEta = trackletME->fEta;
+                                       Pools[centintME].push_back(trackletMEPhi);
+                                       Pools[centintME].push_back(trackletMEEta);
+                                       PoolsEventTracker[centintME].push_back(DimuMEcounter);
+                                       PoolsEventTracker[centintME].push_back(DimuMEcounter);
+                                   }
+    
+                               }
+                               PoolsSize[centintME] += 1;
                            }
                         }
                         
@@ -1516,53 +1572,108 @@ void PlotSingleBin(){
     // Event mixing
                 
                 if(doMixedEvents){
+                  //  cout << "ME asked" <<endl;
                     if((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
-                        for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                          tracklet1 = (TrackletLight*)fTracklets->At(j);
-                            if(TMath::Abs(tracklet1->fEta) < TklEtaCut){
-                           //   double centME = fEvent->fCentralitySPDTracklets;
-                            //  int centintME = GetCent(centME);
-                              double zvME = fEvent->fVertexZ;
-                              int zvintME = floor(zvME) + ZvtxCut;
-                                int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
-                            
-
-                              for(int k=0; k< PoolsTkl[centintME].size(); k+=2){
-                                  if(i==PoolsTklEventTracker[centintME].at(k)){
-                                      continue;
-                                  }
-                                          double correlTklMEPhi = PoolsTkl[centintME].at(k) - tracklet1->fPhi;
-                                          if(correlTklMEPhi < -TMath::Pi()/2){
-                                              correlTklMEPhi += 2* TMath::Pi();
-                                          }
-                                          if(correlTklMEPhi > 1.5*TMath::Pi()){
-                                              correlTklMEPhi -= 2* TMath::Pi();
-                                          }
-                                  double correlTklMEEta = TMath::Abs(tracklet1->fEta - PoolsTkl[centintME].at(k+1));
-                                       CorrelationsTklME[centintME]->Fill(correlTklMEPhi,correlTklMEEta);
-                                        if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
-                                            NormMETkl[centintME] += 1.;
-                                        }
-                                  
-                                  
-                              //        if(cent <= CentSPDTrackletsCentral){
-                                  if(centintME ==0){
-                                          YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
-                                          if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
-                                              NormTklCentral += 1;
-                                          }
-                                      }
-                             //         else if(cent > CentSPDTrackletsPeriph){
-                                  else if(centintME==4){
-                                          YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
-                                          if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
-                                              NormTklPeriph += 1;
-                                          }
-                                      }
+                        //   double centME = fEvent->fCentralitySPDTracklets;
+                         //  int centintME = GetCent(centME);
+                           double zvME = fEvent->fVertexZ;
+                           int zvintME = floor(zvME) + ZvtxCut;
+                             int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                        TklMEcounter++;
+                        //cout << "centintME " <<centintME<<endl;
+                        //cout << " PoolsSizeTkl[centintME] " << PoolsSizeTkl[centintME]<<endl;
+                        if(PoolsSizeTkl[centintME]>=10){
+                        //    cout << ">=10" <<endl;
+                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                              tracklet1 = (TrackletLight*)fTracklets->At(j);
+                                if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){
+                                
+                                  for(int k=0; k< PoolsTkl[centintME].size(); k+=2){
+                                              double correlTklMEPhi = PoolsTkl[centintME].at(k) - tracklet1->fPhi;
+                                  //    cout << " PoolsTkl[centintME].at(k) " << PoolsTkl[centintME].at(k)<<endl;
+                                              if(correlTklMEPhi < -TMath::Pi()/2){
+                                                  correlTklMEPhi += 2* TMath::Pi();
+                                              }
+                                              if(correlTklMEPhi > 1.5*TMath::Pi()){
+                                                  correlTklMEPhi -= 2* TMath::Pi();
+                                              }
+                                      double correlTklMEEta = TMath::Abs(tracklet1->fEta - PoolsTkl[centintME].at(k+1));
+                                           CorrelationsTklME[centintME]->Fill(correlTklMEPhi,correlTklMEEta);
+                                            if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
+                                                NormMETkl[centintME] += 1.;
+                                            }
                                       
-                              }
+                                      
+                                  //        if(cent <= CentSPDTrackletsCentral){
+                                      if(centintME ==0){
+                                              YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
+                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
+                                                  NormTklCentral += 1;
+                                              }
+                                          }
+                                 //         else if(cent > CentSPDTrackletsPeriph){
+                                      else if(centintME==4){
+                                              YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
+                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
+                                                  NormTklPeriph += 1;
+                                              }
+                                          }
+                                          
+                                  }
+                                }
                             }
+                          //  cout << "Tkl ME has been calculated" << endl;
                         }
+                        
+                        
+                        if(PoolsSizeTkl[centintME] == 100){
+                         //   cout << "The Tkl pool is full" <<endl;
+                           int valueDiscarded = PoolsTklEventTracker[centintME].front();
+                          //  cout << "Discarding events with index " << valueDiscarded<<endl;
+                           while(PoolsTklEventTracker[centintME].front()==valueDiscarded){
+                         //      cout << "Event number at front: " << PoolsTklEventTracker[centintME].front()<<endl;
+                               PoolsTklEventTracker[centintME].erase(PoolsTklEventTracker[centintME].begin(),PoolsTklEventTracker[centintME].begin()+2);
+                             //  cout << "Discarded Event tracker front - New front number : "<< PoolsTklEventTracker[centintME].front() << endl;
+                            //   cout << "Four first elements in PoolsTkl: " << PoolsTkl[centintME].at(0) << " " << PoolsTkl[centintME].at(1) << " " << PoolsTkl[centintME].at(2) << " " << PoolsTkl[centintME].at(3) << endl;
+                             //  cout << "Size " << PoolsTkl[centintME].size()<<endl;
+                               PoolsTkl[centintME].erase(PoolsTkl[centintME].begin(),PoolsTkl[centintME].begin()+2);
+                             //  cout << "Two first discarded - New Four first elements in PoolsTkl: " << PoolsTkl[centintME].at(0) << " " << PoolsTkl[centintME].at(1) << " " << PoolsTkl[centintME].at(2) << " " << PoolsTkl[centintME].at(3) << endl;
+                           }
+                          //  cout << "Will now add new event"<<endl;
+                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                              trackletME = (TrackletLight*)fTracklets->At(j);
+                              if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                  double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                  double trackletMEEta = trackletME->fEta;
+                                  PoolsTkl[centintME].push_back(trackletMEPhi);
+                                  PoolsTkl[centintME].push_back(trackletMEEta);
+                                  PoolsTklEventTracker[centintME].push_back(TklMEcounter);
+                                  PoolsTklEventTracker[centintME].push_back(TklMEcounter);
+                              }
+
+                          }
+                         //   cout << "New event added"<<endl;
+                            
+                       }
+                        
+                        
+                        else if(PoolsSizeTkl[centintME] < 100){
+                         //   cout << "Pool is not full - Will add event"<<endl;
+                          for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                              trackletME = (TrackletLight*)fTracklets->At(j);
+                              if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                  double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                  double trackletMEEta = trackletME->fEta;
+                                  PoolsTkl[centintME].push_back(trackletMEPhi);
+                                  PoolsTkl[centintME].push_back(trackletMEEta);
+                                  PoolsTklEventTracker[centintME].push_back(TklMEcounter);
+                                  PoolsTklEventTracker[centintME].push_back(TklMEcounter);
+                              }
+
+                          }
+                          PoolsSizeTkl[centintME] += 1;
+                          //  cout << "Event added"<<endl;
+                      }
                         
                     }
                     
@@ -1610,6 +1721,20 @@ void PlotSingleBin(){
     Correl_tampon->DrawCopy("e");
     cCorrMEDimuTkl->cd(4);
     Correl_tampon = (TH1D*)(CorrelationsME[preciseCentFocus][3]->ProjectionX("_px",1,-1,"e"));
+    Correl_tampon->DrawCopy("e");
+    
+    TCanvas* cCorrMEDimuTkl2=new TCanvas();
+    cCorrMEDimuTkl2->Divide(2,2);
+    cCorrMEDimuTkl2->SetTitle("Correlations ME Dimu-Tkl [Ctrl/Periph][allmass]");
+    cCorrMEDimuTkl2->cd(2);
+    CorrelationsMEMassSummed[0]->DrawCopy("colz");
+    cCorrMEDimuTkl2->cd(4);
+    Correl_tampon = (TH1D*)(CorrelationsMEMassSummed[0]->ProjectionX("_px",1,-1,"e"));
+    Correl_tampon->DrawCopy("e");
+    cCorrMEDimuTkl2->cd(1);
+    CorrelationsMEMassSummed[4]->DrawCopy("colz");
+    cCorrMEDimuTkl2->cd(3);
+    Correl_tampon = (TH1D*)(CorrelationsMEMassSummed[4]->ProjectionX("_px",1,-1,"e"));
     Correl_tampon->DrawCopy("e");
     
     TCanvas* cCorrMETKL=new TCanvas();
