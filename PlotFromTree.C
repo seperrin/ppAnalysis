@@ -52,248 +52,286 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i
 void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *p, Int_t /*iflag */  );
 int GetCent(double cent);
 int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
+bool isCentral(int centint);
+bool isPeripheral(int centint);
 
-int LimitsPM[12][20][5] =
-{       {   {31, 17, 13, 7, 0}, //Group 1
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 22, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {40, 23, 16, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 24, 17, 10, 0},
-            {42, 24, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {39, 22, 16, 10, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 8, 0}   },
-        {   {31, 17, 13, 7, 0}, //Group 2
-            {33, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {39, 22, 16, 10, 0},
-            {39, 22, 16, 10, 0},
-            {40, 23, 16, 10, 0},
-            {39, 22, 16, 10, 0},
-            {38, 21, 15, 9, 0},
-            {35, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0}   },
-        {   {31, 17, 12, 7, 0}, //Group 3
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {40, 22, 16, 10, 0},
-            {40, 23, 16, 10, 0},
-            {40, 23, 17, 10, 0},
-            {39, 22, 16, 10, 0},
-            {38, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0}   },
-        {   {29, 16, 12, 7, 0}, //Group 4
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {36, 21, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0}   },
-        {   {29, 16, 12, 7, 0}, //Group 5
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {40, 23, 16, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {42, 24, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {39, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 8, 0}   },
-        {   {27, 15, 11, 7, 0}, //Group 6
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {38, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0}   },
-        {   {27, 15, 11, 7, 0}, //Group 7
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 9, 0},
-            {33, 19, 14, 8, 0},
-            {31, 18, 13, 8, 0}   },
-        {   {28, 15, 11, 7, 0}, //Group 8
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0},
-            {31, 17, 13, 7, 0}   },
-        {   {27, 15, 11, 7, 0}, //Group 9
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 20, 14, 8, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0}   },
-        {   {28, 15, 11, 7, 0}, //Group 10
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0},
-            {30, 17, 12, 7, 0}   },
-        {   {30, 16, 12, 7, 0}, //Group 11
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0},
-            {30, 17, 12, 7, 0}   },
-        {   {29, 17, 12, 7, 0}, //Group 12
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0},
-            {31, 17, 12, 7, 0}   }
+// Centrality bins:
+//0: 0-1%
+//1: 1-5%
+//2: 5-10%
+//3: 10-15%
+//4: 15-20%
+//5: 20-30%
+//6: 30-40%
+//7: 40-50%
+//8: 50-60%
+//9: 60-70%
+//10: 70-80%
+//11: 80-90%
+//12: 90-100&
+
+int CentralLowBound = 0;
+int CentralHighBound = 1;
+int PeripheralLowBound = 7;
+int PeripheralHighBound = 11;
+
+bool isCentral(int centint){
+    if((centint>=CentralLowBound)&&(centint<=CentralHighBound))
+        return kTRUE;
+    else{
+        return kFALSE;
+    }
+}
+
+bool isPeripheral(int centint){
+    if((centint>=PeripheralLowBound)&&(centint<=PeripheralHighBound))
+        return kTRUE;
+    else{
+        return kFALSE;
+    }
+}
+
+int LimitsPM[12][20][13] =
+{       {   {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}, //Group1
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 22, 17, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {31, 22, 17, 15, 13, 10, 7, 6, 5, 3, 3, 2, 0},
+            {32, 22, 18, 15, 13, 10, 8, 6, 5, 3, 3, 2, 0},
+            {32, 22, 18, 15, 13, 10, 8, 6, 5, 3, 3, 2, 0},
+            {31, 22, 17, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}, //Group2
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {24, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}, //Group3
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 22, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {23, 16, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0}, //Group4
+            {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {25, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}, //Group5
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {32, 22, 17, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {32, 22, 18, 15, 13, 10, 8, 6, 5, 3, 2, 2, 0},
+            {33, 23, 18, 15, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 23, 18, 15, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 24, 19, 16, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 24, 19, 16, 14, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 23, 18, 15, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {32, 22, 18, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group6
+            {22, 15, 12, 10, 9, 7, 5, 4, 3, 2, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group7
+            {22, 16, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group8
+            {22, 15, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group9
+            {22, 15, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {22, 15, 12, 10, 8, 7, 5, 4, 3, 2, 2, 1, 0}, //Group10
+            {22, 16, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {23, 16, 13, 11, 9, 7, 5, 4, 3, 3, 2, 1, 0}, //Group11
+            {24, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {23, 16, 13, 11, 9, 7, 5, 4, 3, 3, 2, 1, 0}, //Group12
+            {24, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   }
 
 };
 
@@ -354,21 +392,22 @@ void PlotFromTree(){
     const int NbinsDeltaEta = 20;
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     
-    double MinDeltaEtaTKL = 1.2;
+   double MinDeltaEtaTKL = -2.4; //1.2
     double MaxDeltaEtaTKL = 2.4;
-    const int NbinsDeltaEtaTKL = 24;
+    const int NbinsDeltaEtaTKL = 48; //24
+    double DeltaEtaTKLCut = 1.2; //1.2
     double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
     
-    const int NbinsDeltaPhiTKL = 24;
+    const int NbinsDeltaPhiTKL = 48;
     double SizeBinDeltaPhiTKL = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhiTKL;
     
-    const int NbBinsCent = 5;
+    const int NbBinsCent = 13;
     const int NbBinsZvtx = 20;
     
     
   //  Char_t Group_Period[50] = "Group1";
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
-  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
@@ -382,6 +421,7 @@ void PlotFromTree(){
 // Initialiser les graphes *
 // *************************
     
+    TH2F* hsingletrac(NULL);
     TH1F* hnseg(NULL);
     TH1F* hnseg2(NULL);
     TH1F* hnseg3(NULL);
@@ -425,8 +465,10 @@ void PlotFromTree(){
     TH1F* YieldsTkl[NbBinsCent]{ NULL };
     TH2F* Correlations[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2F* CorrelationsTkl[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2F* CorrelationsME[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
-    TH2F* CorrelationsTklME[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsME[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
+    TH2I* CorrelationsTklME[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2F* CorrelationsMEScaled[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
+    TH2F* CorrelationsTklMEScaled[NbBinsCent][NbBinsZvtx]{ NULL };
     TH1F* Yield_tampon(NULL);
     TH1F* YieldTkl_tampon(NULL);
     TH1F* YieldWrtMass_tampon(NULL);
@@ -462,6 +504,12 @@ void PlotFromTree(){
     TH1D* YTklDifference_proj_tampon(NULL);
     TH1D* YTklCentralME_proj_tampon(NULL);
     TH1D* YTklPeriphME_proj_tampon(NULL);
+    
+    hsingletrac = new TH2F("hsingletrac",
+                      "Single tracklet EtaPhi distribution",
+                           NbinsDeltaPhi,0,MaxDeltaPhi-MinDeltaPhi,40,-2,2);
+    hsingletrac->SetXTitle("Tkl Phi (rad)");
+    hsingletrac->SetYTitle("Tkl Eta");
     
     YCentral = new TH2F("YCentral",
                       "Yield delta eta wrt delta phi - Central",
@@ -660,11 +708,18 @@ void PlotFromTree(){
                 Correlations[i][j][k]->SetXTitle("Correlation DeltaPhi (rad)");
                 Correlations[i][j][k]->SetYTitle("Correlation DeltaEta");
                 sprintf(hname,"CorrelationsME %d %d %d ",i,j,k);
-                CorrelationsME[i][j][k] = new TH2F(hname,
+                CorrelationsME[i][j][k] = new TH2I(hname,
                                   "MixedEvent Correlation delta eta wrt delta phi",
                                   NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
                 CorrelationsME[i][j][k]->SetXTitle("Correlation DeltaPhi (rad)");
                 CorrelationsME[i][j][k]->SetYTitle("Correlation DeltaEta");
+                
+                sprintf(hname,"CorrelationsMEScaled %d %d %d ",i,j,k);
+                CorrelationsMEScaled[i][j][k] = new TH2F(hname,
+                                  "MixedEvent Correlation delta eta wrt delta phi - Scaled",
+                                  NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+                CorrelationsMEScaled[i][j][k]->SetXTitle("Correlation DeltaPhi (rad)");
+                CorrelationsMEScaled[i][j][k]->SetYTitle("Correlation DeltaEta");
             }
         }
         
@@ -685,11 +740,17 @@ void PlotFromTree(){
             CorrelationsTkl[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
             CorrelationsTkl[i][j]->SetYTitle("Correlation DeltaEta");
             sprintf(hname,"CorrelationsME Tkl %d %d ",i,j);
-            CorrelationsTklME[i][j] = new TH2F(hname,
+            CorrelationsTklME[i][j] = new TH2I(hname,
                               "MixedEvent Correlation Tkl delta eta wrt delta phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
             CorrelationsTklME[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
             CorrelationsTklME[i][j]->SetYTitle("Correlation DeltaEta");
+            sprintf(hname,"CorrelationsME Tkl Scaled %d %d ",i,j);
+            CorrelationsTklMEScaled[i][j] = new TH2F(hname,
+                              "MixedEvent Correlation Tkl delta eta wrt delta phi - Scaled",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklMEScaled[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklMEScaled[i][j]->SetYTitle("Correlation DeltaEta");
         }
     }
     
@@ -995,11 +1056,6 @@ void PlotFromTree(){
     int RefTrackletsPeriph = 0;
     int cmul = 0;
     int barWidth = 50;
-    std::vector <double> Pools[NbBinsCent][NbBinsZvtx]; //[12]
-    int PoolsSize[NbBinsCent][NbBinsZvtx] = {0}; //[12]
-    std::vector <double> PoolsTkl[NbBinsCent][NbBinsZvtx];
-    std::vector <int> PoolsTklEventTracker[NbBinsCent][NbBinsZvtx];
-    int PoolsSizeTkl[NbBinsCent][NbBinsZvtx] = {0};
     int DimuonCounter[NbBinsCent][NbBinsZvtx][NbinsInvMass] = {0};
     int DimuonCounterZint[NbBinsCent][NbinsInvMass] = {0};
     int RefTklCounter[NbBinsCent][NbBinsZvtx] = {0};
@@ -1040,158 +1096,158 @@ void PlotFromTree(){
     DimuonLight *dimu = 0;
     TTree* theTree = NULL;
     
-    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
-           
-           sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
-       TFile fileIn(fileInLoc);
-        
-        char str [20];
-        int GroupNum;
-
-        sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
-    
-    
-    
-    std::cout << "1" <<std::endl;
-        fileIn.GetObject("MyMuonTree",theTree);
-    std::cout << "2" <<std::endl;
-        //setting the branch address
-    std::cout << "3" <<std::endl;
-  //  theTree->SetBranchAddress("event", &fEvent);
-    TBranch *branch = theTree->GetBranch("event");
-//        auto bntrack = theTree->GetBranch("tracks");
-        //auto branch  = theTree->GetBranch("mcparticles.fPx");
-    std::cout << "3.5" <<std::endl;
-        branch->SetAddress(&fEvent);
-    std::cout << "4" <<std::endl;
-    auto nevent = theTree->GetEntries();
-    
-    std::cout << "5" <<std::endl;
-    fCorrelations = fEvent->fCorrelations;
-    fTracklets = fEvent->fTracklets;
-    fDimuons = fEvent->fDimuons;
-//            auto nevent = bntrack->GetEntries();
-    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
-
-    
-// ************************************
-// Boucle sur les evenements pour pools mixed-event, notés i *
-// ************************************
-    if(doMixedEvents){
-        cout << "MIXED EVENTS IS WANTED - WILL NOW PROCESS EVENTS AND ORGANISE POOLS" << endl;
-      //  Double_t px[1000], py[1000];
-            for (int i=0;i<nevent;i++) {
-                if(i%100000 == 0){
-                        std::cout << "[";
-                        double portion = double(i)/nevent;
-                        long pos = barWidth * portion;
-                        for (int k = 0; k < barWidth; ++k) {
-                            if (k < pos) std::cout << "=";
-                            else if (k == pos) std::cout << ">";
-                            else std::cout << " ";
-                        }
-                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods << " Pooling";
-                        std::cout.flush();
-                    std::cout << std::endl;
-                }
-                if(doTracklets && (i%10!=0)){
-                    continue;
-                }
-                    theTree->GetEvent(i);
-                if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
-                    continue;
-                }
-                
-                int NumberOfTrackletsPassingEtaCut = 0;
-                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                    trackletME = (TrackletLight*)fTracklets->At(j);
-                    if(TMath::Abs(trackletME->fEta) < TklEtaCut){
-                        NumberOfTrackletsPassingEtaCut++;
-                    }
-                    
-                }
-                
-                if(NumberOfTrackletsPassingEtaCut==0){
-                    continue;
-                }
-                
-                if(KeepOnlyOne){
-                    if(NumberOfTrackletsPassingEtaCut != valueOnlyOne){
-                        continue;
-                    }
-                }
-                
-                if(AdditionalCutNtkl){
-                   if(NumberOfTrackletsPassingEtaCut <= valueAdditionalCutNtkl){
-                       continue;
-                   }
-               }
-                
-                for (Int_t j=0; j<fEvent->fNDimuons; j++) {
-                   dimu = (DimuonLight*)fDimuons->At(j);
-                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
-                       
-                       double cent = fEvent->fCentralitySPDTracklets;
-                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
-              //         int centint = GetCent(cent);
-                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
-                       int phint = 0;
-                       double phi = dimu->fPhi;
-                       if(phi < -TMath::Pi()/2){
-                        phi += 2* TMath::Pi();
-                          }
-                          if(phi > 1.5*TMath::Pi()){
-                              phi -= 2* TMath::Pi();
-                          }
-                       phi = phi*6/TMath::Pi();
-                       phint = floor(phi) + 3;
-                       if(PoolsSize[centint][zv]<100){ //[phint]
-                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                               trackletME = (TrackletLight*)fTracklets->At(j);
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
-                                   double trackletMEEta = trackletME->fEta;
-                                   Pools[centint][zv].push_back(trackletMEPhi); //[phint]
-                                   Pools[centint][zv].push_back(trackletMEEta); //[phint]
-                               }
-                               
-                           }
-                           PoolsSize[centint][zv] += 1; //[phint]
-                       }
-                   }
-                }
-                
-                if(doTracklets){
-               
-                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
-                       double cent = fEvent->fCentralitySPDTracklets;
-                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
-                   //    int centint = GetCent(cent);
-                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
-                       if(PoolsSizeTkl[centint][zv]<100){
-                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                               trackletME = (TrackletLight*)fTracklets->At(j);
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
-                                   double trackletMEEta = trackletME->fEta;
-                                   PoolsTkl[centint][zv].push_back(trackletMEPhi);
-                                   PoolsTkl[centint][zv].push_back(trackletMEEta);
-                                   PoolsTklEventTracker[centint][zv].push_back(i);
-                                   PoolsTklEventTracker[centint][zv].push_back(i);
-                               }
-                               
-                           }
-                           PoolsSizeTkl[centint][zv] += 1;
-                       }
-                   }
-        
-                }
-                
-                
-            }
-    }
-        
-    }
+//    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+//
+//           sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+//       TFile fileIn(fileInLoc);
+//
+//        char str [20];
+//        int GroupNum;
+//
+//        sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
+//
+//
+//
+//    std::cout << "1" <<std::endl;
+//        fileIn.GetObject("MyMuonTree",theTree);
+//    std::cout << "2" <<std::endl;
+//        //setting the branch address
+//    std::cout << "3" <<std::endl;
+//  //  theTree->SetBranchAddress("event", &fEvent);
+//    TBranch *branch = theTree->GetBranch("event");
+////        auto bntrack = theTree->GetBranch("tracks");
+//        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+//    std::cout << "3.5" <<std::endl;
+//        branch->SetAddress(&fEvent);
+//    std::cout << "4" <<std::endl;
+//    auto nevent = theTree->GetEntries();
+//
+//    std::cout << "5" <<std::endl;
+//    fCorrelations = fEvent->fCorrelations;
+//    fTracklets = fEvent->fTracklets;
+//    fDimuons = fEvent->fDimuons;
+////            auto nevent = bntrack->GetEntries();
+//    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+//
+//
+//// ************************************
+//// Boucle sur les evenements pour pools mixed-event, notés i *
+//// ************************************
+//    if(doMixedEvents){
+//        cout << "MIXED EVENTS IS WANTED - WILL NOW PROCESS EVENTS AND ORGANISE POOLS" << endl;
+//      //  Double_t px[1000], py[1000];
+//            for (int i=0;i<nevent;i++) {
+//                if(i%100000 == 0){
+//                        std::cout << "[";
+//                        double portion = double(i)/nevent;
+//                        long pos = barWidth * portion;
+//                        for (int k = 0; k < barWidth; ++k) {
+//                            if (k < pos) std::cout << "=";
+//                            else if (k == pos) std::cout << ">";
+//                            else std::cout << " ";
+//                        }
+//                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods << " Pooling";
+//                        std::cout.flush();
+//                    std::cout << std::endl;
+//                }
+//                if(doTracklets && (i%100!=0)){
+//                    continue;
+//                }
+//                    theTree->GetEvent(i);
+//                if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
+//                    continue;
+//                }
+//
+//                int NumberOfTrackletsPassingEtaCut = 0;
+//                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+//                    trackletME = (TrackletLight*)fTracklets->At(j);
+//                    if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+//                        NumberOfTrackletsPassingEtaCut++;
+//                    }
+//
+//                }
+//
+//                if(NumberOfTrackletsPassingEtaCut==0){
+//                    continue;
+//                }
+//
+//                if(KeepOnlyOne){
+//                    if(NumberOfTrackletsPassingEtaCut != valueOnlyOne){
+//                        continue;
+//                    }
+//                }
+//
+//                if(AdditionalCutNtkl){
+//                   if(NumberOfTrackletsPassingEtaCut <= valueAdditionalCutNtkl){
+//                       continue;
+//                   }
+//               }
+//
+//                for (Int_t j=0; j<fEvent->fNDimuons; j++) {
+//                   dimu = (DimuonLight*)fDimuons->At(j);
+//                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut) && (dimu->fInvMass > MinInvMass) && (dimu->fInvMass < MaxInvMass)){
+//
+//                       double cent = fEvent->fCentralitySPDTracklets;
+//                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
+//              //         int centint = GetCent(cent);
+//                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
+//                       int phint = 0;
+//                       double phi = dimu->fPhi;
+//                       if(phi < -TMath::Pi()/2){
+//                        phi += 2* TMath::Pi();
+//                          }
+//                          if(phi > 1.5*TMath::Pi()){
+//                              phi -= 2* TMath::Pi();
+//                          }
+//                       phi = phi*6/TMath::Pi();
+//                       phint = floor(phi) + 3;
+//                       if(PoolsSize[centint][zv]<100){ //[phint]
+//                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+//                               trackletME = (TrackletLight*)fTracklets->At(j);
+//                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+//                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+//                                   double trackletMEEta = trackletME->fEta;
+//                                   Pools[centint][zv].push_back(trackletMEPhi); //[phint]
+//                                   Pools[centint][zv].push_back(trackletMEEta); //[phint]
+//                               }
+//
+//                           }
+//                           PoolsSize[centint][zv] += 1; //[phint]
+//                       }
+//                   }
+//                }
+//
+//                if(doTracklets){
+//
+//                   if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
+//                       double cent = fEvent->fCentralitySPDTracklets;
+//                       int zv = floor(fEvent->fVertexZ) + ZvtxCut;
+//                   //    int centint = GetCent(cent);
+//                       int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zv, GroupNum);
+//                       if(PoolsSizeTkl[centint][zv]<100){
+//                           for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+//                               trackletME = (TrackletLight*)fTracklets->At(j);
+//                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+//                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+//                                   double trackletMEEta = trackletME->fEta;
+//                                   PoolsTkl[centint][zv].push_back(trackletMEPhi);
+//                                   PoolsTkl[centint][zv].push_back(trackletMEEta);
+//                                   PoolsTklEventTracker[centint][zv].push_back(i);
+//                                   PoolsTklEventTracker[centint][zv].push_back(i);
+//                               }
+//
+//                           }
+//                           PoolsSizeTkl[centint][zv] += 1;
+//                       }
+//                   }
+//
+//                }
+//
+//
+//            }
+//    }
+//
+//    }
     
 // ************************************
 // Boucle sur les evenements, notés i *
@@ -1207,6 +1263,13 @@ void PlotFromTree(){
         
         char str [20];
         int GroupNum;
+        
+        std::vector <double> Pools[NbBinsCent][NbBinsZvtx]; //[12]
+        std::vector <int> PoolsEventTracker[NbBinsCent][NbBinsZvtx];
+        int PoolsSize[NbBinsCent][NbBinsZvtx] = {0}; //[12]
+        std::vector <double> PoolsTkl[NbBinsCent][NbBinsZvtx];
+        std::vector <int> PoolsTklEventTracker[NbBinsCent][NbBinsZvtx];
+        int PoolsSizeTkl[NbBinsCent][NbBinsZvtx] = {0};
 
         sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
     
@@ -1234,6 +1297,8 @@ void PlotFromTree(){
     fCorrelations = fEvent->fCorrelations;
     fTracklets = fEvent->fTracklets;
     fDimuons = fEvent->fDimuons;
+        int DimuMEcounter =0;
+        int TklMEcounter =0;
     
         for (int i=0;i<nevent;i++) {
             if(i%100000 == 0){
@@ -1249,9 +1314,9 @@ void PlotFromTree(){
                     std::cout.flush();
                 std::cout << std::endl;
             }
-            if(doTracklets && (i%10!=0)){
-                continue;
-            }
+//            if(doTracklets && (i%10!=0)){
+//                continue;
+//            }
                 theTree->GetEvent(i);
             if(fEvent->fIsPileupFromSPDMultBins){
                 EventPileUpMult++;
@@ -1270,7 +1335,8 @@ void PlotFromTree(){
             int NumberOfTrackletsPassingEtaCut = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
-                if((TMath::Abs(trac->fEta) < TklEtaCut)){
+                hsingletrac->Fill(trac->fPhi, trac->fEta);
+                if((TMath::Abs(trac->fEta) < TklEtaCut) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                     NumberOfTrackletsPassingEtaCut++;
                     hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
                     hDPhi->Fill(trac->fDPhi);
@@ -1337,11 +1403,11 @@ void PlotFromTree(){
                         centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                         DimuonCounter[centint][zvint][massint]++;
                      //   if(cent <= CentSPDTrackletsCentral){
-                        if(centint==0){
+                        if(isCentral(centint)){
                             DimuC++;
                         }
                       //  else if(cent > CentSPDTrackletsPeriph){
-                        else if(centint == 4){
+                        else if(isPeripheral(centint)){
                            DimuP++;
                         }
                     }
@@ -1349,12 +1415,12 @@ void PlotFromTree(){
                     hnseg->Fill(dimu->fInvMass);
                     hPtWrtMassInv[0]->Fill(dimu->fInvMass, dimu->fPt);
                   //  if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
-                    if(centint==0){
+                    if(isCentral(centint)){
                         InvMass_Central->Fill(dimu->fInvMass);
                         hPtWrtMassInv[1]->Fill(dimu->fInvMass, dimu->fPt);
                     }
                   //  if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
-                    if(centint==4){
+                    if(isPeripheral(centint)){
                         InvMass_Periph->Fill(dimu->fInvMass);
                         hPtWrtMassInv[2]->Fill(dimu->fInvMass, dimu->fPt);
                     }
@@ -1378,7 +1444,9 @@ void PlotFromTree(){
                               phiME -= 2* TMath::Pi();
                           }
                        phintME = floor(phiME*6/TMath::Pi()) + 3;
+                            DimuMEcounter++;
 
+                        if(PoolsSize[centintME][zvintME]>=10){
                            for(int k=0; k< Pools[centintME][zvintME].size(); k+=2){ //[phintME]
                                        double correlMEPhi = Pools[centintME][zvintME].at(k) - dimu->fPhi; //[phintME]
                          //      cout << "Pools[centintME][zvintME].at(k) " << k << " : " << Pools[centintME][zvintME].at(k) <<endl; //[phintME]
@@ -1391,6 +1459,46 @@ void PlotFromTree(){
                                        double correlMEEta = TMath::Abs(dimu->fEta - Pools[centintME][zvintME].at(k+1)); //[phintME]
                                             CorrelationsME[centintME][zvintME][massintME]->Fill(correlMEPhi,correlMEEta);
                            }
+                        }
+                        if(PoolsSize[centintME][zvintME] == 100){
+                            int valueDiscarded = PoolsEventTracker[centintME][zvintME].front();
+                            while(PoolsEventTracker[centintME][zvintME].front()==valueDiscarded){
+                                PoolsEventTracker[centintME][zvintME].erase(PoolsEventTracker[centintME][zvintME].begin(),PoolsEventTracker[centintME][zvintME].begin()+2);
+                                Pools[centintME][zvintME].erase(Pools[centintME][zvintME].begin(),Pools[centintME][zvintME].begin()+2);
+                            }
+                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                               trackletME = (TrackletLight*)fTracklets->At(j);
+                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                   double trackletMEEta = trackletME->fEta;
+                                   Pools[centintME][zvintME].push_back(trackletMEPhi);
+                                   Pools[centintME][zvintME].push_back(trackletMEEta);
+                                   PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
+                                   PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
+                               }
+
+                           }
+                        }
+                        else if(PoolsSize[centintME][zvintME] < 100){
+                               for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                   trackletME = (TrackletLight*)fTracklets->At(j);
+                                   if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                       double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                       double trackletMEEta = trackletME->fEta;
+                                       Pools[centintME][zvintME].push_back(trackletMEPhi);
+                                       Pools[centintME][zvintME].push_back(trackletMEEta);
+                                       PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
+                                       PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
+                                   }
+
+                               }
+                               PoolsSize[centintME][zvintME] += 1;
+                           }
+                            
+                            
+                            
+                            
+                            
                         }
                         
                     }
@@ -1436,11 +1544,11 @@ void PlotFromTree(){
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
                       //  if(cent <= CentSPDTrackletsCentral){
-                        if(centint == 0){
+                        if(isCentral(centint)){
                             YCentral->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                       //  else if(cent > CentSPDTrackletsPeriph){
-                        else if(centint ==4){
+                        else if(isPeripheral(centint)){
                             YPeriph->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                     }
@@ -1467,15 +1575,16 @@ void PlotFromTree(){
                   int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
               //  if(cent <= CentSPDTrackletsCentral){
-                if(centint==0){
+                if(isCentral(centint)){
                     TklC++;
                 }
                // else if(cent > CentSPDTrackletsPeriph){
-                else if(centint==4){
+                else if(isPeripheral(centint)){
                     TklP++;
                 }
                 }
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                fTracklets->Randomize();
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
@@ -1487,8 +1596,10 @@ void PlotFromTree(){
                             if(DeltaPhi > 1.5*TMath::Pi()){
                                 DeltaPhi -= 2* TMath::Pi();
                             }
-                            Float_t DeltaEta = TMath::Abs(tracklet1->fEta - tracklet2->fEta);
-
+                            Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
+                        if(TMath::Abs(DeltaEta)<DeltaEtaTKLCut){
+                            continue;
+                        }
                             //   double cent = fEvent->fCentralitySPDTracklets;
                           //     int centint = GetCent(cent);
                                double zv = fEvent->fVertexZ;
@@ -1496,11 +1607,11 @@ void PlotFromTree(){
                                 int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                                CorrelationsTkl[centint][zvint]->Fill(DeltaPhi,DeltaEta);
                               //  if(cent <= CentSPDTrackletsCentral){
-                                if(centint==0){
+                                if(isCentral(centint)){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
                                 }
                               //  else if(cent > CentSPDTrackletsPeriph){
-                                else if(centint==4){
+                                else if(isPeripheral(centint)){
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
                                 }
                    }
@@ -1511,52 +1622,109 @@ void PlotFromTree(){
                 
                 if(doMixedEvents){
                     if((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut)){
-                        for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                          tracklet1 = (TrackletLight*)fTracklets->At(j);
-                            if(TMath::Abs(tracklet1->fEta) < TklEtaCut){
-                           //   double centME = fEvent->fCentralitySPDTracklets;
-                            //  int centintME = GetCent(centME);
-                              double zvME = fEvent->fVertexZ;
-                              int zvintME = floor(zvME) + ZvtxCut;
-                                int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
-                            
+                        //   double centME = fEvent->fCentralitySPDTracklets;
+                        //  int centintME = GetCent(centME);
+                          double zvME = fEvent->fVertexZ;
+                          int zvintME = floor(zvME) + ZvtxCut;
+                            int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                        TklMEcounter++;
+                        
+                        if(PoolsSizeTkl[centintME][zvintME]>=10){
+                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                              tracklet1 = (TrackletLight*)fTracklets->At(j);
+                                if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){
 
-                              for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
-                                  if(i==PoolsTklEventTracker[centintME][zvintME].at(k)){
-                                      continue;
-                                  }
-                                          double correlTklMEPhi = PoolsTkl[centintME][zvintME].at(k) - tracklet1->fPhi;
-                                          if(correlTklMEPhi < -TMath::Pi()/2){
-                                              correlTklMEPhi += 2* TMath::Pi();
-                                          }
-                                          if(correlTklMEPhi > 1.5*TMath::Pi()){
-                                              correlTklMEPhi -= 2* TMath::Pi();
-                                          }
-                                  double correlTklMEEta = TMath::Abs(tracklet1->fEta - PoolsTkl[centintME][zvintME].at(k+1));
-                                       CorrelationsTklME[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
-                                        if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
-                                            NormMETkl[centintME][zvintME] += 1.;
-                                        }
-                                  
-                                  
-                              //        if(cent <= CentSPDTrackletsCentral){
-                                  if(centintME ==0){
-                                          YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
-                                          if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
-                                              NormTklCentral += 1;
-                                          }
-                                      }
-                             //         else if(cent > CentSPDTrackletsPeriph){
-                                  else if(centintME==4){
-                                          YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
-                                          if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
-                                              NormTklPeriph += 1;
-                                          }
-                                      }
+                                  for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
+                                              double correlTklMEPhi = tracklet1->fPhi - PoolsTkl[centintME][zvintME].at(k);
+                                              if(correlTklMEPhi < -TMath::Pi()/2){
+                                                  correlTklMEPhi += 2* TMath::Pi();
+                                              }
+                                              if(correlTklMEPhi > 1.5*TMath::Pi()){
+                                                  correlTklMEPhi -= 2* TMath::Pi();
+                                              }
+                                      double correlTklMEEta = tracklet1->fEta - PoolsTkl[centintME][zvintME].at(k+1); //DeltaEtaAbs
+                                          if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                               CorrelationsTklME[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
+                                           }
+                                            if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
+                                                NormMETkl[centintME][zvintME] += 1.;
+                                            }
                                       
-                              }
+                                      
+                                  //        if(cent <= CentSPDTrackletsCentral){
+                                      if(isCentral(centintME)){
+                                              if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                                  YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
+                                              }
+                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
+                                                  NormTklCentral += 1;
+                                              }
+                                          }
+                                 //         else if(cent > CentSPDTrackletsPeriph){
+                                      else if(isPeripheral(centintME)){
+                                             if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                                  YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
+                                              }
+                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
+                                                  NormTklPeriph += 1;
+                                              }
+                                          }
+                                          
+                                  }
+                                }
                             }
                         }
+                        
+                        if(PoolsSizeTkl[centintME][zvintME] == 100){
+                          //   cout << "The Tkl pool is full" <<endl;
+                            int valueDiscarded = PoolsTklEventTracker[centintME][zvintME].front();
+                           //  cout << "Discarding events with index " << valueDiscarded<<endl;
+                            while(PoolsTklEventTracker[centintME][zvintME].front()==valueDiscarded){
+                          //      cout << "Event number at front: " << PoolsTklEventTracker[centintME].front()<<endl;
+                                PoolsTklEventTracker[centintME][zvintME].erase(PoolsTklEventTracker[centintME][zvintME].begin(),PoolsTklEventTracker[centintME][zvintME].begin()+2);
+                              //  cout << "Discarded Event tracker front - New front number : "<< PoolsTklEventTracker[centintME].front() << endl;
+                             //   cout << "Four first elements in PoolsTkl: " << PoolsTkl[centintME].at(0) << " " << PoolsTkl[centintME].at(1) << " " << PoolsTkl[centintME].at(2) << " " << PoolsTkl[centintME].at(3) << endl;
+                              //  cout << "Size " << PoolsTkl[centintME].size()<<endl;
+                                PoolsTkl[centintME][zvintME].erase(PoolsTkl[centintME][zvintME].begin(),PoolsTkl[centintME][zvintME].begin()+2);
+                              //  cout << "Two first discarded - New Four first elements in PoolsTkl: " << PoolsTkl[centintME].at(0) << " " << PoolsTkl[centintME].at(1) << " " << PoolsTkl[centintME].at(2) << " " << PoolsTkl[centintME].at(3) << endl;
+                            }
+                           //  cout << "Will now add new event"<<endl;
+                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                               trackletME = (TrackletLight*)fTracklets->At(j);
+                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                   double trackletMEEta = trackletME->fEta;
+                                   PoolsTkl[centintME][zvintME].push_back(trackletMEPhi);
+                                   PoolsTkl[centintME][zvintME].push_back(trackletMEEta);
+                                   PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
+                                   PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
+                               }
+
+                           }
+                          //   cout << "New event added"<<endl;
+                             
+                        }
+                        
+                        else if(PoolsSizeTkl[centintME][zvintME] < 100){
+                           //   cout << "Pool is not full - Will add event"<<endl;
+                            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                trackletME = (TrackletLight*)fTracklets->At(j);
+                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                    double trackletMEEta = trackletME->fEta;
+                                    PoolsTkl[centintME][zvintME].push_back(trackletMEPhi);
+                                    PoolsTkl[centintME][zvintME].push_back(trackletMEEta);
+                                    PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
+                                    PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
+                                }
+
+                            }
+                            PoolsSizeTkl[centintME][zvintME] += 1;
+                            //  cout << "Event added"<<endl;
+                        }
+                        
+                        
+                        
                         
                     }
                     
@@ -1694,6 +1862,14 @@ void PlotFromTree(){
             ctestemichTklMEProj->cd(2);
             YTklPeriphME_proj_tampon->DrawCopy("e");
             
+            TCanvas*ctestemichTklSEMEDiv = new TCanvas();
+            ctestemichTklSEMEDiv->SetTitle("Naïve Tkl-Tkl SE/ME Yield definition TH2");
+            ctestemichTklSEMEDiv->Divide(1,3);
+            ctestemichTklSEMEDiv->cd(1);
+            YTklCentral->DrawCopy("colz");
+            ctestemichTklSEMEDiv->cd(2);
+            YTklPeriph->DrawCopy("colz");
+            
         }
         
         YTklCentral_proj_tampon = (TH1D*)(YTklCentral->ProjectionX("_px",1,-1,"e"));
@@ -1768,7 +1944,14 @@ void PlotFromTree(){
             for(int i=0; i<NbBinsCent; i++){
                    for(int j=0; j<NbBinsZvtx; j++){
                        for(int k=0; k<10; k++){
-                           CorrelationsME[i][j][k]->Scale(NormME[i][j][k]);
+                          // CorrelationsME[i][j][k]->Scale(NormME[i][j][k]);
+                           for(int binx=1; binx<(1+CorrelationsME[i][j][k]->GetNbinsX()); binx++){
+                               for(int biny=1; biny<(1+CorrelationsME[i][j][k]->GetNbinsY()); biny++){
+                                   CorrelationsMEScaled[i][j][k]->SetBinContent(binx,biny, (CorrelationsME[i][j][k]->GetBinContent(binx,biny))*NormME[i][j][k]);
+                                    CorrelationsMEScaled[i][j][k]->SetBinError(binx,biny, (CorrelationsME[i][j][k]->GetBinError(binx,biny))*NormME[i][j][k]);
+                               }
+                           }
+                           
                        }
                    }
             }
@@ -1822,7 +2005,14 @@ void PlotFromTree(){
         
         for(int i=0; i<NbBinsCent; i++){
                for(int j=0; j<NbBinsZvtx; j++){
-                       CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                      // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                   for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
+                       for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
+                           CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                            CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                       }
+                   }
+                   
                }
         }
 }
@@ -1867,14 +2057,14 @@ void PlotFromTree(){
                    ProjCopy->Reset();
                    ProjCopy2->Reset();
                    if(doMixedEvents){
-                       ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionX("ME_proj",1,-1,"e")); //Change underflow
+                       ME_proj_tampon = (TH1F*)(CorrelationsMEScaled[i][j][k]->ProjectionX("ME_proj",1,-1,"e")); //Change underflow
                    }
                    if(i ==preciseCentFocus && k==3 && j==preciseZbinFocus){
                        ctesteproj->cd(1);
                        Correlations[i][j][k]->DrawCopy("colz");
                        ctesteproj->cd(2);
                        if(doMixedEvents){
-                           CorrelationsME[i][j][k]->DrawCopy("colz");
+                           CorrelationsMEScaled[i][j][k]->DrawCopy("colz");
                        }
                        
                    }
@@ -1961,7 +2151,7 @@ void PlotFromTree(){
     Yield_allC->Scale(1./DimuSeenMassCut);
     
     int DimuCnt=0;
-    for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+    for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
         Yield_tampon->Reset();
         Yield_tampon->Add(Yields[i][3]);
         Yield_tampon->Scale(DimuonCounterZint[i][3]);
@@ -1970,7 +2160,7 @@ void PlotFromTree(){
     }
      Yield_Central->Scale(1./DimuCnt);
     DimuCnt=0;
-    for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+    for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
         Yield_tampon->Reset();
         Yield_tampon->Add(Yields[i][3]);
         Yield_tampon->Scale(DimuonCounterZint[i][3]);
@@ -1996,7 +2186,7 @@ void PlotFromTree(){
     cout << "Calculation of Yields_MassBin[mass]" <<endl;
     for(int k=0; k<NbinsInvMass; k++){
         DimuCnt=0;
-        for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
             Yield_tampon->Reset();
             Yield_tampon->Add(Yields[i][k]);
             Yield_tampon->Scale(DimuonCounterZint[i][k]);
@@ -2005,7 +2195,7 @@ void PlotFromTree(){
         }
          Yield_Central_MassBin[k]->Scale(1./DimuCnt);
         DimuCnt=0;
-        for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
             Yield_tampon->Reset();
             Yield_tampon->Add(Yields[i][k]);
             Yield_tampon->Scale(DimuonCounterZint[i][k]);
@@ -2047,7 +2237,7 @@ void PlotFromTree(){
         }
         
          for(int p=0; p<NbinsDeltaPhi; p++){
-            for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+            for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
                 YieldWrtMass_tampon->Reset();
                 YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
                 YieldWrtMass_Central[p]->Add(YieldWrtMass_tampon);
@@ -2056,7 +2246,7 @@ void PlotFromTree(){
         }
         
         for(int p=0; p<NbinsDeltaPhi; p++){
-            for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+            for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
                 YieldWrtMass_tampon->Reset();
                 YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
                 YieldWrtMass_Periph[p]->Add(YieldWrtMass_tampon);
@@ -2105,7 +2295,7 @@ void PlotFromTree(){
                           ProjCopyTkl->Reset();
                           ProjCopy2Tkl->Reset();
                           if(doMixedEvents){
-                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklME[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
+                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaled[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
                           }
                           SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
                           
@@ -2176,7 +2366,7 @@ void PlotFromTree(){
         YieldTkl_allC->Scale(1./RefTracklets);
         
         int RefTklCnt=0;
-        for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
             YieldTkl_tampon->Reset();
             YieldTkl_tampon->Add(YieldsTkl[i]);
             YieldTkl_tampon->Scale(RefTklCounterZint[i]);
@@ -2185,7 +2375,7 @@ void PlotFromTree(){
         }
          YieldTkl_Central->Scale(1./RefTklCnt);
         RefTklCnt=0;
-        for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+        for(int i=PeripheralLowBound; i<PeripheralHighBound; i++){
             YieldTkl_tampon->Reset();
             YieldTkl_tampon->Add(YieldsTkl[i]);
             YieldTkl_tampon->Scale(RefTklCounterZint[i]);
@@ -2234,6 +2424,9 @@ void PlotFromTree(){
     hnseg7->Draw();
     c1->cd(8);
     hnseg8->Draw("colz");
+    
+    TCanvas*cJav=new TCanvas();
+    hsingletrac->Draw("colz");
     
     TCanvas*cDPhi=new TCanvas();
     cDPhi->SetTitle("DPhi distribution");
@@ -3675,10 +3868,10 @@ int GetCent(double cent){
 int GetCentPM(int Ntkl, int zvtx_idx, int groupnumber){
 
     if(Ntkl==0){
-        return 4;
+        return 12;
     }
 
-    for(int cent_index=0;cent_index<5;cent_index++){
+    for(int cent_index=0;cent_index<13;cent_index++){
         if(LimitsPM[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
             return cent_index;
         }
