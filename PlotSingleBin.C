@@ -52,248 +52,287 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i
 void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *p, Int_t /*iflag */  );
 int GetCent(double cent);
 int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
+bool isCentral(int centint);
+bool isPeripheral(int centint);
 
-int LimitsPM[12][20][5] =
-{       {   {31, 17, 13, 7, 0}, //Group 1
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 22, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {40, 23, 16, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 24, 17, 10, 0},
-            {42, 24, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {39, 22, 16, 10, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 8, 0}   },
-        {   {31, 17, 13, 7, 0}, //Group 2
-            {33, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {39, 22, 16, 10, 0},
-            {39, 22, 16, 10, 0},
-            {40, 23, 16, 10, 0},
-            {39, 22, 16, 10, 0},
-            {38, 21, 15, 9, 0},
-            {35, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0}   },
-        {   {31, 17, 12, 7, 0}, //Group 3
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {40, 22, 16, 10, 0},
-            {40, 23, 16, 10, 0},
-            {40, 23, 17, 10, 0},
-            {39, 22, 16, 10, 0},
-            {38, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0}   },
-        {   {29, 16, 12, 7, 0}, //Group 4
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {36, 21, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0}   },
-        {   {29, 16, 12, 7, 0}, //Group 5
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {40, 23, 16, 10, 0},
-            {41, 23, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {42, 24, 17, 10, 0},
-            {41, 23, 17, 10, 0},
-            {39, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 8, 0}   },
-        {   {27, 15, 11, 7, 0}, //Group 6
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {39, 22, 16, 9, 0},
-            {39, 22, 16, 10, 0},
-            {38, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0}   },
-        {   {27, 15, 11, 7, 0}, //Group 7
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {35, 20, 14, 9, 0},
-            {33, 19, 14, 8, 0},
-            {31, 18, 13, 8, 0}   },
-        {   {28, 15, 11, 7, 0}, //Group 8
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0},
-            {31, 17, 13, 7, 0}   },
-        {   {27, 15, 11, 7, 0}, //Group 9
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {31, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {32, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 20, 14, 8, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {38, 21, 16, 9, 0},
-            {38, 22, 16, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0}   },
-        {   {28, 15, 11, 7, 0}, //Group 10
-            {29, 16, 12, 7, 0},
-            {30, 17, 12, 7, 0},
-            {32, 18, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 13, 8, 0},
-            {33, 18, 13, 8, 0},
-            {33, 19, 14, 8, 0},
-            {33, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0},
-            {30, 17, 12, 7, 0}   },
-        {   {30, 16, 12, 7, 0}, //Group 11
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {35, 20, 14, 8, 0},
-            {34, 19, 14, 8, 0},
-            {32, 18, 13, 8, 0},
-            {30, 17, 12, 7, 0}   },
-        {   {29, 17, 12, 7, 0}, //Group 12
-            {31, 17, 13, 7, 0},
-            {32, 18, 13, 8, 0},
-            {34, 19, 14, 8, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 14, 9, 0},
-            {35, 20, 15, 9, 0},
-            {35, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {36, 21, 15, 9, 0},
-            {37, 21, 15, 9, 0},
-            {36, 20, 15, 9, 0},
-            {34, 19, 14, 8, 0},
-            {33, 18, 13, 8, 0},
-            {31, 17, 12, 7, 0}   }
+// Centrality bins:
+//0: 0-1%
+//1: 1-5%
+//2: 5-10%
+//3: 10-15%
+//4: 15-20%
+//5: 20-30%
+//6: 30-40%
+//7: 40-50%
+//8: 50-60%
+//9: 60-70%
+//10: 70-80%
+//11: 80-90%
+//12: 90-100&
+
+int CentralLowBound = 0;
+int CentralHighBound = 1;
+int PeripheralLowBound = 7;
+int PeripheralHighBound = 11;
+
+bool isCentral(int centint){
+    if((centint>=CentralLowBound)&&(centint<=CentralHighBound))
+        return kTRUE;
+    else{
+        return kFALSE;
+    }
+}
+
+bool isPeripheral(int centint){
+    if((centint>=PeripheralLowBound)&&(centint<=PeripheralHighBound))
+        return kTRUE;
+    else{
+        return kFALSE;
+    }
+}
+
+
+int LimitsPM[12][20][13] =
+{       {   {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}, //Group1
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 22, 17, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {31, 22, 17, 15, 13, 10, 7, 6, 5, 3, 3, 2, 0},
+            {32, 22, 18, 15, 13, 10, 8, 6, 5, 3, 3, 2, 0},
+            {32, 22, 18, 15, 13, 10, 8, 6, 5, 3, 3, 2, 0},
+            {31, 22, 17, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}, //Group2
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {24, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}, //Group3
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {31, 22, 17, 14, 12, 9, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {23, 16, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0}, //Group4
+            {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {25, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}, //Group5
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {31, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {32, 22, 17, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {32, 22, 18, 15, 13, 10, 8, 6, 5, 3, 2, 2, 0},
+            {33, 23, 18, 15, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 23, 18, 15, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 24, 19, 16, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 24, 19, 16, 14, 10, 8, 6, 5, 4, 3, 2, 0},
+            {34, 23, 18, 15, 13, 10, 8, 6, 5, 4, 3, 2, 0},
+            {32, 22, 18, 15, 13, 10, 7, 6, 4, 3, 2, 2, 0},
+            {30, 21, 17, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group6
+            {22, 15, 12, 10, 9, 7, 5, 4, 3, 2, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {30, 21, 17, 14, 12, 9, 7, 6, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group7
+            {22, 16, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group8
+            {22, 15, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {21, 15, 12, 10, 8, 6, 5, 4, 3, 2, 2, 1, 0}, //Group9
+            {22, 15, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
+            {29, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0}   },
+        {   {22, 15, 12, 10, 8, 7, 5, 4, 3, 2, 2, 1, 0}, //Group10
+            {22, 16, 12, 10, 9, 7, 5, 4, 3, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {23, 16, 13, 11, 9, 7, 5, 4, 3, 3, 2, 1, 0}, //Group11
+            {24, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 17, 13, 11, 10, 7, 6, 5, 4, 3, 2, 1, 0},
+            {23, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   },
+        {   {23, 16, 13, 11, 9, 7, 5, 4, 3, 3, 2, 1, 0}, //Group12
+            {24, 17, 13, 11, 10, 7, 6, 4, 3, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {26, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {27, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 20, 16, 13, 11, 9, 7, 5, 4, 3, 2, 1, 0},
+            {28, 19, 15, 13, 11, 8, 7, 5, 4, 3, 2, 1, 0},
+            {27, 18, 15, 12, 11, 8, 6, 5, 4, 3, 2, 1, 0},
+            {25, 17, 14, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0},
+            {24, 16, 13, 11, 9, 7, 6, 4, 3, 3, 2, 1, 0}   }
 
 };
 
@@ -314,7 +353,7 @@ void PlotSingleBin(){
     bool CombineFits = kFALSE;
     bool KeepOnlyOne = kFALSE;
     int valueOnlyOne = 3;
-    bool AdditionalCutNtkl = kTRUE;
+    bool AdditionalCutNtkl = kFALSE;
     int valueAdditionalCutNtkl = 3; //<=
     int preciseCentFocus = 0;
     
@@ -355,25 +394,26 @@ void PlotSingleBin(){
     const int NbinsDeltaEta = 20;
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     
-    double MinDeltaEtaTKL = 1.2;
+    double MinDeltaEtaTKL = -2.4; //1.2
     double MaxDeltaEtaTKL = 2.4;
-    const int NbinsDeltaEtaTKL = 24;
+    const int NbinsDeltaEtaTKL = 48; //24
+    double DeltaEtaTKLCut = 1.2; //1.2
     double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
     
-    const int NbinsDeltaPhiTKL = 72;
+    const int NbinsDeltaPhiTKL = 48;
     double SizeBinDeltaPhiTKL = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhiTKL;
     
-    const int NbBinsCent = 5;
+    const int NbBinsCent = 13;
     const int NbBinsZvtx = 20;
     
     
   //  Char_t Group_Period[50] = "Group1";
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
-  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+ //   Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
-    const double binsCent[6] = {0,1,10,20,40,100};
+  //  const double binsCent[6] = {0,1,10,20,40,100};
     Char_t fileInLoc[200];
     Char_t FitFileName[200];
     
@@ -383,6 +423,7 @@ void PlotSingleBin(){
 // Initialiser les graphes *
 // *************************
     
+    TH2F* hsingletrac(NULL);
     TH1F* hnseg(NULL);
     TH1F* hnseg2(NULL);
     TH1F* hnseg3(NULL);
@@ -426,9 +467,12 @@ void PlotSingleBin(){
     TH1F* YieldsTkl[NbBinsCent]{ NULL };
     TH2F* Correlations[NbBinsCent][NbinsInvMass]{ NULL };
     TH2F* CorrelationsTkl[NbBinsCent]{ NULL };
-    TH2F* CorrelationsME[NbBinsCent][NbinsInvMass]{ NULL };
-    TH2F* CorrelationsMEMassSummed[NbBinsCent]{ NULL };
-    TH2F* CorrelationsTklME[NbBinsCent]{ NULL };
+    TH2I* CorrelationsME[NbBinsCent][NbinsInvMass]{ NULL };
+    TH2I* CorrelationsMEMassSummed[NbBinsCent]{ NULL };
+    TH2I* CorrelationsTklME[NbBinsCent]{ NULL };
+    TH2F* CorrelationsMEScaled[NbBinsCent][NbinsInvMass]{ NULL };
+    TH2F* CorrelationsMEMassSummedScaled[NbBinsCent]{ NULL };
+    TH2F* CorrelationsTklMEScaled[NbBinsCent]{ NULL };
     TH1F* Yield_tampon(NULL);
     TH1F* YieldTkl_tampon(NULL);
     TH1F* YieldWrtMass_tampon(NULL);
@@ -464,6 +508,13 @@ void PlotSingleBin(){
     TH1D* YTklDifference_proj_tampon(NULL);
     TH1D* YTklCentralME_proj_tampon(NULL);
     TH1D* YTklPeriphME_proj_tampon(NULL);
+    
+    
+    hsingletrac = new TH2F("hsingletrac",
+                      "Single tracklet EtaPhi distribution",
+                           NbinsDeltaPhi,0,MaxDeltaPhi-MinDeltaPhi,40,-2,2);
+    hsingletrac->SetXTitle("Tkl Phi (rad)");
+    hsingletrac->SetYTitle("Tkl Eta");
     
     YCentral = new TH2F("YCentral",
                       "Yield delta eta wrt delta phi - Central",
@@ -661,19 +712,26 @@ void PlotSingleBin(){
                 Correlations[i][k]->SetXTitle("Correlation DeltaPhi (rad)");
                 Correlations[i][k]->SetYTitle("Correlation DeltaEta");
                 sprintf(hname,"CorrelationsME %d %d ",i,k);
-                CorrelationsME[i][k] = new TH2F(hname,
+                CorrelationsME[i][k] = new TH2I(hname,
                                   "MixedEvent Correlation delta eta wrt delta phi",
                                   NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
                 CorrelationsME[i][k]->SetXTitle("Correlation DeltaPhi (rad)");
                 CorrelationsME[i][k]->SetYTitle("Correlation DeltaEta");
+                sprintf(hname,"CorrelationsME Scaled %d %d ",i,k);
+                CorrelationsMEScaled[i][k] = new TH2F(hname,
+                                  "MixedEvent Correlation delta eta wrt delta phi - Scaled",
+                                  NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+                CorrelationsMEScaled[i][k]->SetXTitle("Correlation DeltaPhi (rad)");
+                CorrelationsMEScaled[i][k]->SetYTitle("Correlation DeltaEta");
             
         }
-        CorrelationsMEMassSummed[i] = new TH2F(hname,
+        char hname2[100];
+        sprintf(hname2,"CorrelationsMEMassSummed %d ",i);
+        CorrelationsMEMassSummed[i] = new TH2I(hname2,
                           "MixedEvent Correlation delta eta wrt delta phi - All Masses",
                           NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
         CorrelationsMEMassSummed[i]->SetXTitle("Correlation DeltaPhi (rad)");
         CorrelationsMEMassSummed[i]->SetYTitle("Correlation DeltaEta");
-        
     }
     
     for(int i=0; i<NbBinsCent; i++){
@@ -690,11 +748,17 @@ void PlotSingleBin(){
             CorrelationsTkl[i]->SetXTitle("Correlation DeltaPhi (rad)");
             CorrelationsTkl[i]->SetYTitle("Correlation DeltaEta");
             sprintf(hname,"CorrelationsME Tkl %d ",i);
-            CorrelationsTklME[i] = new TH2F(hname,
+            CorrelationsTklME[i] = new TH2I(hname,
                               "MixedEvent Correlation Tkl delta eta wrt delta phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
             CorrelationsTklME[i]->SetXTitle("Correlation DeltaPhi (rad)");
             CorrelationsTklME[i]->SetYTitle("Correlation DeltaEta");
+        sprintf(hname,"CorrelationsME Tkl Scaled %d ",i);
+        CorrelationsTklMEScaled[i] = new TH2F(hname,
+                          "MixedEvent Correlation Tkl delta eta wrt delta phi",
+                          NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+        CorrelationsTklMEScaled[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        CorrelationsTklMEScaled[i]->SetYTitle("Correlation DeltaEta");
     
     }
     
@@ -1293,6 +1357,7 @@ void PlotSingleBin(){
             int NumberOfTrackletsPassingEtaCut = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
+                hsingletrac->Fill(trac->fPhi, trac->fEta);
                 if((TMath::Abs(trac->fEta) < TklEtaCut && (TMath::Abs(trac->fDPhi) < DPhiCut))){
                     NumberOfTrackletsPassingEtaCut++;
                     hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
@@ -1360,11 +1425,11 @@ void PlotSingleBin(){
                         centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                         DimuonCounter[centint][massint]++;
                      //   if(cent <= CentSPDTrackletsCentral){
-                        if(centint==0){
+                        if(isCentral(centint)){
                             DimuC++;
                         }
                       //  else if(cent > CentSPDTrackletsPeriph){
-                        else if(centint == 4){
+                        else if(isPeripheral(centint)){ //CentPeriph
                            DimuP++;
                         }
                     }
@@ -1372,12 +1437,12 @@ void PlotSingleBin(){
                     hnseg->Fill(dimu->fInvMass);
                     hPtWrtMassInv[0]->Fill(dimu->fInvMass, dimu->fPt);
                   //  if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
-                    if(centint==0){
+                    if(isCentral(centint)){
                         InvMass_Central->Fill(dimu->fInvMass);
                         hPtWrtMassInv[1]->Fill(dimu->fInvMass, dimu->fPt);
                     }
                   //  if(fEvent->fCentralitySPDTracklets>=CentSPDTrackletsPeriph){
-                    if(centint==4){
+                    if(isPeripheral(centint)){ //CentPeriph
                         InvMass_Periph->Fill(dimu->fInvMass);
                         hPtWrtMassInv[2]->Fill(dimu->fInvMass, dimu->fPt);
                     }
@@ -1498,11 +1563,11 @@ void PlotSingleBin(){
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
                       //  if(cent <= CentSPDTrackletsCentral){
-                        if(centint == 0){
+                        if(isCentral(centint)){
                             YCentral->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                       //  else if(cent > CentSPDTrackletsPeriph){
-                        else if(centint ==4){
+                        else if(isPeripheral(centint)){ //CentPeriph
                             YPeriph->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                     }
@@ -1529,15 +1594,16 @@ void PlotSingleBin(){
                   int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                    RefTklCounter[centint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
               //  if(cent <= CentSPDTrackletsCentral){
-                if(centint==0){
+                if(isCentral(centint)){
                     TklC++;
                 }
                // else if(cent > CentSPDTrackletsPeriph){
-                else if(centint==4){
+                else if(isPeripheral(centint)){ //CentPeriph
                     TklP++;
                 }
                 }
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                fTracklets->Randomize();
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
@@ -1549,8 +1615,10 @@ void PlotSingleBin(){
                             if(DeltaPhi > 1.5*TMath::Pi()){
                                 DeltaPhi -= 2* TMath::Pi();
                             }
-                            Float_t DeltaEta = TMath::Abs(tracklet1->fEta - tracklet2->fEta);
-
+                            Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
+                        if(TMath::Abs(DeltaEta)<DeltaEtaTKLCut){
+                            continue;
+                        }
                             //   double cent = fEvent->fCentralitySPDTracklets;
                           //     int centint = GetCent(cent);
                                double zv = fEvent->fVertexZ;
@@ -1558,11 +1626,11 @@ void PlotSingleBin(){
                                 int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                                CorrelationsTkl[centint]->Fill(DeltaPhi,DeltaEta);
                               //  if(cent <= CentSPDTrackletsCentral){
-                                if(centint==0){
+                                if(isCentral(centint)){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
                                 }
                               //  else if(cent > CentSPDTrackletsPeriph){
-                                else if(centint==4){
+                                else if(isPeripheral(centint)){ //CentPeriph
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
                                 }
                    }
@@ -1589,7 +1657,7 @@ void PlotSingleBin(){
                                 if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){
                                 
                                   for(int k=0; k< PoolsTkl[centintME].size(); k+=2){
-                                              double correlTklMEPhi = PoolsTkl[centintME].at(k) - tracklet1->fPhi;
+                                              double correlTklMEPhi = tracklet1->fPhi - PoolsTkl[centintME].at(k);
                                   //    cout << " PoolsTkl[centintME].at(k) " << PoolsTkl[centintME].at(k)<<endl;
                                               if(correlTklMEPhi < -TMath::Pi()/2){
                                                   correlTklMEPhi += 2* TMath::Pi();
@@ -1597,24 +1665,30 @@ void PlotSingleBin(){
                                               if(correlTklMEPhi > 1.5*TMath::Pi()){
                                                   correlTklMEPhi -= 2* TMath::Pi();
                                               }
-                                      double correlTklMEEta = TMath::Abs(tracklet1->fEta - PoolsTkl[centintME].at(k+1));
-                                           CorrelationsTklME[centintME]->Fill(correlTklMEPhi,correlTklMEEta);
-                                            if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
+                                      double correlTklMEEta = tracklet1->fEta - PoolsTkl[centintME].at(k+1); //DeltaEtaAbs
+                                      if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                            CorrelationsTklME[centintME]->Fill(correlTklMEPhi,correlTklMEEta);
+                                        }
+                                      if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
                                                 NormMETkl[centintME] += 1.;
                                             }
                                       
                                       
                                   //        if(cent <= CentSPDTrackletsCentral){
-                                      if(centintME ==0){
-                                              YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
-                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
+                                      if(isCentral(centintME)){
+                                              if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                                  YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
+                                              }
+                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
                                                   NormTklCentral += 1;
                                               }
                                           }
                                  //         else if(cent > CentSPDTrackletsPeriph){
-                                      else if(centintME==4){
-                                              YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
-                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && correlTklMEEta < SizeBinDeltaEtaTKL){
+                                      else if(isPeripheral(centintME)){ //CentPeriph
+                                            if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                                YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
+                                            }
+                                              if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
                                                   NormTklPeriph += 1;
                                               }
                                           }
@@ -1825,6 +1899,14 @@ void PlotSingleBin(){
             ctestemichTklMEProj->cd(2);
             YTklPeriphME_proj_tampon->DrawCopy("e");
             
+            TCanvas*ctestemichTklSEMEDiv = new TCanvas();
+            ctestemichTklSEMEDiv->SetTitle("Naïve Tkl-Tkl SE/ME Yield definition TH2");
+            ctestemichTklSEMEDiv->Divide(1,3);
+            ctestemichTklSEMEDiv->cd(1);
+            YTklCentral->DrawCopy("colz");
+            ctestemichTklSEMEDiv->cd(2);
+            YTklPeriph->DrawCopy("colz");
+            
         }
         
         YTklCentral_proj_tampon = (TH1D*)(YTklCentral->ProjectionX("_px",1,-1,"e"));
@@ -1896,13 +1978,26 @@ void PlotSingleBin(){
         
             //Scaling all CorrelationsME
             
+        cout << "CorrelationsME[0][3] bin 6,10 : " << CorrelationsME[0][3]->GetBinContent(6,10) << endl;
+        cout << "CorrelationsME[0][3] bin error 6,10 : " << CorrelationsME[0][3]->GetBinError(6,10) << endl;
+        cout << "NormME[0][3] : " << NormME[0][3] << endl;
+        
             for(int i=0; i<NbBinsCent; i++){
                 
                        for(int k=0; k<10; k++){
-                           CorrelationsME[i][k]->Scale(NormME[i][k]);
+                       //    CorrelationsME[i][k]->Scale(NormME[i][k]);
+                           for(int binx=1; binx<(1+CorrelationsME[i][k]->GetNbinsX()); binx++){
+                               for(int biny=1; biny<(1+CorrelationsME[i][k]->GetNbinsY()); biny++){
+                                   CorrelationsMEScaled[i][k]->SetBinContent(binx,biny, (CorrelationsME[i][k]->GetBinContent(binx,biny))*NormME[i][k]);
+                                    CorrelationsMEScaled[i][k]->SetBinError(binx,biny, (CorrelationsME[i][k]->GetBinError(binx,biny))*NormME[i][k]);
+                               }
+                           }
                        }
                    
             }
+        cout << "Scaling done" <<endl;
+        cout << "CorrelationsMEScaled[0][3] bin 6,10 : " << CorrelationsMEScaled[0][3]->GetBinContent(6,10) << endl;
+        cout << "CorrelationsMEScaled[0][3] bin error 6,10 : " << CorrelationsMEScaled[0][3]->GetBinError(6,10) << endl;
         
         
     
@@ -1953,7 +2048,13 @@ void PlotSingleBin(){
         
         for(int i=0; i<NbBinsCent; i++){
                
-                       CorrelationsTklME[i]->Scale(1./NormMETkl[i]);
+                     //  CorrelationsTklME[i]->Scale(1./NormMETkl[i]);
+            for(int binx=1; binx<(1+CorrelationsTklME[i]->GetNbinsX()); binx++){
+                for(int biny=1; biny<(1+CorrelationsTklME[i]->GetNbinsY()); biny++){
+                    CorrelationsTklMEScaled[i]->SetBinContent(binx,biny, (CorrelationsTklME[i]->GetBinContent(binx,biny))/NormMETkl[i]);
+                     CorrelationsTklMEScaled[i]->SetBinError(binx,biny, (CorrelationsTklME[i]->GetBinError(binx,biny))/NormMETkl[i]);
+                }
+            }
                
         }
 }
@@ -2000,14 +2101,14 @@ void PlotSingleBin(){
                    ProjCopy->Reset();
                    ProjCopy2->Reset();
                    if(doMixedEvents){
-                       ME_proj_tampon = (TH1F*)(CorrelationsME[i][k]->ProjectionX("ME_proj",1,-1,"e")); //Change underflow
+                       ME_proj_tampon = (TH1F*)(CorrelationsMEScaled[i][k]->ProjectionX("ME_proj",1,-1,"e")); //Change underflow
                    }
                    if(i ==preciseCentFocus && k==3){
                        ctesteproj->cd(1);
                        Correlations[i][k]->DrawCopy("colz");
                        ctesteproj->cd(2);
                        if(doMixedEvents){
-                           CorrelationsME[i][k]->DrawCopy("colz");
+                           CorrelationsMEScaled[i][k]->DrawCopy("colz");
                        }
                        
                    }
@@ -2097,7 +2198,7 @@ void PlotSingleBin(){
     Yield_allC->Scale(1./DimuSeenMassCut);
     
     int DimuCnt=0;
-    for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+    for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
         Yield_tampon->Reset();
         Yield_tampon->Add(Yields[i][3]);
         Yield_tampon->Scale(DimuonCounterZint[i][3]);
@@ -2106,7 +2207,7 @@ void PlotSingleBin(){
     }
      Yield_Central->Scale(1./DimuCnt);
     DimuCnt=0;
-    for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+    for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
         Yield_tampon->Reset();
         Yield_tampon->Add(Yields[i][3]);
         Yield_tampon->Scale(DimuonCounterZint[i][3]);
@@ -2132,7 +2233,7 @@ void PlotSingleBin(){
     cout << "Calculation of Yields_MassBin[mass]" <<endl;
     for(int k=0; k<NbinsInvMass; k++){
         DimuCnt=0;
-        for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
             Yield_tampon->Reset();
             Yield_tampon->Add(Yields[i][k]);
             Yield_tampon->Scale(DimuonCounterZint[i][k]);
@@ -2141,7 +2242,7 @@ void PlotSingleBin(){
         }
          Yield_Central_MassBin[k]->Scale(1./DimuCnt);
         DimuCnt=0;
-        for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
             Yield_tampon->Reset();
             Yield_tampon->Add(Yields[i][k]);
             Yield_tampon->Scale(DimuonCounterZint[i][k]);
@@ -2183,7 +2284,7 @@ void PlotSingleBin(){
         }
         
          for(int p=0; p<NbinsDeltaPhi; p++){
-            for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+            for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
                 YieldWrtMass_tampon->Reset();
                 YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
                 YieldWrtMass_Central[p]->Add(YieldWrtMass_tampon);
@@ -2192,7 +2293,7 @@ void PlotSingleBin(){
         }
         
         for(int p=0; p<NbinsDeltaPhi; p++){
-            for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+            for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
                 YieldWrtMass_tampon->Reset();
                 YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
                 YieldWrtMass_Periph[p]->Add(YieldWrtMass_tampon);
@@ -2231,7 +2332,7 @@ void PlotSingleBin(){
         ctesteprojTkl->cd(1);
         CorrelationsTkl[preciseCentFocus]->DrawCopy("colz");
         ctesteprojTkl->cd(2);
-        CorrelationsTklME[preciseCentFocus]->DrawCopy("colz");
+        CorrelationsTklMEScaled[preciseCentFocus]->DrawCopy("colz");
         
         cout << "Calculation of YieldsTkl[Cent]" <<endl;
         for(int i=0; i<NbBinsCent; i++){
@@ -2242,7 +2343,7 @@ void PlotSingleBin(){
                           ProjCopyTkl->Reset();
                           ProjCopy2Tkl->Reset();
                           if(doMixedEvents){
-                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklME[i]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
+                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaled[i]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
                           }
                           SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTkl[i]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
                           
@@ -2314,7 +2415,7 @@ void PlotSingleBin(){
         YieldTkl_allC->Scale(1./RefTracklets);
         
         int RefTklCnt=0;
-        for(int i=0; i<GetCent(CentSPDTrackletsCentral)+1; i++){
+        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
             YieldTkl_tampon->Reset();
             YieldTkl_tampon->Add(YieldsTkl[i]);
             YieldTkl_tampon->Scale(RefTklCounterZint[i]);
@@ -2323,7 +2424,7 @@ void PlotSingleBin(){
         }
          YieldTkl_Central->Scale(1./RefTklCnt);
         RefTklCnt=0;
-        for(int i=GetCent(CentSPDTrackletsPeriph)+1; i<NbBinsCent; i++){
+        for(int i=PeripheralLowBound; i<PeripheralHighBound; i++){
             YieldTkl_tampon->Reset();
             YieldTkl_tampon->Add(YieldsTkl[i]);
             YieldTkl_tampon->Scale(RefTklCounterZint[i]);
@@ -2372,6 +2473,9 @@ void PlotSingleBin(){
     hnseg7->Draw();
     c1->cd(8);
     hnseg8->Draw("colz");
+    
+    TCanvas*cJav=new TCanvas();
+    hsingletrac->Draw("colz");
     
     TCanvas*cDPhi=new TCanvas();
     cDPhi->SetTitle("DPhi distribution");
@@ -3813,10 +3917,10 @@ int GetCent(double cent){
 int GetCentPM(int Ntkl, int zvtx_idx, int groupnumber){
 
     if(Ntkl==0){
-        return 4;
+        return 12;
     }
 
-    for(int cent_index=0;cent_index<5;cent_index++){
+    for(int cent_index=0;cent_index<13;cent_index++){
         if(LimitsPM[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
             return cent_index;
         }
