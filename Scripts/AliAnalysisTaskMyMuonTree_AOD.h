@@ -56,6 +56,9 @@ public:
   Float_t fVertexX; //! vertex X
   Float_t fVertexY; //! vertex Y
   Float_t fVertexZ; // vertex Z
+    Float_t fVertexXSPD; // vertex X
+    Float_t fVertexYSPD; // vertex Y
+    Float_t fVertexZSPD; // vertex Z
   Float_t fVertexSigmaZ; // vertex Z
     Float_t fSPDVertexSigmaZ;
   Int_t fVertexNC;
@@ -67,6 +70,7 @@ public:
   Int_t fTriggerCMSH7; //! trigger V0C and V0A
   Int_t fTriggerCMUL7; //! trigger diMuon Unlike sign Low Pt
   Int_t fTriggerCMLL7; //! trigger diMuon Like sign Low Pt
+  Int_t fTriggerCINT7CENT; //! CINT7CENT
 
   Int_t fClusterMUFAST;    //!
   Int_t fClusterCENT;      //!
@@ -87,6 +91,7 @@ public:
 //    Float_t fCentralityCL1;
     Float_t fCentralitySPDTracklets;
     Float_t fSPDTrackletsValue;
+    Float_t fSPDClustersValue;
 //    Float_t fCentralitySPDClusters;
 //  Float_t fCentralityTKLvsV0M;
 
