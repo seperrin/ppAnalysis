@@ -40,6 +40,7 @@
 void PlotSingleBin();
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par);
 Double_t BackFcnV2(Double_t *x,Double_t *par);
+Double_t BackFcnV2Poly(Double_t *x,Double_t *par);
 Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par);
 Double_t FourierV2(Double_t *x,Double_t *par);
 Double_t FourierV5(Double_t *x,Double_t *par);
@@ -71,9 +72,9 @@ bool isPeripheral(int centint);
 //12: 90-100&
 
 int CentralLowBound = 0;
-int CentralHighBound = 1;
-int PeripheralLowBound = 7;
-int PeripheralHighBound = 11;
+int CentralHighBound = 0;
+int PeripheralLowBound = 7; //7
+int PeripheralHighBound = 11; //11
 
 bool isCentral(int centint){
     if((centint>=CentralLowBound)&&(centint<=CentralHighBound))
@@ -408,9 +409,9 @@ void PlotSingleBin(){
     
     
   //  Char_t Group_Period[50] = "Group1";
-  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+//    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
     Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
- //   Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
   //  const double binsCent[6] = {0,1,10,20,40,100};
@@ -1669,7 +1670,7 @@ void PlotSingleBin(){
                                       if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
                                             CorrelationsTklME[centintME]->Fill(correlTklMEPhi,correlTklMEEta);
                                         }
-                                      if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
+                                      if(correlTklMEPhi > -SizeBinDeltaPhiTKL/2 && correlTklMEPhi < SizeBinDeltaPhiTKL/2 && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL/2){
                                                 NormMETkl[centintME] += 1.;
                                             }
                                       
@@ -1988,8 +1989,10 @@ void PlotSingleBin(){
                        //    CorrelationsME[i][k]->Scale(NormME[i][k]);
                            for(int binx=1; binx<(1+CorrelationsME[i][k]->GetNbinsX()); binx++){
                                for(int biny=1; biny<(1+CorrelationsME[i][k]->GetNbinsY()); biny++){
+                                   if(NormME[i][k]>0){
                                    CorrelationsMEScaled[i][k]->SetBinContent(binx,biny, (CorrelationsME[i][k]->GetBinContent(binx,biny))*NormME[i][k]);
                                     CorrelationsMEScaled[i][k]->SetBinError(binx,biny, (CorrelationsME[i][k]->GetBinError(binx,biny))*NormME[i][k]);
+                                   }
                                }
                            }
                        }
@@ -2051,8 +2054,10 @@ void PlotSingleBin(){
                      //  CorrelationsTklME[i]->Scale(1./NormMETkl[i]);
             for(int binx=1; binx<(1+CorrelationsTklME[i]->GetNbinsX()); binx++){
                 for(int biny=1; biny<(1+CorrelationsTklME[i]->GetNbinsY()); biny++){
+                    if(NormMETkl[i]>0){
                     CorrelationsTklMEScaled[i]->SetBinContent(binx,biny, (CorrelationsTklME[i]->GetBinContent(binx,biny))/NormMETkl[i]);
                      CorrelationsTklMEScaled[i]->SetBinError(binx,biny, (CorrelationsTklME[i]->GetBinError(binx,biny))/NormMETkl[i]);
+                    }
                 }
             }
                
@@ -2803,7 +2808,7 @@ void PlotSingleBin(){
     fitJustV2_2->SetNpx(500);
     fitJustV2_2->SetLineWidth(0);
     fitJustV2_2->SetLineColor(kWhite);
-    TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2,2.1,5.1,16);
+    TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
     backFcnV2_2->SetLineColor(kRed);
     TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
     signalFcnJPsiV2_2->SetLineColor(kBlue);
@@ -2915,7 +2920,7 @@ void PlotSingleBin(){
     if(CombineFits){
         V2JPsiTkl->GetListOfFunctions()->Add(fitJustV2_2);
     }
-    signalFcnJPsiV2_2->Draw("same");
+  //  signalFcnJPsiV2_2->Draw("same");
     backFcnV2_2->Draw("same");
       // draw the legend
       TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
@@ -2941,7 +2946,7 @@ void PlotSingleBin(){
         }
     }
            legend->AddEntry(fitV2_2,message);
-    legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+  //  legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
     legend->AddEntry(backFcnV2_2,"Background");
       legend->AddEntry(V2JPsiTkl,"Data","lpe");
       legend->Draw();
@@ -3132,7 +3137,7 @@ void PlotSingleBin(){
             std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
             std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
 
-        TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2,2.1,5.1,16);
+        TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,2.1,5.1,16);
         backFcnY_1Central->SetLineColor(kRed);
         TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
           // writes the fit results into the par array
@@ -3145,7 +3150,7 @@ void PlotSingleBin(){
         signalFcnJPsiY_1Central->SetNpx(500);
         backFcnY_1Central->SetParameters(param);
         signalFcnJPsiY_1Central->SetParameters(param);
-        signalFcnJPsiY_1Central->Draw("same");
+      //  signalFcnJPsiY_1Central->Draw("same");
         backFcnY_1Central->Draw("same");
             
             if(!CombineFits){
@@ -3169,7 +3174,7 @@ void PlotSingleBin(){
                    sprintf(message,"The fit is a failure");
                }
                legend->AddEntry(fitY_1Central,message);
-        legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
+      //  legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
         legend->AddEntry(backFcnY_1Central,"Background");
           legend->AddEntry(YieldWrtMass_Central[i],"Data","lpe");
           legend->Draw();
@@ -3285,7 +3290,7 @@ void PlotSingleBin(){
                std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
                 std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
 
-           TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2,2.1,5.1,16);
+           TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,2.1,5.1,16);
            backFcnY_1Periph->SetLineColor(kRed);
            TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
              // writes the fit results into the par array
@@ -3299,7 +3304,7 @@ void PlotSingleBin(){
            signalFcnJPsiY_1Periph->SetNpx(500);
            backFcnY_1Periph->SetParameters(param);
            signalFcnJPsiY_1Periph->SetParameters(param);
-           signalFcnJPsiY_1Periph->Draw("same");
+         //  signalFcnJPsiY_1Periph->Draw("same");
            backFcnY_1Periph->Draw("same");
                
                if(!CombineFits){
@@ -3332,7 +3337,7 @@ void PlotSingleBin(){
                       sprintf(message,"The fit is a failure");
                   }
                   legend->AddEntry(fitY_1Periph,message);
-           legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
+        //   legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
            legend->AddEntry(backFcnY_1Periph,"Background");
              legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
              legend->Draw();
@@ -3486,7 +3491,7 @@ void PlotSingleBin(){
            fitFcnV2TKL->SetParName(0,"a0");
            fitFcnV2TKL->SetParName(1,"a1");
            fitFcnV2TKL->SetParName(2,"a2");
-            fitFcnV2TKL->SetParName(3,"a3");
+          //  fitFcnV2TKL->SetParName(3,"a3");
 //            fitFcnV2TKL->SetParName(4,"a4");
 //        fitFcnV2TKL->SetParName(5,"a5");
 //        fitFcnV2TKL->SetParName(6,"a6");
@@ -3500,13 +3505,14 @@ void PlotSingleBin(){
           TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
           // improve the pictu
         //   std::cout << "integral error: " << integralerror << std::endl;
+        histo->SetStats(kFALSE);
             Double_t par[3];
             fitFcnV2TKL->GetParameters(par);
           fitFcnV2TKL->Draw("same");
           // draw the legend
           TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-          legend->SetTextFont(72);
-          legend->SetTextSize(0.04);
+          legend->SetTextFont(61);
+          legend->SetTextSize(0.02);
             Char_t message[80];
             sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
             legend->AddEntry(fitFcnV2TKL,message);
@@ -3578,6 +3584,9 @@ Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par)
 
 Double_t BackFcnV2(Double_t *x,Double_t *par)
 {return ((ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*x[0]*x[0] + par[14]*x[0] + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+
+Double_t BackFcnV2Poly(Double_t *x,Double_t *par)
+{return (par[13]*x[0]*x[0] + par[14]*x[0] + par[15]) ;}
 
 Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par)
 {return (JPsiCrystalBallExtended(x,par)*par[12])/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
@@ -3919,6 +3928,10 @@ int GetCentPM(int Ntkl, int zvtx_idx, int groupnumber){
     if(Ntkl==0){
         return 12;
     }
+    
+//    if(Ntkl>40){
+//        return 0;
+//    }
 
     for(int cent_index=0;cent_index<13;cent_index++){
         if(LimitsPM[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
