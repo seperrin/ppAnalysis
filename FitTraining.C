@@ -40,6 +40,8 @@
 
  void FitTraining();
  Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par);
+ Double_t CvetanF(Double_t *x,Double_t *par);
+Double_t ZYAM(Double_t *x,Double_t *par);
  Double_t BackFcnV2(Double_t *x,Double_t *par);
  Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par);
  Double_t FourierV2(Double_t *x,Double_t *par);
@@ -62,17 +64,29 @@ Int_t npfits;
 TH1F* hnseg(NULL);
 TH1F* V2JPsiTkl(NULL);
 
+TH1F* Yields_Central_1(NULL);
+TH1F* Yields_Periph_1(NULL);
+TH1F* Baseline_Central_1(NULL);
+TH1F* Baseline_Periph_1(NULL);
+TH1F* Yields_Periph_1_MinusBaseline(NULL);
+TH1F* Yields_Central_1_MinusBaseline(NULL);
+
+double baseline_periph = 1;
+double errbaseline_periph = 1;
+double baseline_central = 99999;
+double errbaseline_central = 99999;
+
 Char_t FitFileName[200];
 
 void FitTraining(){
     
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesRun2.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesRun2_MECorrect_InvMassFitRun2.root");
     
     TH1::SetDefaultSumw2();
         bool doTracklets = kFALSE;
         bool doMixedEvents = kFALSE;
     bool Extraction2Combined = kFALSE;
-        bool CombineFits = kTRUE;
+        bool CombineFits = kFALSE;
         
     // ************************************
     // Définitions de paramètres          *
@@ -273,8 +287,6 @@ void FitTraining(){
         TH2F* CentSPDTrackletswrttkl(NULL);
         TH2F* CentSPDClusterswrttkl(NULL);
         
-        TH1F* Yields_Central_1(NULL);
-        TH1F* Yields_Periph_1(NULL);
         TH1F* Yields_Difference_1(NULL);
         
         TH1F* coefficients0(NULL);
@@ -318,6 +330,30 @@ void FitTraining(){
                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         Yields_Periph_1->SetXTitle("Phi of the correlation (rad)");
         Yields_Periph_1->SetYTitle("Yield");
+    
+    Baseline_Central_1 = new TH1F("Baseline_Central_1",
+                     "Baseline of JPsi-tkl in Central collisions wrt Phi",
+                     NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    Baseline_Central_1->SetXTitle("Phi of the correlation (rad)");
+    Baseline_Central_1->SetYTitle("Baseline");
+    
+    Baseline_Periph_1 = new TH1F("Baseline_Periph_1",
+                     "Baseline of JPsi-tkl in Periph collisions wrt Phi",
+                     NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    Baseline_Periph_1->SetXTitle("Phi of the correlation (rad)");
+    Baseline_Periph_1->SetYTitle("Baseline");
+    
+    Yields_Central_1_MinusBaseline = new TH1F("Yields_Central_1_MinusBaseline",
+                     "Yield of JPsi-tkl in Central collisions wrt Phi _MinusBaseline",
+                     NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    Yields_Central_1_MinusBaseline->SetXTitle("Phi of the correlation (rad)");
+    Yields_Central_1_MinusBaseline->SetYTitle("Yield_MinusBaseline");
+    
+    Yields_Periph_1_MinusBaseline = new TH1F("Yields_Periph_1_MinusBaseline",
+                     "Yield of JPsi-tkl in Periph collisions wrt Phi _MinusBaseline",
+                     NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    Yields_Periph_1_MinusBaseline->SetXTitle("Phi of the correlation (rad)");
+    Yields_Periph_1_MinusBaseline->SetYTitle("Yield_MinusBaseline");
         
         Yields_Difference_1 = new TH1F("Yields_Difference_1",
                          "Yield of JPsi-tkl in (Central-Periph) collisions wrt Phi",
@@ -1134,6 +1170,11 @@ void FitTraining(){
                                             }
     
     
+    
+    
+    
+    
+    
     //Combining or not fit for Central-Periph method Ext1
     
     
@@ -1270,6 +1311,21 @@ void FitTraining(){
         backFcnY_1Central->Draw("same");
 
             if(!CombineFits){
+//                if(i==2){
+//                    baseline_central = param[12];
+//                    errbaseline_central = fitY_1Central->GetParError(12);
+//                }
+//                if(i==3){
+//                    baseline_central += param[12];
+//                    baseline_central /= 2;
+//                    errbaseline_central = sqrt(pow(errbaseline_central,2)+pow(fitY_1Central->GetParError(12),2));
+//                }
+                
+                if(param[12]<baseline_central){
+                    baseline_central = param[12];
+                    errbaseline_central = fitY_1Central->GetParError(12);
+                }
+                
                 Yields_Central_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]);
                 Yields_Central_1->SetBinError(i+1,fitY_1Central->GetParError(12));
             }
@@ -1378,6 +1434,16 @@ void FitTraining(){
         
     }
     
+    for(int phi_idx = 0; phi_idx<NbinsDeltaPhi; phi_idx++){
+        Baseline_Central_1->SetBinContent(phi_idx+1, baseline_central);
+        Baseline_Central_1->SetBinError(phi_idx+1, errbaseline_central);
+    }
+    
+    Yields_Central_1_MinusBaseline->Add(Yields_Central_1,Baseline_Central_1,1,-1);
+    
+    
+    //Fill Baseline Central and Y-B
+    
         TCanvas* cscatter = new TCanvas;
         
     
@@ -1409,8 +1475,8 @@ void FitTraining(){
            }
        }
 
-    double baseline = 1;
-    double errbaseline = 1;
+//    double baseline = 1;
+//    double errbaseline = 1;
 
        for(int i=0; i<NbinsDeltaPhi; i++){ //Change
            fileLog << "Bin " << i << " in DeltaPhi Periph" <<endl;
@@ -1505,13 +1571,13 @@ void FitTraining(){
 
                if(!CombineFits){
                    if(i==2){
-                       baseline = param[12];
-                       errbaseline = fitY_1Periph->GetParError(12);
+                       baseline_periph = param[12];
+                       errbaseline_periph = fitY_1Periph->GetParError(12);
                    }
                    if(i==3){
-                       baseline += param[12];
-                       baseline /= 2;
-                       errbaseline = sqrt(pow(errbaseline,2)+pow(fitY_1Periph->GetParError(12),2));
+                       baseline_periph += param[12];
+                       baseline_periph /= 2;
+                       errbaseline_periph = sqrt(pow(errbaseline_periph,2)+pow(fitY_1Periph->GetParError(12),2));
                    }
                  Yields_Periph_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]);
                  Yields_Periph_1->SetBinError(i+1,fitY_1Periph->GetParError(12));
@@ -1603,28 +1669,57 @@ void FitTraining(){
                   Yields_Periph_1->SetBinError(i+1,sqrt(pow(moyparerr12,2)+pow(typeApar12,2)));
 
                if(i==2){
-                   baseline = moypar12;
-                   errbaseline = sqrt(pow(moyparerr12,2)+pow(typeApar12,2));
+                   baseline_periph = moypar12;
+                   errbaseline_periph = sqrt(pow(moyparerr12,2)+pow(typeApar12,2));
                }
                if(i==3){
-                   baseline += moypar12;
-                   baseline /= 2;
-                   errbaseline = sqrt(pow(errbaseline,2)+pow(sqrt(pow(moyparerr12,2)+pow(typeApar12,2)),2));
+                   baseline_periph += moypar12;
+                   baseline_periph /= 2;
+                   errbaseline_periph = sqrt(pow(errbaseline_periph,2)+pow(sqrt(pow(moyparerr12,2)+pow(typeApar12,2)),2));
                }
            }
 
        }
+    
+    for(int phi_idx = 0; phi_idx<NbinsDeltaPhi; phi_idx++){
+        Baseline_Periph_1->SetBinContent(phi_idx+1, baseline_periph);
+        Baseline_Periph_1->SetBinError(phi_idx+1, errbaseline_periph);
+    }
+    
+    Yields_Periph_1_MinusBaseline->Add(Yields_Periph_1,Baseline_Periph_1,1,-1);
+    
+    //Fill Baseline Periph and Y-B
+    TCanvas* cYBcentral = new TCanvas;
+    cYBcentral->Divide(1,3);
+    cYBcentral->cd(1);
+    Yields_Central_1->Draw();
+    cYBcentral->cd(2);
+    Baseline_Central_1->Draw();
+    cYBcentral->cd(3);
+    Yields_Central_1_MinusBaseline->Draw();
+    
+    TCanvas* cYBperiph = new TCanvas;
+    cYBperiph->Divide(1,3);
+    cYBperiph->cd(1);
+    Yields_Periph_1->Draw();
+    cYBperiph->cd(2);
+    Baseline_Periph_1->Draw();
+    cYBperiph->cd(3);
+    Yields_Periph_1_MinusBaseline->Draw();
 
     {
         TCanvas* c17 = new TCanvas;
         c17->Divide(1,3);
         //Creer canvas pour imprimer les plots Periph yield et Central yield wrt phi et leur difference
         c17->cd(1);
-        Yields_Central_1->Draw();
+        Yields_Central_1->SetStats(kFALSE);
+        Yields_Central_1->DrawCopy();
         c17->cd(2);
+        Yields_Periph_1->SetStats(kFALSE);
         Yields_Periph_1->Draw();
         c17->cd(3);
         Yields_Difference_1->Add(Yields_Central_1,Yields_Periph_1,1,-1);
+        Yields_Difference_1->SetStats(kFALSE);
         Yields_Difference_1->Draw();
 
              TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
@@ -1660,7 +1755,7 @@ void FitTraining(){
                Char_t message[80];
                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
                legend->AddEntry(fitFcnV2_2,message);
-        sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
+        sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline_periph,par[2]/(par[0] + baseline_periph),(par[2]/(par[0] + baseline_periph)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline_periph/baseline_periph,2))));
         legend->AddEntry(fitFcnV2_2,message);
         if(res->CovMatrixStatus() == 3){
                    sprintf(message,"The fit is a success");
@@ -1673,6 +1768,133 @@ void FitTraining(){
              legend->Draw();
 
     }
+    
+    
+    
+    // Fit Cvetan
+    
+    
+    {
+        cYBcentral->cd(1);
+             TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanF,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+             fitFcnV2_Cvetan->SetNpx(500);
+             fitFcnV2_Cvetan->SetLineWidth(4);
+             fitFcnV2_Cvetan->SetLineColor(kMagenta);
+             // first try without starting values for the parameters
+             // This defaults to 1 for each param.
+             // this results in an ok fit for the polynomial function
+             // however the non-linear part (lorenzian) does not
+             // respond well.
+              Double_t params[4] = {1,0,0.01,1};
+             fitFcnV2_Cvetan->SetParameters(params);
+              TVirtualFitter::Fitter(Yields_Central_1)->SetMaxIterations(10000);
+              TVirtualFitter::Fitter(Yields_Central_1)->SetPrecision();
+           //  histo->Fit("fitFcn","0");
+             // second try: set start values for some parameters
+
+              fitFcnV2_Cvetan->SetParName(0,"V0");
+                fitFcnV2_Cvetan->SetParName(1,"V1");
+                fitFcnV2_Cvetan->SetParName(2,"V2");
+              fitFcnV2_Cvetan->SetParName(3,"F");
+        
+        fitFcnV2_Cvetan->SetParLimits(3,0.1,50);
+        
+        fitFcnV2_Cvetan->FixParameter(0,1);
+      //  fitFcnV2_Cvetan->FixParameter(1,0);
+        fitFcnV2_Cvetan->FixParameter(3,1);
+              
+
+             TFitResultPtr res = Yields_Central_1->Fit("fitFcnV2_Cvetan","SBMERI+","ep");
+            Double_t par[4];
+            fitFcnV2_Cvetan->GetParameters(par);
+             // improve the pictu
+           //   std::cout << "integral error: " << integralerror << std::endl;
+             fitFcnV2_Cvetan->Draw("same");
+             // draw the legend
+             TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+             legend->SetTextFont(72);
+             legend->SetTextSize(0.04);
+               Char_t message[80];
+               sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_Cvetan->GetChisquare(),fitFcnV2_Cvetan->GetNDF());
+               legend->AddEntry(fitFcnV2_Cvetan,message);
+        if(res->CovMatrixStatus() == 3){
+                   sprintf(message,"The fit is a success");
+               }
+               else{
+                   sprintf(message,"The fit is a failure");
+               }
+               legend->AddEntry(fitFcnV2_Cvetan,message);
+             legend->AddEntry(Yields_Central_1,"Data","lpe");
+             legend->Draw();
+
+    }
+    
+    
+    TCanvas* cZYAM = new TCanvas;
+    cZYAM->SetTitle("ZYAM fit");
+    cZYAM->Divide(1,3);
+    cZYAM->cd(1);
+    Yields_Central_1->DrawCopy();
+    cZYAM->cd(2);
+    Baseline_Central_1->DrawCopy();
+    cZYAM->cd(3);
+    Yields_Central_1_MinusBaseline->DrawCopy();
+    
+    
+    // Fit ZYAM Yc = Bc + (Yp-Bp) + a0  + 2a1cos + 2a2cos
+    
+    
+    {
+        cZYAM->cd(1);
+             TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAM,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+             fitFcnV2_ZYAM->SetNpx(500);
+             fitFcnV2_ZYAM->SetLineWidth(4);
+             fitFcnV2_ZYAM->SetLineColor(kMagenta);
+             // first try without starting values for the parameters
+             // This defaults to 1 for each param.
+             // this results in an ok fit for the polynomial function
+             // however the non-linear part (lorenzian) does not
+             // respond well.
+              Double_t params[3] = {1,1,1};
+             fitFcnV2_ZYAM->SetParameters(params);
+              TVirtualFitter::Fitter(Yields_Central_1)->SetMaxIterations(10000);
+              TVirtualFitter::Fitter(Yields_Central_1)->SetPrecision();
+            gStyle->SetOptFit(1011);
+            //  histo->Fit("fitFcn","0");
+             // second try: set start values for some parameters
+
+              fitFcnV2_ZYAM->SetParName(0,"a0");
+                fitFcnV2_ZYAM->SetParName(1,"a1");
+                fitFcnV2_ZYAM->SetParName(2,"a2");
+            
+              
+
+             TFitResultPtr res = Yields_Central_1->Fit("fitFcnV2_ZYAM","SBMERI+","ep");
+            Double_t par[3];
+            fitFcnV2_ZYAM->GetParameters(par);
+             // improve the pictu
+           //   std::cout << "integral error: " << integralerror << std::endl;
+             fitFcnV2_ZYAM->Draw("same");
+             // draw the legend
+             TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+             legend->SetTextFont(72);
+             legend->SetTextSize(0.04);
+               Char_t message[80];
+               sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_ZYAM->GetChisquare(),fitFcnV2_ZYAM->GetNDF());
+               legend->AddEntry(fitFcnV2_ZYAM,message);
+        if(res->CovMatrixStatus() == 3){
+                   sprintf(message,"The fit is a success");
+               }
+               else{
+                   sprintf(message,"The fit is a failure");
+               }
+               legend->AddEntry(fitFcnV2_ZYAM,message);
+             legend->AddEntry(Yields_Central_1,"Data","lpe");
+             legend->Draw();
+
+    }
+
+    
 
 
     double baselineTKL = 1;
@@ -1809,6 +2031,18 @@ void FitTraining(){
 
 
 // FITTING INVARIANT MASS METHODS
+
+Double_t CvetanF(Double_t *x,Double_t *par)
+
+{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
+    return baseline_central*(par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + par[3]*YMinusBp; }
+
+Double_t ZYAM(Double_t *x,Double_t *par)
+
+{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
+    return baseline_central + (par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + 1*YMinusBp; }
 
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par)
 // Par 0->7: signal, 8->11 Bkg, 12: v2 JPsi, 13->15: V2 bkg
@@ -1959,9 +2193,9 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->SetParLimits(5,1,5);
     fitFcn->SetParLimits(6,5,25);
     fitFcn->SetParLimits(7,0.001,1000000);
-    fitFcn->SetParLimits(8,0.1,1000000);
+    fitFcn->SetParLimits(8,0.1,10000000);
     fitFcn->SetParLimits(9,0.01,20);
-    fitFcn->SetParLimits(10,0.01,1000000);
+    fitFcn->SetParLimits(10,0.01,10000000);
     fitFcn->SetParLimits(11,0.01,50);
     
    fitFcn->FixParameter(1,3.096916); // Mean x core
@@ -1988,27 +2222,30 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->SetParName(9,"Exp_{TailLowM}");
     fitFcn->SetParName(10,"Norm_{TailHighM}");
     fitFcn->SetParName(11,"Exp_{TailHighM}");
+    Double_t par[12];
     
    TFitResultPtr res = histo->Fit("fitFcn","SBMER","ep");
-   res = histo->Fit("fitFcn","SBMERQ","ep");
+ //  res = histo->Fit("fitFcn","SBMERQ","ep");
       fitFcn->ReleaseParameter(1);
    res = histo->Fit("fitFcn","SBMERQ","ep");
     fitFcn->ReleaseParameter(2);
    res = histo->Fit("fitFcn","SBMERQ","ep");
     fitFcn->ReleaseParameter(7);
-   res = histo->Fit("fitFcn","SBMERQ","ep");
+//   res = histo->Fit("fitFcn","SBMERQ","ep");
    res = histo->Fit("fitFcn","SBMER","ep");
 //    fitFcn->ReleaseParameter(3);
-//    fitFcn->ReleaseParameter(4);
-//   res = histo->Fit("fitFcn","SBMER","ep");
-//   res = histo->Fit("fitFcn","SBMER","ep");
+//       res = histo->Fit("fitFcn","SBMER","ep");
 //    fitFcn->ReleaseParameter(5);
+//   res = histo->Fit("fitFcn","SBMER","ep");
+//   fitFcn->ReleaseParameter(4);
+//    res = histo->Fit("fitFcn","SBMER","ep");
 //    fitFcn->ReleaseParameter(6);
 //   res = histo->Fit("fitFcn","SBMER","ep");
 //    res = histo->Fit("fitFcn","SBMER","ep");
 
     
    // improve the picture:
+    histo->SetStats(kFALSE);
    TF1 *backFcn = new TF1("backFcn",ExpBkg,2.1,5.1,4);
    backFcn->SetLineColor(kRed);
    TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,2.1,5.1,8);
@@ -2018,9 +2255,10 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    signalFcnJPsi->SetNpx(500);
     signalFcnPsi2S->SetLineColor(kGreen);
     signalFcnPsi2S->SetNpx(500);
-   Double_t par[12];
+   //Double_t par[12];
    // writes the fit results into the par array
-    gStyle->SetOptFit(1011);
+   // gStyle->SetOptFit(1011);
+    gStyle->SetOptFit(0);
    fitFcn->GetParameters(par);
    signalFcnJPsi->SetParameters(par);
     signalFcnPsi2S->SetParameters(par);
@@ -2047,10 +2285,10 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    backFcn->Draw("same");
    // draw the legend
     char str[50];
-    sprintf(str, "N_{JPsi} %f +/- %f", integral, integralerror);
+    sprintf(str, "N_{JPsi} %i +/- %i", int(integral), int(integralerror));
    pave->AddText(str);
-    sprintf(str, "M_{Psi2S} = %f, Sig_{Psi2S} = %f", mPsip, ratSigma*par[2]);
-    pave->AddText(str);
+    sprintf(str, "M_{Psi2S} = %f, Sig_{Psi2S} = %f", int(mPsip*1000)/1000., int(ratSigma*par[2]*1000)/1000.);
+  //  pave->AddText(str);
    pave->Draw();
    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
    legend->SetTextFont(72);
