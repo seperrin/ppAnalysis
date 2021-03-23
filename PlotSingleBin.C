@@ -1340,13 +1340,13 @@ void PlotSingleBin(){
             if(fEvent->fIsPileupFromSPDMultBins){
                 EventPileUpMult++;
             }
-            if(fEvent->fNPileupVtx != 0){
-                EventPileUpVtx++;
-            }
+//            if(fEvent->fNPileupVtx != 0){
+//                EventPileUpVtx++;
+//            }
             if(fEvent->fVertexNC < 1){
                 EventNC++;
             }
-            if(fEvent->fIsPileupFromSPDMultBins || fEvent->fNPileupVtx != 0 || fEvent->fVertexNC < 1){
+            if(fEvent->fIsPileupFromSPDMultBins || fEvent->fVertexNC < 1){ //|| fEvent->fNPileupVtx != 0
                 EventRejected++;
                 continue;
             }
