@@ -74,12 +74,12 @@ int GetPtBin(double pt);
 //13: 90-100%
 
 int CentralLowBound = 0;
-int CentralHighBound = 2;
+int CentralHighBound = 0;
 int PeripheralLowBound = 8;
 int PeripheralHighBound = 12;
 
-double PtBins[] = {0,2,12};
-const int NbPtBins = 2;
+double PtBins[] = {0,12};
+const int NbPtBins = 1;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
 
@@ -361,7 +361,7 @@ double errV2_Ext2[NbPtBins] = {0};
 void PlotFromTreePtBinned(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kFALSE;
+    bool doTracklets = kTRUE;
     bool doMixedEvents = kTRUE;
     bool KeepOnlyOne = kFALSE;
     int valueOnlyOne = 3;
@@ -423,6 +423,7 @@ void PlotFromTreePtBinned(){
   //  Char_t Group_Period[50] = "Group1";
  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j"};
    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
@@ -432,8 +433,8 @@ void PlotFromTreePtBinned(){
     Char_t CanvasName[200];
     Char_t FitFileName[200];
 
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FotFile_GoodPU_16h_0-5_40-90_pt0-2-12.root");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 mars/PlotFromTreePtBinned_GoodPU/16h_0-5_40-90_pt0-2-12");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_TKL_16h_0-1_40-90.root");
+    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 mars/PlotFromTreePtBinned_GoodPU/TKL_16h_0-1_40-90");
     
     
 
@@ -3037,7 +3038,7 @@ void PlotFromTreePtBinned(){
                       }
                       YieldsTkl[i]->Add(SoverMi);
                       if(RefTklCounterZint[i] >0){
-                          YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                        //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
                           for(int binx=1; binx<(1+YieldsTkl[i]->GetNbinsX()); binx++){
 
                                     double oldContent = YieldsTkl[i]->GetBinContent(binx);
@@ -3220,9 +3221,9 @@ void PlotFromTreePtBinned(){
         }
         
         for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-            for(int i=1; i<=NbinsInvMass; i++){
-                YieldWrtMass_CentralPtBinned[i-1][ptbin]->Write();
-                YieldWrtMass_PeriphPtBinned[i-1][ptbin]->Write();
+            for(int i=0; i<NbinsDeltaPhi; i++){
+                YieldWrtMass_CentralPtBinned[i][ptbin]->Write();
+                YieldWrtMass_PeriphPtBinned[i][ptbin]->Write();
 
             }
         }
@@ -3484,7 +3485,7 @@ void PlotFromTreePtBinned(){
     f->Close();
     
     TFile *outputFile;
-     outputFile = new TFile("/Volumes/SEBUSB/InvMass6.root","RECREATE");
+     outputFile = new TFile("/Volumes/SEBUSB/InvMass0.root","RECREATE");
      hnseg->Write();
     InvMass_Central->Write();
     InvMass_Periph->Write();
@@ -4434,6 +4435,13 @@ void PlotFromTreePtBinned(){
             legendo->AddEntry(grV2_wrt_Pt2,"V2_Ext2");
              legendo->Draw();
     
+    cV2Pt->Update();
+    TLine *l=new TLine(cV2Pt->GetUxmin(),0.0,cV2Pt->GetUxmax(),0.0);
+    l->SetLineColor(kBlack);
+    l->SetLineWidth(1);
+    l->SetLineStyle(9);
+    l->Draw();
+    
     sprintf(CanvasName,"%s/V2WrtPt.pdf",FolderName);
     cV2Pt->SaveAs(CanvasName);
     
@@ -4475,6 +4483,12 @@ void PlotFromTreePtBinned(){
         
         sprintf(CanvasName,"%s/V2TKL_Sub.pdf",FolderName);
         c6TKL->SaveAs(CanvasName);
+        
+        TFile *f = new TFile(FitFileName,"UPDATE");
+        YieldTkl_Periph->Write();
+        YieldTkl_Central->Write();
+        YieldTkl_Difference->Write();
+        f->Close();
         
         baselineTKL = (YieldTkl_Periph->GetBinContent(BinZeroLeftTKL) + YieldTkl_Periph->GetBinContent(BinZeroLeftTKL+1))/2;
         errbaselineTKL = sqrt(pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL+1),2));
@@ -4714,7 +4728,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
      10: Norlmalisation After
      11: Exponent After
      */
-    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass6.root");
+    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass0.root");
     
     cinvmass->cd(i+1);
    cinvmass->SetFillColor(33);
