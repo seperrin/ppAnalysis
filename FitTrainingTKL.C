@@ -846,9 +846,62 @@ void FitTrainingTKL(){
                   
 
               }
+    
+    TCanvas* cV2_TKL_Methods = new TCanvas;
+    const char *methods[6] = {"Classique", "Cvetan", "CvetanMe", "ZYAM", "PRL", "PRL_PeriphZYAM"};
+    const char *methodsF[3] = {"Cvetan", "PRL", "PRL_PeriphZYAM"};
+    double V2Valeurs[6] = {V2ClassiqueTKL, V2CvetanTKL, V2CvetanMeTKL, V2ZYAMTKL, V2PRLTKL, V2PRL_PeriphZYAMTKL};
+    double V2Erreurs[6] = {errV2ClassiqueTKL, errV2CvetanTKL, errV2CvetanMeTKL, errV2ZYAMTKL, errV2PRLTKL, errV2PRL_PeriphZYAMTKL};
+    double v2Valeurs[6] = {v2ClassiqueTKL, v2CvetanTKL, v2CvetanMeTKL, v2ZYAMTKL, v2PRLTKL, v2PRL_PeriphZYAMTKL};
+    double v2Erreurs[6] = {errv2ClassiqueTKL, errv2CvetanTKL, errv2CvetanMeTKL, errv2ZYAMTKL, errv2PRLTKL, errv2PRL_PeriphZYAMTKL};
+    double FValeurs[3] = {FCvetanTKL, FPRLTKL, FPRL_PeriphZYAMTKL};
+    double FErreurs[3] = {errFCvetanTKL, errFPRLTKL, errFPRL_PeriphZYAMTKL};
+    double accroche[6] = {0.5,1.5,2.5,3.5,4.5,5.5};
+    double erraccroche[6] = {0.5,0.5,0.5,0.5,0.5,0.5};
+    double accrocheF[3] = {0.5,1.5,2.5};
+    double erraccrocheF[3] = {0.5,0.5,0.5};
         
-        
-
+    TGraphErrors *grV2_TKL_Methods = new TGraphErrors(6,accroche,V2Valeurs,erraccroche,V2Erreurs);
+     // TGraph *gr3 = new TGraph (n, K3, chi);
+      grV2_TKL_Methods->SetTitle("V2 of tkl-tkl correlations for different extraction methods");
+      grV2_TKL_Methods->GetXaxis()->SetTitle("Method");
+      grV2_TKL_Methods->GetYaxis()->SetTitle("V2");
+    for (int i=1;i<=6;i++) grV2_TKL_Methods->GetXaxis()->SetBinLabel(15*i-4,methods[i-1]);
+    grV2_TKL_Methods->GetXaxis()->LabelsOption("u");
+   // grV2_TKL_Methods->GetYaxis()->SetLimits( 0, 0.05);
+    grV2_TKL_Methods->SetMarkerColor(1);
+    grV2_TKL_Methods->SetLineColor(1);
+    grV2_TKL_Methods->SetMarkerStyle(4);
+      grV2_TKL_Methods->Draw("AP");
+    
+    TCanvas* cF_TKL_Methods = new TCanvas;
+    TGraphErrors *grF_TKL_Methods = new TGraphErrors(3,accrocheF,FValeurs,erraccrocheF,FErreurs);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+       grF_TKL_Methods->SetTitle("F for different extraction methods");
+       grF_TKL_Methods->GetXaxis()->SetTitle("Method");
+       grF_TKL_Methods->GetYaxis()->SetTitle("F tkl");
+     for (int i=1;i<=3;i++) grF_TKL_Methods->GetXaxis()->SetBinLabel(30*i-10,methodsF[i-1]);
+     grF_TKL_Methods->GetXaxis()->LabelsOption("u");
+    // grV2_TKL_Methods->GetYaxis()->SetLimits( 0, 0.05);
+     grF_TKL_Methods->SetMarkerColor(1);
+     grF_TKL_Methods->SetLineColor(1);
+     grF_TKL_Methods->SetMarkerStyle(4);
+       grF_TKL_Methods->Draw("AP");
+    
+    
+    TCanvas* cv2_TKL_Methods = new TCanvas;
+    TGraphErrors *grv2_TKL_Methods = new TGraphErrors(6,accroche,v2Valeurs,erraccroche,v2Erreurs);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+       grv2_TKL_Methods->SetTitle("v2 of tkl for different extraction methods");
+       grv2_TKL_Methods->GetXaxis()->SetTitle("Method");
+       grv2_TKL_Methods->GetYaxis()->SetTitle("v2 tkl");
+     for (int i=1;i<=6;i++) grv2_TKL_Methods->GetXaxis()->SetBinLabel(15*i-4,methods[i-1]);
+     grv2_TKL_Methods->GetXaxis()->LabelsOption("u");
+    // grV2_TKL_Methods->GetYaxis()->SetLimits( 0, 0.05);
+     grv2_TKL_Methods->SetMarkerColor(1);
+     grv2_TKL_Methods->SetLineColor(1);
+     grv2_TKL_Methods->SetMarkerStyle(4);
+       grv2_TKL_Methods->Draw("AP");
     
 
 //    }
