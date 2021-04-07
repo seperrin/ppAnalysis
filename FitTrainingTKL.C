@@ -41,13 +41,17 @@
  void FitTrainingTKL();
  
 Double_t CvetanFTKL(Double_t *x,Double_t *par);
+void ChisquareCvetanFTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
  Double_t FourierV2(Double_t *x,Double_t *par);
  Double_t FourierV5(Double_t *x,Double_t *par);
 Double_t ZYAMTKL(Double_t *x,Double_t *par);
+void ChisquareZYAMTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplateTKL(Double_t *x,Double_t *par);
+void ChisquarePRLTemplateTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplate_RidgeAndZeroTKL(Double_t *x,Double_t *par);
 Double_t PRLTemplate_PeriphAndGTKL(Double_t *x,Double_t *par);
 Double_t PRLTemplate_PeriphZYAMTKL(Double_t *x,Double_t *par);
+void ChisquarePRLTemplate_PeriphZYAMTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 
 Double_t mJpsi =  3.096916;
  Double_t mPsip =  3.686108;
@@ -297,16 +301,16 @@ void FitTrainingTKL(){
     
         baselineTKL_periph = (YieldTkl_Periph->GetBinContent(BinZeroLeftTKL) + YieldTkl_Periph->GetBinContent(BinZeroLeftTKL+1))/2;
         errbaselineTKL_periph = sqrt(pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL+1),2));
-    
-            baselineTKL_central = (YieldTkl_Central->GetBinContent(BinZeroLeftTKL) + YieldTkl_Central->GetBinContent(BinZeroLeftTKL+1))/2;
-           errbaselineTKL_central = sqrt(pow(YieldTkl_Central->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Central->GetBinError(BinZeroLeftTKL+1),2));
+//
+//            baselineTKL_central = (YieldTkl_Central->GetBinContent(BinZeroLeftTKL) + YieldTkl_Central->GetBinContent(BinZeroLeftTKL+1))/2;
+//           errbaselineTKL_central = sqrt(pow(YieldTkl_Central->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Central->GetBinError(BinZeroLeftTKL+1),2));
         
-//        for(int bin_idx = 1; bin_idx<=NbinsDeltaPhiTKL; bin_idx++){
-//            if(YieldTkl_Central->GetBinContent(bin_idx)<baselineTKL_central){
-//                baselineTKL_central = YieldTkl_Central->GetBinContent(bin_idx);
-//                errbaselineTKL_central = YieldTkl_Central->GetBinError(bin_idx);
-//            }
-//        }
+        for(int bin_idx = 1; bin_idx<=NbinsDeltaPhiTKL; bin_idx++){
+            if(YieldTkl_Central->GetBinContent(bin_idx)<baselineTKL_central){
+                baselineTKL_central = YieldTkl_Central->GetBinContent(bin_idx);
+                errbaselineTKL_central = YieldTkl_Central->GetBinError(bin_idx);
+            }
+        }
         
         
         for(int phi_idx = 0; phi_idx<NbinsDeltaPhiTKL; phi_idx++){
@@ -451,6 +455,7 @@ void FitTrainingTKL(){
                  fitFcnV2_Cvetan->SetParameters(params);
                   TVirtualFitter::Fitter(YieldTkl_Central_Cvetan)->SetMaxIterations(10000);
                   TVirtualFitter::Fitter(YieldTkl_Central_Cvetan)->SetPrecision();
+                TVirtualFitter::Fitter(YieldTkl_Central_Cvetan)->SetFCN(ChisquareCvetanFTKL);
                 gStyle->SetOptFit(1011);
                //  histo->Fit("fitFcn","0");
                  // second try: set start values for some parameters
@@ -467,7 +472,15 @@ void FitTrainingTKL(){
         //    fitFcnV2_Cvetan->FixParameter(3,1);
                   
 
-                 TFitResultPtr res = YieldTkl_Central_Cvetan->Fit("fitFcnV2_Cvetan","SBMERI+","ep");
+                 TFitResultPtr res = YieldTkl_Central_Cvetan->Fit("fitFcnV2_Cvetan","USBMERI+","ep");
+            
+            double chi2, edm, errdef;
+            int nvpar, nparx;
+             TVirtualFitter::Fitter(YieldTkl_Central_Cvetan)->GetStats(chi2,edm,errdef,nvpar,nparx);
+             fitFcnV2_Cvetan->SetChisquare(chi2);
+             int ndf = npfits-nvpar;
+             fitFcnV2_Cvetan->SetNDF(ndf);
+            
                 Double_t par[4];
                 fitFcnV2_Cvetan->GetParameters(par);
                  // improve the pictu
@@ -536,6 +549,7 @@ void FitTrainingTKL(){
                  fitFcnV2_CvetanMe->SetParameters(params);
                   TVirtualFitter::Fitter(YieldTkl_Central_CvetanMe)->SetMaxIterations(10000);
                   TVirtualFitter::Fitter(YieldTkl_Central_CvetanMe)->SetPrecision();
+                TVirtualFitter::Fitter(YieldTkl_Central_CvetanMe)->SetFCN(ChisquareCvetanFTKL);
                 gStyle->SetOptFit(1011);
                //  histo->Fit("fitFcn","0");
                  // second try: set start values for some parameters
@@ -552,7 +566,15 @@ void FitTrainingTKL(){
             fitFcnV2_CvetanMe->FixParameter(3,1);
                   
 
-                 TFitResultPtr res = YieldTkl_Central_CvetanMe->Fit("fitFcnV2_CvetanMe","SBMERI+","ep");
+                 TFitResultPtr res = YieldTkl_Central_CvetanMe->Fit("fitFcnV2_CvetanMe","USBMERI+","ep");
+            
+            double chi2, edm, errdef;
+            int nvpar, nparx;
+             TVirtualFitter::Fitter(YieldTkl_Central_CvetanMe)->GetStats(chi2,edm,errdef,nvpar,nparx);
+             fitFcnV2_CvetanMe->SetChisquare(chi2);
+             int ndf = npfits-nvpar;
+             fitFcnV2_CvetanMe->SetNDF(ndf);
+            
                 Double_t par[4];
                 fitFcnV2_CvetanMe->GetParameters(par);
                  // improve the pictu
@@ -618,6 +640,7 @@ void FitTrainingTKL(){
                 fitFcnV2_ZYAM->SetParameters(params);
                 TVirtualFitter::Fitter(YieldTkl_Central_ZYAM)->SetMaxIterations(10000);
                  TVirtualFitter::Fitter(YieldTkl_Central_ZYAM)->SetPrecision();
+                TVirtualFitter::Fitter(YieldTkl_Central_ZYAM)->SetFCN(ChisquareZYAMTKL);
                gStyle->SetOptFit(1011);
                //  histo->Fit("fitFcn","0");
                 // second try: set start values for some parameters
@@ -628,7 +651,15 @@ void FitTrainingTKL(){
                
                  
 
-                TFitResultPtr res = YieldTkl_Central_ZYAM->Fit("fitFcnV2_ZYAM","SBMERI+","ep");
+                TFitResultPtr res = YieldTkl_Central_ZYAM->Fit("fitFcnV2_ZYAM","USBMERI+","ep");
+           
+                    double chi2, edm, errdef;
+                      int nvpar, nparx;
+                       TVirtualFitter::Fitter(YieldTkl_Central_ZYAM)->GetStats(chi2,edm,errdef,nvpar,nparx);
+                       fitFcnV2_ZYAM->SetChisquare(chi2);
+                       int ndf = npfits-nvpar;
+                       fitFcnV2_ZYAM->SetNDF(ndf);
+           
                Double_t par[3];
                fitFcnV2_ZYAM->GetParameters(par);
                 // improve the pictu
@@ -705,6 +736,7 @@ void FitTrainingTKL(){
                     fitFcnV2_PRLTemplate->SetParameters(params);
                      TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate)->SetMaxIterations(10000);
                      TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate)->SetPrecision();
+                    TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate)->SetFCN(ChisquarePRLTemplateTKL);
                    gStyle->SetOptFit(1011);
                    //  histo->Fit("fitFcn","0");
                     // second try: set start values for some parameters
@@ -718,7 +750,15 @@ void FitTrainingTKL(){
                      //  fitFcnV2_PRLTemplate->FixParameter(1,2.5);
                      
 
-                    TFitResultPtr res = YieldTkl_Central_PRLTemplate->Fit("fitFcnV2_PRLTemplate","SBMERI+","ep");
+                    TFitResultPtr res = YieldTkl_Central_PRLTemplate->Fit("fitFcnV2_PRLTemplate","USBMERI+","ep");
+               
+               double chi2, edm, errdef;
+                int nvpar, nparx;
+                 TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate)->GetStats(chi2,edm,errdef,nvpar,nparx);
+                 fitFcnV2_PRLTemplate->SetChisquare(chi2);
+                 int ndf = npfits-nvpar;
+                 fitFcnV2_PRLTemplate->SetNDF(ndf);
+               
                    Double_t par[2];
                    fitFcnV2_PRLTemplate->GetParameters(par);
                fitFcnV2_PRLTemplate_RidgeAndZero->SetParameters(par);
@@ -792,6 +832,7 @@ void FitTrainingTKL(){
                        fitFcnV2_PRLTemplate_PeriphZYAM->SetParameters(params);
                         TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate_PeriphZYAM)->SetMaxIterations(10000);
                         TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate_PeriphZYAM)->SetPrecision();
+                        TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate_PeriphZYAM)->SetFCN(ChisquarePRLTemplate_PeriphZYAMTKL);
                       gStyle->SetOptFit(1011);
                       //  histo->Fit("fitFcn","0");
                        // second try: set start values for some parameters
@@ -805,7 +846,15 @@ void FitTrainingTKL(){
                         //  fitFcnV2_PRLTemplate->FixParameter(1,2.5);
                         
 
-                       TFitResultPtr res = YieldTkl_Central_PRLTemplate_PeriphZYAM->Fit("fitFcnV2_PRLTemplate_PeriphZYAM","SBMERI+","ep");
+                       TFitResultPtr res = YieldTkl_Central_PRLTemplate_PeriphZYAM->Fit("fitFcnV2_PRLTemplate_PeriphZYAM","USBMERI+","ep");
+                  
+                  double chi2, edm, errdef;
+                  int nvpar, nparx;
+                   TVirtualFitter::Fitter(YieldTkl_Central_PRLTemplate_PeriphZYAM)->GetStats(chi2,edm,errdef,nvpar,nparx);
+                   fitFcnV2_PRLTemplate_PeriphZYAM->SetChisquare(chi2);
+                   int ndf = npfits-nvpar;
+                   fitFcnV2_PRLTemplate_PeriphZYAM->SetNDF(ndf);
+                  
                       Double_t par[2];
                       fitFcnV2_PRLTemplate_PeriphZYAM->GetParameters(par);
                        // improve the pictu
@@ -848,8 +897,8 @@ void FitTrainingTKL(){
               }
     
     TCanvas* cV2_TKL_Methods = new TCanvas;
-    const char *methods[6] = {"Classique", "Cvetan", "CvetanMe", "ZYAM", "PRL", "PRL_PeriphZYAM"};
-    const char *methodsF[3] = {"Cvetan", "PRL", "PRL_PeriphZYAM"};
+    const char *methods[6] = {"p-Pb like", "Cvetan-Quentin", "CvetanMe", "ZYAM", "ATLAS", "ATLAS_PeriphZYAM"};
+    const char *methodsF[3] = {"Cvetan-Quentin", "ATLAS", "ATLAS_PeriphZYAM"};
     double V2Valeurs[6] = {V2ClassiqueTKL, V2CvetanTKL, V2CvetanMeTKL, V2ZYAMTKL, V2PRLTKL, V2PRL_PeriphZYAMTKL};
     double V2Erreurs[6] = {errV2ClassiqueTKL, errV2CvetanTKL, errV2CvetanMeTKL, errV2ZYAMTKL, errV2PRLTKL, errV2PRL_PeriphZYAMTKL};
     double v2Valeurs[6] = {v2ClassiqueTKL, v2CvetanTKL, v2CvetanMeTKL, v2ZYAMTKL, v2PRLTKL, v2PRL_PeriphZYAMTKL};
@@ -936,11 +985,47 @@ Double_t CvetanFTKL(Double_t *x,Double_t *par)
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
     return baselineTKL_central*(par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + par[3]*YMinusBp; }
 
+void ChisquareCvetanFTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = YieldTkl_Central->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<YieldTkl_Central->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (YieldTkl_Central->GetBinContent(bin_idx+1)-CvetanFTKL(x,par))/(sqrt(pow(YieldTkl_Central->GetBinError(bin_idx+1),2)+pow(YieldTkl_Periph_MinusBaseline->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
+
 Double_t ZYAMTKL(Double_t *x,Double_t *par)
 
 {   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
     return baselineTKL_central + (par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + 1*YMinusBp; }
+
+void ChisquareZYAMTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = YieldTkl_Central->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<YieldTkl_Central->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (YieldTkl_Central->GetBinContent(bin_idx+1)-ZYAMTKL(x,par))/(sqrt(pow(YieldTkl_Central->GetBinError(bin_idx+1),2)+pow(YieldTkl_Periph_MinusBaseline->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 Double_t PRLTemplateTKL(Double_t *x,Double_t *par)
 
@@ -951,6 +1036,24 @@ Double_t PRLTemplateTKL(Double_t *x,Double_t *par)
     double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
     
     return par[1]*Yperiphbin + (1+2*par[0]*cos(2*x[0]))*G; }
+
+void ChisquarePRLTemplateTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = YieldTkl_Central->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<YieldTkl_Central->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (YieldTkl_Central->GetBinContent(bin_idx+1)-PRLTemplateTKL(x,par))/(sqrt(pow(YieldTkl_Central->GetBinError(bin_idx+1),2)+pow(YieldTkl_Periph->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 Double_t PRLTemplate_RidgeAndZeroTKL(Double_t *x,Double_t *par)
 
@@ -981,6 +1084,24 @@ Double_t PRLTemplate_PeriphZYAMTKL(Double_t *x,Double_t *par)
     double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(2*TMath::Pi());
     
     return par[1]*YMinusBp + (1+2*par[0]*cos(2*x[0]))*G; }
+
+void ChisquarePRLTemplate_PeriphZYAMTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = YieldTkl_Central->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<YieldTkl_Central->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (YieldTkl_Central->GetBinContent(bin_idx+1)-PRLTemplate_PeriphZYAMTKL(x,par))/(sqrt(pow(YieldTkl_Central->GetBinError(bin_idx+1),2)+pow(YieldTkl_Periph_MinusBaseline->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 
 Double_t FourierV2(Double_t *x,Double_t *par)

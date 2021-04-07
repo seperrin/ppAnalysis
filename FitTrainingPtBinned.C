@@ -3325,20 +3325,36 @@ void FitTrainingPtBinned(){
     
     // Prendre les résultats sur V2JPsi-Tkl et utiliser ceux sur v2tkl pour trouver le v2JPsi pour chaque méthode
     
-    //Résultats TKL 0-5% 40-90% - Baseline central 0
+    //Résultats TKL 0-5% 40-90% - Baseline central 0 Yp unc. NOT PROPAGATED
     
-    double v2ClassiqueTKL = 0.065334;
-    double errv2ClassiqueTKL = 0.000541066;
-    double v2CvetanQuentinTKL = 0.0662997;
-    double errv2CvetanQuentinTKL = 0.000409345;
-    double v2CvetanQuentinMeTKL = 0.0654186;
-    double errv2CvetanQuentinMeTKL = 0.000414581;
-    double v2ZYAMTKL = 0.0653334;
-    double errv2ZYAMTKL = 0.00104418;
-    double v2PRLTKL = 0.131845;
-    double errv2PRLTKL = 0.00186927;
-    double v2PRLPeriphZYAMTKL = 0.0673054;
-    double errv2PRLPeriphZYAMTKL = 0.000405759;
+//            double v2ClassiqueTKL = 0.065334;
+//            double errv2ClassiqueTKL = 0.000541066;
+//            double v2CvetanQuentinTKL = 0.0662997;
+//            double errv2CvetanQuentinTKL = 0.000409345;
+//            double v2CvetanQuentinMeTKL = 0.0654186;
+//            double errv2CvetanQuentinMeTKL = 0.000414581;
+//            double v2ZYAMTKL = 0.0653334;
+//            double errv2ZYAMTKL = 0.00104418;
+//            double v2PRLTKL = 0.131845;
+//            double errv2PRLTKL = 0.00186927;
+//            double v2PRLPeriphZYAMTKL = 0.0673054;
+//            double errv2PRLPeriphZYAMTKL = 0.000405759;
+    
+    //Résultats TKL 0-5% 40-90% - Baseline central 0 Yp unc. NOT PROPAGATED
+       
+               double v2ClassiqueTKL = 0.065334;
+               double errv2ClassiqueTKL = 0.000541066;
+               double v2CvetanQuentinTKL = 0.0663438;
+               double errv2CvetanQuentinTKL = 0.000677986;
+               double v2CvetanQuentinMeTKL = 0.065326;
+               double errv2CvetanQuentinMeTKL = 0.000688108;
+               double v2ZYAMTKL = 0.0652409;
+               double errv2ZYAMTKL = 0.0017316;
+               double v2PRLTKL = 0.131677;
+               double errv2PRLTKL = 0.00237045;
+               double v2PRLPeriphZYAMTKL = 0.0672543;
+               double errv2PRLPeriphZYAMTKL = 0.000672808;
+
 
     //
     
