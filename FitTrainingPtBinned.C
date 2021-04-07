@@ -41,18 +41,26 @@
  void FitTrainingPtBinned();
  Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par);
  Double_t CvetanF(Double_t *x,Double_t *par);
+void ChisquareCvetanF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t CvetanFPtBinned(Double_t *x,Double_t *par);
+void ChisquareCvetanFPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t CvetanFTKL(Double_t *x,Double_t *par);
 Double_t ZYAM(Double_t *x,Double_t *par);
+void ChisquareZYAM(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t ZYAMPtBinned(Double_t *x,Double_t *par);
+void ChisquareZYAMPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplate(Double_t *x,Double_t *par);
+void ChisquarePRLTemplate(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplatePtBinned(Double_t *x,Double_t *par);
+void ChisquarePRLTemplatePtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplate_RidgeAndZero(Double_t *x,Double_t *par);
 Double_t PRLTemplate_RidgeAndZeroPtBinned(Double_t *x,Double_t *par);
 Double_t PRLTemplate_PeriphAndG(Double_t *x,Double_t *par);
 Double_t PRLTemplate_PeriphAndGPtBinned(Double_t *x,Double_t *par);
 Double_t PRLTemplate_PeriphZYAM(Double_t *x,Double_t *par);
+void ChisquarePRLTemplate_PeriphZYAM(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplate_PeriphZYAMPtBinned(Double_t *x,Double_t *par);
+void ChisquarePRLTemplate_PeriphZYAMPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
  Double_t BackFcnV2(Double_t *x,Double_t *par);
 Double_t BackFcnV2Poly(Double_t *x,Double_t *par);
  Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par);
@@ -135,8 +143,6 @@ TH1F* Baseline_Central_1PtBinned[NbPtBins] = {NULL};
 TH1F* Baseline_Periph_1PtBinned[NbPtBins] = {NULL};
 TH1F* Yields_Periph_1_MinusBaselinePtBinned[NbPtBins] = {NULL};
 TH1F* Yields_Central_1_MinusBaselinePtBinned[NbPtBins] = {NULL};
-TH1F* Yields_Periph_1PtBinned_Random[NbPtBins] = {NULL};
-TH1F* Yields_Periph_1_MinusBaselinePtBinned_Random[NbPtBins] = {NULL};
 
 double baseline_periphPtBinned[NbPtBins] = {NULL};
 double errbaseline_periphPtBinned[NbPtBins] = {NULL};
@@ -155,7 +161,6 @@ void FitTrainingPtBinned(){
     bool Extraction2Combined = kFALSE;
         bool CombineFits = kFALSE;
     bool PtBinned = kTRUE;
-    bool PropagatePeriph = kFALSE;
         
     // ************************************
     // Définitions de paramètres          *
@@ -1944,6 +1949,7 @@ void FitTrainingPtBinned(){
              fitFcnV2_Cvetan->SetParameters(params);
               TVirtualFitter::Fitter(Yields_Central_1_Cvetan)->SetMaxIterations(10000);
               TVirtualFitter::Fitter(Yields_Central_1_Cvetan)->SetPrecision();
+                TVirtualFitter::Fitter(Yields_Central_1_Cvetan)->SetFCN(ChisquareCvetanF);
             gStyle->SetOptFit(1011);
            //  histo->Fit("fitFcn","0");
              // second try: set start values for some parameters
@@ -1960,8 +1966,16 @@ void FitTrainingPtBinned(){
       //  fitFcnV2_Cvetan->FixParameter(3,1);
               
 
-             TFitResultPtr res = Yields_Central_1_Cvetan->Fit("fitFcnV2_Cvetan","SBMERI+","ep");
+             TFitResultPtr res = Yields_Central_1_Cvetan->Fit("fitFcnV2_Cvetan","USBMERI+","ep");
             Double_t par[4];
+        
+                double chi2, edm, errdef;
+               int nvpar, nparx;
+                TVirtualFitter::Fitter(Yields_Central_1_Cvetan)->GetStats(chi2,edm,errdef,nvpar,nparx);
+                fitFcnV2_Cvetan->SetChisquare(chi2);
+                int ndf = npfits-nvpar;
+                fitFcnV2_Cvetan->SetNDF(ndf);
+        
             fitFcnV2_Cvetan->GetParameters(par);
              // improve the pictu
            //   std::cout << "integral error: " << integralerror << std::endl;
@@ -2013,6 +2027,7 @@ void FitTrainingPtBinned(){
              fitFcnV2_CvetanMe->SetParameters(params);
               TVirtualFitter::Fitter(Yields_Central_1_CvetanMe)->SetMaxIterations(10000);
               TVirtualFitter::Fitter(Yields_Central_1_CvetanMe)->SetPrecision();
+            TVirtualFitter::Fitter(Yields_Central_1_CvetanMe)->SetFCN(ChisquareCvetanF);
             gStyle->SetOptFit(1011);
            //  histo->Fit("fitFcn","0");
              // second try: set start values for some parameters
@@ -2029,7 +2044,15 @@ void FitTrainingPtBinned(){
         fitFcnV2_CvetanMe->FixParameter(3,1);
               
 
-             TFitResultPtr res = Yields_Central_1_CvetanMe->Fit("fitFcnV2_CvetanMe","SBMERI+","ep");
+             TFitResultPtr res = Yields_Central_1_CvetanMe->Fit("fitFcnV2_CvetanMe","USBMERI+","ep");
+        
+        double chi2, edm, errdef;
+        int nvpar, nparx;
+         TVirtualFitter::Fitter(Yields_Central_1_CvetanMe)->GetStats(chi2,edm,errdef,nvpar,nparx);
+         fitFcnV2_CvetanMe->SetChisquare(chi2);
+         int ndf = npfits-nvpar;
+         fitFcnV2_CvetanMe->SetNDF(ndf);
+        
             Double_t par[4];
             fitFcnV2_CvetanMe->GetParameters(par);
              // improve the pictu
@@ -2084,6 +2107,7 @@ void FitTrainingPtBinned(){
              fitFcnV2_ZYAM->SetParameters(params);
               TVirtualFitter::Fitter(Yields_Central_1_ZYAM)->SetMaxIterations(10000);
               TVirtualFitter::Fitter(Yields_Central_1_ZYAM)->SetPrecision();
+            TVirtualFitter::Fitter(Yields_Central_1_ZYAM)->SetFCN(ChisquareZYAM);
             gStyle->SetOptFit(1011);
             //  histo->Fit("fitFcn","0");
              // second try: set start values for some parameters
@@ -2094,7 +2118,15 @@ void FitTrainingPtBinned(){
             
               
 
-             TFitResultPtr res = Yields_Central_1_ZYAM->Fit("fitFcnV2_ZYAM","SBMERI+","ep");
+             TFitResultPtr res = Yields_Central_1_ZYAM->Fit("fitFcnV2_ZYAM","USBMERI+","ep");
+        
+            double chi2, edm, errdef;
+            int nvpar, nparx;
+             TVirtualFitter::Fitter(Yields_Central_1_ZYAM)->GetStats(chi2,edm,errdef,nvpar,nparx);
+             fitFcnV2_ZYAM->SetChisquare(chi2);
+             int ndf = npfits-nvpar;
+             fitFcnV2_ZYAM->SetNDF(ndf);
+        
             Double_t par[3];
             fitFcnV2_ZYAM->GetParameters(par);
              // improve the pictu
@@ -2157,6 +2189,7 @@ void FitTrainingPtBinned(){
                 fitFcnV2_PRLTemplate->SetParameters(params);
                  TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate)->SetMaxIterations(10000);
                  TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate)->SetPrecision();
+                TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate)->SetFCN(ChisquarePRLTemplate);
                gStyle->SetOptFit(1011);
                //  histo->Fit("fitFcn","0");
                 // second try: set start values for some parameters
@@ -2170,7 +2203,15 @@ void FitTrainingPtBinned(){
                  //  fitFcnV2_PRLTemplate->FixParameter(1,2.5);
                  
 
-                TFitResultPtr res = Yields_Central_1_PRLTemplate->Fit("fitFcnV2_PRLTemplate","SBMERI+","ep");
+                TFitResultPtr res = Yields_Central_1_PRLTemplate->Fit("fitFcnV2_PRLTemplate","USBMERI+","ep");
+           
+               double chi2, edm, errdef;
+               int nvpar, nparx;
+                TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate)->GetStats(chi2,edm,errdef,nvpar,nparx);
+                fitFcnV2_PRLTemplate->SetChisquare(chi2);
+                int ndf = npfits-nvpar;
+                fitFcnV2_PRLTemplate->SetNDF(ndf);
+           
                Double_t par[2];
                fitFcnV2_PRLTemplate->GetParameters(par);
            fitFcnV2_PRLTemplate_RidgeAndZero->SetParameters(par);
@@ -2227,6 +2268,7 @@ void FitTrainingPtBinned(){
                    fitFcnV2_PRLTemplate_PeriphZYAM->SetParameters(params);
                     TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAM)->SetMaxIterations(10000);
                     TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAM)->SetPrecision();
+                    TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAM)->SetFCN(ChisquarePRLTemplate_PeriphZYAM);
                   gStyle->SetOptFit(1011);
                   //  histo->Fit("fitFcn","0");
                    // second try: set start values for some parameters
@@ -2240,7 +2282,15 @@ void FitTrainingPtBinned(){
                     //  fitFcnV2_PRLTemplate->FixParameter(1,2.5);
                     
 
-                   TFitResultPtr res = Yields_Central_1_PRLTemplate_PeriphZYAM->Fit("fitFcnV2_PRLTemplate_PeriphZYAM","SBMERI+","ep");
+                   TFitResultPtr res = Yields_Central_1_PRLTemplate_PeriphZYAM->Fit("fitFcnV2_PRLTemplate_PeriphZYAM","USBMERI+","ep");
+              
+              double chi2, edm, errdef;
+              int nvpar, nparx;
+               TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAM)->GetStats(chi2,edm,errdef,nvpar,nparx);
+               fitFcnV2_PRLTemplate_PeriphZYAM->SetChisquare(chi2);
+               int ndf = npfits-nvpar;
+               fitFcnV2_PRLTemplate_PeriphZYAM->SetNDF(ndf);
+              
                   Double_t par[2];
                   fitFcnV2_PRLTemplate_PeriphZYAM->GetParameters(par);
                    // improve the pictu
@@ -2279,14 +2329,6 @@ void FitTrainingPtBinned(){
     
     
     if(PtBinned){
-        double V2_CvetanQuentin_Random[NbPtBins][10];
-        double errV2_CvetanQuentin_Random[NbPtBins][10];
-        double F_CvetanQuentin_Random[NbPtBins][10];
-        double errF_CvetanQuentin_Random[NbPtBins][10];
-        double moypar12[NbPtBins];
-       double moyparerr12[NbPtBins];
-       double typeApar12[NbPtBins];
-       double sigparerr12[NbPtBins];
         
         for(int ptbin=0;ptbin<NbPtBins;ptbin++){
             
@@ -2678,11 +2720,9 @@ void FitTrainingPtBinned(){
             //       cCvetan->cd(3);
             //       Yields_Central_1_MinusBaseline->DrawCopy();
             
-                Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin] = (TH1F*)Yields_Periph_1_MinusBaselinePtBinned[ptbin]->Clone("Yields_Periph_1_MinusBaselinePtBinned_Random");
-            
             
                 
-                if(!PropagatePeriph){
+               {
                     cCvetanPtBinned->cd(1);
                          TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),5);
                          fitFcnV2_Cvetan->SetNpx(500);
@@ -2697,6 +2737,7 @@ void FitTrainingPtBinned(){
                          fitFcnV2_Cvetan->SetParameters(params);
                           TVirtualFitter::Fitter(Yields_Central_1_CvetanPtBinned[ptbin])->SetMaxIterations(10000);
                           TVirtualFitter::Fitter(Yields_Central_1_CvetanPtBinned[ptbin])->SetPrecision();
+                        TVirtualFitter::Fitter(Yields_Central_1_CvetanMePtBinned[ptbin])->SetFCN(ChisquareCvetanFPtBinned);
                         gStyle->SetOptFit(1011);
                        //  histo->Fit("fitFcn","0");
                          // second try: set start values for some parameters
@@ -2715,8 +2756,17 @@ void FitTrainingPtBinned(){
                   //  fitFcnV2_Cvetan->FixParameter(4,1);
                           
 
-                         TFitResultPtr res = Yields_Central_1_CvetanPtBinned[ptbin]->Fit("fitFcnV2_Cvetan","SBMERI+","ep");
+                         TFitResultPtr res = Yields_Central_1_CvetanPtBinned[ptbin]->Fit("fitFcnV2_Cvetan","USBMERI+","ep");
                         Double_t par[5];
+                    double chi2, edm, errdef;
+                    int nvpar, nparx;
+                        TVirtualFitter::Fitter(Yields_Central_1_CvetanMePtBinned[ptbin])->GetStats(chi2,edm,errdef,nvpar,nparx);
+                    
+                         fitFcnV2_Cvetan->SetChisquare(chi2);
+                         int ndf = npfits-nvpar;
+                         fitFcnV2_Cvetan->SetNDF(ndf);
+                    
+                    
                         fitFcnV2_Cvetan->GetParameters(par);
                          // improve the pictu
                        //   std::cout << "integral error: " << integralerror << std::endl;
@@ -2744,137 +2794,6 @@ void FitTrainingPtBinned(){
                     errF_CvetanQuentin[ptbin] = fitFcnV2_Cvetan->GetParError(4);
                     
                 }
-            
-            if(PropagatePeriph){
-                
-                TRandom rand = 0;
-                rand.SetSeed(1234);
-                for(int t=0; t<10; t++){
-                    for(int bin_idx = 0; bin_idx<Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin]->GetNbinsX();bin_idx++){
-                        Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin]->SetBinContent(bin_idx+1, Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bin_idx+1)+rand.Gaus(0,Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinError(bin_idx+1)) );
-                    }
-                cCvetanPtBinned->cd(1);
-                     TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),5);
-                     fitFcnV2_Cvetan->SetNpx(500);
-                     fitFcnV2_Cvetan->SetLineWidth(4);
-                     fitFcnV2_Cvetan->SetLineColor(kBlue);
-                     // first try without starting values for the parameters
-                     // This defaults to 1 for each param.
-                     // this results in an ok fit for the polynomial function
-                     // however the non-linear part (lorenzian) does not
-                     // respond well.
-                      Double_t params[5] = {static_cast<Double_t>(ptbin),1,0,0.01,1};
-                     fitFcnV2_Cvetan->SetParameters(params);
-                      TVirtualFitter::Fitter(Yields_Central_1_CvetanPtBinned[ptbin])->SetMaxIterations(10000);
-                      TVirtualFitter::Fitter(Yields_Central_1_CvetanPtBinned[ptbin])->SetPrecision();
-                    gStyle->SetOptFit(1011);
-                   //  histo->Fit("fitFcn","0");
-                     // second try: set start values for some parameters
-
-                    fitFcnV2_Cvetan->SetParName(0,"ptbin");
-                      fitFcnV2_Cvetan->SetParName(1,"V0");
-                        fitFcnV2_Cvetan->SetParName(2,"V1");
-                        fitFcnV2_Cvetan->SetParName(3,"V2");
-                      fitFcnV2_Cvetan->SetParName(4,"F");
-                
-                fitFcnV2_Cvetan->SetParLimits(4,0.1,50);
-                
-                fitFcnV2_Cvetan->FixParameter(0,ptbin);
-                fitFcnV2_Cvetan->FixParameter(1,1);
-                fitFcnV2_Cvetan->FixParameter(2,0);
-              //  fitFcnV2_Cvetan->FixParameter(4,1);
-                      
-
-                     TFitResultPtr res = Yields_Central_1_CvetanPtBinned[ptbin]->Fit("fitFcnV2_Cvetan","SBMERI+","ep");
-                    Double_t par[5];
-                    fitFcnV2_Cvetan->GetParameters(par);
-                     // improve the pictu
-                   //   std::cout << "integral error: " << integralerror << std::endl;
-                     fitFcnV2_Cvetan->Draw("same");
-                     // draw the legend
-                     TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-                     legend->SetTextFont(72);
-                     legend->SetTextSize(0.04);
-                       Char_t message[80];
-                       sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_Cvetan->GetChisquare(),fitFcnV2_Cvetan->GetNDF());
-                       legend->AddEntry(fitFcnV2_Cvetan,message);
-                if(res->CovMatrixStatus() == 3){
-                           sprintf(message,"The fit is a success");
-                       }
-                       else{
-                           sprintf(message,"The fit is a failure");
-                       }
-                       legend->AddEntry(fitFcnV2_Cvetan,message);
-                     legend->AddEntry(Yields_Central_1_CvetanPtBinned[ptbin],"Data","lpe");
-                     legend->Draw();
-
-                V2_CvetanQuentin_Random[ptbin][t] = par[3];
-                errV2_CvetanQuentin_Random[ptbin][t] = fitFcnV2_Cvetan->GetParError(3);
-                F_CvetanQuentin_Random[ptbin][t] = par[4];
-                errF_CvetanQuentin_Random[ptbin][t] = fitFcnV2_Cvetan->GetParError(4);
-                }
-                
-                {
-                    int failures = 0;
-                    int NewOutliers = 1;
-                    double SigmaCutOutliers = 10;
-                    
-                    while(NewOutliers !=0){
-                        moypar12[ptbin] = 0;
-                        moyparerr12[ptbin] = 0;
-                        typeApar12[ptbin] = 0;
-                        sigparerr12[ptbin] = 0;
-                        int failures = 0;
-                        failures = 0;
-                        NewOutliers = 0;
-                        for(int z=0; z<10; z++){
-                            moypar12[ptbin] += V2_CvetanQuentin_Random[ptbin][z];
-                            moyparerr12[ptbin] += errV2_CvetanQuentin_Random[ptbin][z];
-                            if(V2_CvetanQuentin_Random[ptbin][z]==0 && errV2_CvetanQuentin_Random[ptbin][z]==0){
-                                failures++;
-                            }
-                        }
-                        moypar12[ptbin]/=(10-failures);   // Moyenne de par12
-                        moyparerr12[ptbin]/=(10-failures); //Incertitude fit 2
-                        for(int z=0; z<10; z++){
-                            if(V2_CvetanQuentin_Random[ptbin][z]!=0 || errV2_CvetanQuentin_Random[ptbin][z]!=0){
-                                typeApar12[ptbin] += pow(moypar12[ptbin]-V2_CvetanQuentin_Random[ptbin][z],2);
-                            }
-                            if(V2_CvetanQuentin_Random[ptbin][z]!=0 || errV2_CvetanQuentin_Random[ptbin][z]!=0){
-                                sigparerr12[ptbin] += pow(moyparerr12[ptbin]-errV2_CvetanQuentin_Random[ptbin][z],2);
-                            }
-                        }
-                        
-                        typeApar12[ptbin]/=((10-failures)*(10-1-failures));
-                        typeApar12[ptbin] = sqrt(typeApar12[ptbin]); // Incertitude de type A (répétabitilé) issue du fit 1 propagé
-                        
-                        sigparerr12[ptbin]/=((10-failures)*(10-1-failures));
-                        sigparerr12[ptbin] = sqrt(sigparerr12[ptbin]); // Ecart-type valeurs des erreurs.
-                        
-                        std::cout << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin] << ", sigparerr12: "<<sigparerr12[ptbin]<<endl;
-                         fileLog << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin] << ", sigparerr12: "<<sigparerr12[ptbin]<<endl;
-                        
-                        for(int z=0; z<10; z++){
-                            if(V2_CvetanQuentin_Random[ptbin][z]!=0 || errV2_CvetanQuentin_Random[ptbin][z]!=0){
-                                if(TMath::Abs(V2_CvetanQuentin_Random[ptbin][z]-moypar12[ptbin])>(SigmaCutOutliers*typeApar12[ptbin]) && TMath::Abs(errV2_CvetanQuentin_Random[ptbin][z]-moyparerr12[ptbin])>(SigmaCutOutliers*sigparerr12[ptbin])){
-                                    NewOutliers++;
-                                    std::cout << "Iteration with Yield Value: " << V2_CvetanQuentin_Random[ptbin][z] << " and Error: " << errV2_CvetanQuentin_Random[ptbin][z] << " is an outlier. Suppressed"<<endl;
-                                    fileLog << "Iteration with Yield Value: " << V2_CvetanQuentin_Random[ptbin][z] << " and Error: " << errV2_CvetanQuentin_Random[ptbin][z] << " is an outlier. Suppressed"<<endl;
-                                    V2_CvetanQuentin_Random[ptbin][z] =0;
-                                    errV2_CvetanQuentin_Random[ptbin][z] =0;
-                                }
-                            }
-                        }
-
-                        std::cout << "There were " << failures << " failures"<<endl;
-                        std::cout << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin]<<endl;
-                        
-                        fileLog << "There were " << failures << " failures"<<endl;
-                        fileLog << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin]<<endl;
-                    
-                    }
-                }
-            }
             
             
             // Fit Cvetan putting my constraints (F=1, V1 free, V0 not 1) - PtBinned
@@ -2906,6 +2825,7 @@ void FitTrainingPtBinned(){
                          fitFcnV2_CvetanMe->SetParameters(params);
                           TVirtualFitter::Fitter(Yields_Central_1_CvetanMePtBinned[ptbin])->SetMaxIterations(10000);
                           TVirtualFitter::Fitter(Yields_Central_1_CvetanMePtBinned[ptbin])->SetPrecision();
+                          TVirtualFitter::Fitter(Yields_Central_1_CvetanMePtBinned[ptbin])->SetFCN(ChisquareCvetanFPtBinned);
                         gStyle->SetOptFit(1011);
                        //  histo->Fit("fitFcn","0");
                          // second try: set start values for some parameters
@@ -2924,7 +2844,15 @@ void FitTrainingPtBinned(){
                     fitFcnV2_CvetanMe->FixParameter(4,1);
                           
 
-                         TFitResultPtr res = Yields_Central_1_CvetanMePtBinned[ptbin]->Fit("fitFcnV2_CvetanMe","SBMERI+","ep");
+                         TFitResultPtr res = Yields_Central_1_CvetanMePtBinned[ptbin]->Fit("fitFcnV2_CvetanMe","USBMERI+","ep");
+                    
+                    double chi2, edm, errdef;
+                    int nvpar, nparx;
+                     TVirtualFitter::Fitter(Yields_Central_1_CvetanMePtBinned[ptbin])->GetStats(chi2,edm,errdef,nvpar,nparx);
+                     fitFcnV2_CvetanMe->SetChisquare(chi2);
+                     int ndf = npfits-nvpar;
+                     fitFcnV2_CvetanMe->SetNDF(ndf);
+                    
                         Double_t par[5];
                         fitFcnV2_CvetanMe->GetParameters(par);
                          // improve the pictu
@@ -2983,6 +2911,7 @@ void FitTrainingPtBinned(){
                      fitFcnV2_ZYAM->SetParameters(params);
                       TVirtualFitter::Fitter(Yields_Central_1_ZYAMPtBinned[ptbin])->SetMaxIterations(10000);
                       TVirtualFitter::Fitter(Yields_Central_1_ZYAMPtBinned[ptbin])->SetPrecision();
+                    TVirtualFitter::Fitter(Yields_Central_1_ZYAMPtBinned[ptbin])->SetFCN(ChisquareZYAMPtBinned);
                     gStyle->SetOptFit(1011);
                     //  histo->Fit("fitFcn","0");
                      // second try: set start values for some parameters
@@ -2994,7 +2923,15 @@ void FitTrainingPtBinned(){
                     
                        fitFcnV2_ZYAM->FixParameter(0,ptbin);
 
-                     TFitResultPtr res = Yields_Central_1_ZYAMPtBinned[ptbin]->Fit("fitFcnV2_ZYAM","SBMERI+","ep");
+                     TFitResultPtr res = Yields_Central_1_ZYAMPtBinned[ptbin]->Fit("fitFcnV2_ZYAM","USBMERI+","ep");
+                
+                double chi2, edm, errdef;
+                int nvpar, nparx;
+                 TVirtualFitter::Fitter(Yields_Central_1_ZYAMPtBinned[ptbin])->GetStats(chi2,edm,errdef,nvpar,nparx);
+                 fitFcnV2_ZYAM->SetChisquare(chi2);
+                 int ndf = npfits-nvpar;
+                 fitFcnV2_ZYAM->SetNDF(ndf);
+                
                     Double_t par[4];
                     fitFcnV2_ZYAM->GetParameters(par);
                      // improve the pictu
@@ -3063,6 +3000,7 @@ void FitTrainingPtBinned(){
                             fitFcnV2_PRLTemplate->SetParameters(params);
                              TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetMaxIterations(10000);
                              TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetPrecision();
+                            TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetFCN(ChisquarePRLTemplatePtBinned);
                            gStyle->SetOptFit(1011);
                            //  histo->Fit("fitFcn","0");
                             // second try: set start values for some parameters
@@ -3076,7 +3014,15 @@ void FitTrainingPtBinned(){
                        fitFcnV2_PRLTemplate->SetParLimits(2,0.1,50);
                              
 
-                            TFitResultPtr res = Yields_Central_1_PRLTemplatePtBinned[ptbin]->Fit("fitFcnV2_PRLTemplate","SBMERI+","ep");
+                            TFitResultPtr res = Yields_Central_1_PRLTemplatePtBinned[ptbin]->Fit("fitFcnV2_PRLTemplate","USBMERI+","ep");
+                       
+                       double chi2, edm, errdef;
+                       int nvpar, nparx;
+                        TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->GetStats(chi2,edm,errdef,nvpar,nparx);
+                        fitFcnV2_PRLTemplate->SetChisquare(chi2);
+                        int ndf = npfits-nvpar;
+                        fitFcnV2_PRLTemplate->SetNDF(ndf);
+                       
                            Double_t par[3];
                            fitFcnV2_PRLTemplate->GetParameters(par);
                        fitFcnV2_PRLTemplate_RidgeAndZero->SetParameters(par);
@@ -3140,6 +3086,7 @@ void FitTrainingPtBinned(){
                                fitFcnV2_PRLTemplate_PeriphZYAM->SetParameters(params);
                                 TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAMPtBinned[ptbin])->SetMaxIterations(10000);
                                 TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAMPtBinned[ptbin])->SetPrecision();
+                                TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAMPtBinned[ptbin])->SetFCN(ChisquarePRLTemplate_PeriphZYAMPtBinned);
                               gStyle->SetOptFit(1011);
                               //  histo->Fit("fitFcn","0");
                                // second try: set start values for some parameters
@@ -3152,7 +3099,15 @@ void FitTrainingPtBinned(){
                           fitFcnV2_PRLTemplate_PeriphZYAM->SetParLimits(2,0.1,5000);
                                 
 
-                               TFitResultPtr res = Yields_Central_1_PRLTemplate_PeriphZYAMPtBinned[ptbin]->Fit("fitFcnV2_PRLTemplate_PeriphZYAM","SBMERI+","ep");
+                               TFitResultPtr res = Yields_Central_1_PRLTemplate_PeriphZYAMPtBinned[ptbin]->Fit("fitFcnV2_PRLTemplate_PeriphZYAM","USBMERI+","ep");
+                          
+                          double chi2, edm, errdef;
+                          int nvpar, nparx;
+                           TVirtualFitter::Fitter(Yields_Central_1_PRLTemplate_PeriphZYAMPtBinned[ptbin])->GetStats(chi2,edm,errdef,nvpar,nparx);
+                           fitFcnV2_PRLTemplate_PeriphZYAM->SetChisquare(chi2);
+                           int ndf = npfits-nvpar;
+                           fitFcnV2_PRLTemplate_PeriphZYAM->SetNDF(ndf);
+                          
                               Double_t par[3];
                               fitFcnV2_PRLTemplate_PeriphZYAM->GetParameters(par);
                                // improve the pictu
@@ -3192,10 +3147,6 @@ void FitTrainingPtBinned(){
     
         }
         
-        for(int ptb=0; ptb<NbPtBins; ptb++){
-            std::cout << "ptb, Cvetan results random: " << ptb <<endl;
-            std::cout << "moypar12: " << moypar12[ptb] << ", moyparerr12: " << moyparerr12[ptb] << ", typeApar12: "<<typeApar12[ptb]<<endl;
-        }
     }
 
     
@@ -3790,12 +3741,48 @@ Double_t CvetanF(Double_t *x,Double_t *par)
     double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
     return baseline_central*(par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + par[3]*YMinusBp; }
 
+void ChisquareCvetanF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1->GetBinContent(bin_idx+1)-CvetanF(x,par))/(sqrt(pow(Yields_Central_1->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1_MinusBaseline->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
+
 Double_t CvetanFPtBinned(Double_t *x,Double_t *par)
 
 {   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
     int ptbin = par[0];
-    double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin]->GetBinContent(bintolook+1);
+    double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bintolook+1);
     return baseline_centralPtBinned[ptbin]*(par[1] + 2*par[2]*cos(x[0]) + 2*par[3]*cos(2*x[0])) + par[4]*YMinusBp; }
+
+void ChisquareCvetanFPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{   int ptbin = par[0];
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1PtBinned[ptbin]->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1PtBinned[ptbin]->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1PtBinned[ptbin]->GetBinContent(bin_idx+1)-CvetanFPtBinned(x,par))/(sqrt(pow(Yields_Central_1PtBinned[ptbin]->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 Double_t CvetanFTKL(Double_t *x,Double_t *par)
 
@@ -3809,12 +3796,48 @@ Double_t ZYAM(Double_t *x,Double_t *par)
     double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
     return baseline_central + (par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + 1*YMinusBp; }
 
+void ChisquareZYAM(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1->GetBinContent(bin_idx+1)-ZYAM(x,par))/(sqrt(pow(Yields_Central_1->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1_MinusBaseline->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
+
 Double_t ZYAMPtBinned(Double_t *x,Double_t *par)
 
 {   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
     int ptbin = par[0];
     double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bintolook+1);
     return baseline_centralPtBinned[ptbin] + (par[1] + 2*par[2]*cos(x[0]) + 2*par[3]*cos(2*x[0])) + 1*YMinusBp; }
+
+void ChisquareZYAMPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{   int ptbin = par[0];
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1PtBinned[ptbin]->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1PtBinned[ptbin]->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1PtBinned[ptbin]->GetBinContent(bin_idx+1)-ZYAMPtBinned(x,par))/(sqrt(pow(Yields_Central_1PtBinned[ptbin]->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 Double_t PRLTemplate(Double_t *x,Double_t *par)
 
@@ -3826,6 +3849,24 @@ Double_t PRLTemplate(Double_t *x,Double_t *par)
     
     return par[1]*Yperiphbin + (1+2*par[0]*cos(2*x[0]))*G; }
 
+void ChisquarePRLTemplate(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1->GetBinContent(bin_idx+1)-PRLTemplate(x,par))/(sqrt(pow(Yields_Central_1->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
+
 Double_t PRLTemplatePtBinned(Double_t *x,Double_t *par)
 
 {   int ptbin = par[0];
@@ -3836,6 +3877,24 @@ Double_t PRLTemplatePtBinned(Double_t *x,Double_t *par)
     double G = (integral_Yreal-(par[2]*integral_Yperiph))/(2*TMath::Pi());
     
     return par[2]*Yperiphbin + (1+2*par[1]*cos(2*x[0]))*G; }
+
+void ChisquarePRLTemplatePtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{   int ptbin = par[0];
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1PtBinned[ptbin]->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1PtBinned[ptbin]->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1PtBinned[ptbin]->GetBinContent(bin_idx+1)-PRLTemplatePtBinned(x,par))/(sqrt(pow(Yields_Central_1PtBinned[ptbin]->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1PtBinned[ptbin]->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 Double_t PRLTemplate_RidgeAndZero(Double_t *x,Double_t *par)
 
@@ -3889,6 +3948,25 @@ Double_t PRLTemplate_PeriphZYAM(Double_t *x,Double_t *par)
     
     return par[1]*YMinusBp + (1+2*par[0]*cos(2*x[0]))*G; }
 
+void ChisquarePRLTemplate_PeriphZYAM(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1->GetBinContent(bin_idx+1)-PRLTemplate_PeriphZYAM(x,par))/(sqrt(pow(Yields_Central_1->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1_MinusBaseline->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
+
+
 Double_t PRLTemplate_PeriphZYAMPtBinned(Double_t *x,Double_t *par)
 
 {   int ptbin = par[0];
@@ -3899,6 +3977,24 @@ Double_t PRLTemplate_PeriphZYAMPtBinned(Double_t *x,Double_t *par)
     double G = (integral_Yreal-(par[2]*integral_YperiphMinusBp))/(2*TMath::Pi());
     
     return par[2]*YMinusBp + (1+2*par[1]*cos(2*x[0]))*G; }
+
+void ChisquarePRLTemplate_PeriphZYAMPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  )
+
+{   int ptbin = par[0];
+    npfits = 0;
+    double tampon = 0;
+    double chi = 0;
+    double x[1];
+    
+    TAxis *xaxis1  = Yields_Central_1PtBinned[ptbin]->GetXaxis();
+    
+    for(int bin_idx=0; bin_idx<Yields_Central_1PtBinned[ptbin]->GetNbinsX(); bin_idx++){
+        x[0] = xaxis1->GetBinCenter(bin_idx+1);
+        tampon = (Yields_Central_1PtBinned[ptbin]->GetBinContent(bin_idx+1)-PRLTemplate_PeriphZYAMPtBinned(x,par))/(sqrt(pow(Yields_Central_1PtBinned[ptbin]->GetBinError(bin_idx+1),2)+pow(Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinError(bin_idx+1),2)));
+        chi += tampon*tampon;
+        npfits++;
+    }
+    fval = chi;}
 
 
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par)
