@@ -135,6 +135,8 @@ TH1F* Baseline_Central_1PtBinned[NbPtBins] = {NULL};
 TH1F* Baseline_Periph_1PtBinned[NbPtBins] = {NULL};
 TH1F* Yields_Periph_1_MinusBaselinePtBinned[NbPtBins] = {NULL};
 TH1F* Yields_Central_1_MinusBaselinePtBinned[NbPtBins] = {NULL};
+TH1F* Yields_Periph_1PtBinned_Random[NbPtBins] = {NULL};
+TH1F* Yields_Periph_1_MinusBaselinePtBinned_Random[NbPtBins] = {NULL};
 
 double baseline_periphPtBinned[NbPtBins] = {NULL};
 double errbaseline_periphPtBinned[NbPtBins] = {NULL};
@@ -145,7 +147,7 @@ Char_t FitFileName[200];
 
 void FitTrainingPtBinned(){
     
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_TKL_16h_0-10_40-90.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
     
     TH1::SetDefaultSumw2();
         bool doTracklets = kFALSE;
@@ -153,6 +155,7 @@ void FitTrainingPtBinned(){
     bool Extraction2Combined = kFALSE;
         bool CombineFits = kFALSE;
     bool PtBinned = kTRUE;
+    bool PropagatePeriph = kFALSE;
         
     // ************************************
     // Définitions de paramètres          *
@@ -2276,6 +2279,15 @@ void FitTrainingPtBinned(){
     
     
     if(PtBinned){
+        double V2_CvetanQuentin_Random[NbPtBins][10];
+        double errV2_CvetanQuentin_Random[NbPtBins][10];
+        double F_CvetanQuentin_Random[NbPtBins][10];
+        double errF_CvetanQuentin_Random[NbPtBins][10];
+        double moypar12[NbPtBins];
+       double moyparerr12[NbPtBins];
+       double typeApar12[NbPtBins];
+       double sigparerr12[NbPtBins];
+        
         for(int ptbin=0;ptbin<NbPtBins;ptbin++){
             
             baseline_centralPtBinned[ptbin] = 9999.;
@@ -2665,9 +2677,12 @@ void FitTrainingPtBinned(){
             //       Baseline_Central_1->DrawCopy();
             //       cCvetan->cd(3);
             //       Yields_Central_1_MinusBaseline->DrawCopy();
+            
+                Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin] = (TH1F*)Yields_Periph_1_MinusBaselinePtBinned[ptbin]->Clone("Yields_Periph_1_MinusBaselinePtBinned_Random");
+            
+            
                 
-                
-                {
+                if(!PropagatePeriph){
                     cCvetanPtBinned->cd(1);
                          TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),5);
                          fitFcnV2_Cvetan->SetNpx(500);
@@ -2729,6 +2744,137 @@ void FitTrainingPtBinned(){
                     errF_CvetanQuentin[ptbin] = fitFcnV2_Cvetan->GetParError(4);
                     
                 }
+            
+            if(PropagatePeriph){
+                
+                TRandom rand = 0;
+                rand.SetSeed(1234);
+                for(int t=0; t<10; t++){
+                    for(int bin_idx = 0; bin_idx<Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin]->GetNbinsX();bin_idx++){
+                        Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin]->SetBinContent(bin_idx+1, Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bin_idx+1)+rand.Gaus(0,Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinError(bin_idx+1)) );
+                    }
+                cCvetanPtBinned->cd(1);
+                     TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),5);
+                     fitFcnV2_Cvetan->SetNpx(500);
+                     fitFcnV2_Cvetan->SetLineWidth(4);
+                     fitFcnV2_Cvetan->SetLineColor(kBlue);
+                     // first try without starting values for the parameters
+                     // This defaults to 1 for each param.
+                     // this results in an ok fit for the polynomial function
+                     // however the non-linear part (lorenzian) does not
+                     // respond well.
+                      Double_t params[5] = {static_cast<Double_t>(ptbin),1,0,0.01,1};
+                     fitFcnV2_Cvetan->SetParameters(params);
+                      TVirtualFitter::Fitter(Yields_Central_1_CvetanPtBinned[ptbin])->SetMaxIterations(10000);
+                      TVirtualFitter::Fitter(Yields_Central_1_CvetanPtBinned[ptbin])->SetPrecision();
+                    gStyle->SetOptFit(1011);
+                   //  histo->Fit("fitFcn","0");
+                     // second try: set start values for some parameters
+
+                    fitFcnV2_Cvetan->SetParName(0,"ptbin");
+                      fitFcnV2_Cvetan->SetParName(1,"V0");
+                        fitFcnV2_Cvetan->SetParName(2,"V1");
+                        fitFcnV2_Cvetan->SetParName(3,"V2");
+                      fitFcnV2_Cvetan->SetParName(4,"F");
+                
+                fitFcnV2_Cvetan->SetParLimits(4,0.1,50);
+                
+                fitFcnV2_Cvetan->FixParameter(0,ptbin);
+                fitFcnV2_Cvetan->FixParameter(1,1);
+                fitFcnV2_Cvetan->FixParameter(2,0);
+              //  fitFcnV2_Cvetan->FixParameter(4,1);
+                      
+
+                     TFitResultPtr res = Yields_Central_1_CvetanPtBinned[ptbin]->Fit("fitFcnV2_Cvetan","SBMERI+","ep");
+                    Double_t par[5];
+                    fitFcnV2_Cvetan->GetParameters(par);
+                     // improve the pictu
+                   //   std::cout << "integral error: " << integralerror << std::endl;
+                     fitFcnV2_Cvetan->Draw("same");
+                     // draw the legend
+                     TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+                     legend->SetTextFont(72);
+                     legend->SetTextSize(0.04);
+                       Char_t message[80];
+                       sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_Cvetan->GetChisquare(),fitFcnV2_Cvetan->GetNDF());
+                       legend->AddEntry(fitFcnV2_Cvetan,message);
+                if(res->CovMatrixStatus() == 3){
+                           sprintf(message,"The fit is a success");
+                       }
+                       else{
+                           sprintf(message,"The fit is a failure");
+                       }
+                       legend->AddEntry(fitFcnV2_Cvetan,message);
+                     legend->AddEntry(Yields_Central_1_CvetanPtBinned[ptbin],"Data","lpe");
+                     legend->Draw();
+
+                V2_CvetanQuentin_Random[ptbin][t] = par[3];
+                errV2_CvetanQuentin_Random[ptbin][t] = fitFcnV2_Cvetan->GetParError(3);
+                F_CvetanQuentin_Random[ptbin][t] = par[4];
+                errF_CvetanQuentin_Random[ptbin][t] = fitFcnV2_Cvetan->GetParError(4);
+                }
+                
+                {
+                    int failures = 0;
+                    int NewOutliers = 1;
+                    double SigmaCutOutliers = 10;
+                    
+                    while(NewOutliers !=0){
+                        moypar12[ptbin] = 0;
+                        moyparerr12[ptbin] = 0;
+                        typeApar12[ptbin] = 0;
+                        sigparerr12[ptbin] = 0;
+                        int failures = 0;
+                        failures = 0;
+                        NewOutliers = 0;
+                        for(int z=0; z<10; z++){
+                            moypar12[ptbin] += V2_CvetanQuentin_Random[ptbin][z];
+                            moyparerr12[ptbin] += errV2_CvetanQuentin_Random[ptbin][z];
+                            if(V2_CvetanQuentin_Random[ptbin][z]==0 && errV2_CvetanQuentin_Random[ptbin][z]==0){
+                                failures++;
+                            }
+                        }
+                        moypar12[ptbin]/=(10-failures);   // Moyenne de par12
+                        moyparerr12[ptbin]/=(10-failures); //Incertitude fit 2
+                        for(int z=0; z<10; z++){
+                            if(V2_CvetanQuentin_Random[ptbin][z]!=0 || errV2_CvetanQuentin_Random[ptbin][z]!=0){
+                                typeApar12[ptbin] += pow(moypar12[ptbin]-V2_CvetanQuentin_Random[ptbin][z],2);
+                            }
+                            if(V2_CvetanQuentin_Random[ptbin][z]!=0 || errV2_CvetanQuentin_Random[ptbin][z]!=0){
+                                sigparerr12[ptbin] += pow(moyparerr12[ptbin]-errV2_CvetanQuentin_Random[ptbin][z],2);
+                            }
+                        }
+                        
+                        typeApar12[ptbin]/=((10-failures)*(10-1-failures));
+                        typeApar12[ptbin] = sqrt(typeApar12[ptbin]); // Incertitude de type A (répétabitilé) issue du fit 1 propagé
+                        
+                        sigparerr12[ptbin]/=((10-failures)*(10-1-failures));
+                        sigparerr12[ptbin] = sqrt(sigparerr12[ptbin]); // Ecart-type valeurs des erreurs.
+                        
+                        std::cout << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin] << ", sigparerr12: "<<sigparerr12[ptbin]<<endl;
+                         fileLog << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin] << ", sigparerr12: "<<sigparerr12[ptbin]<<endl;
+                        
+                        for(int z=0; z<10; z++){
+                            if(V2_CvetanQuentin_Random[ptbin][z]!=0 || errV2_CvetanQuentin_Random[ptbin][z]!=0){
+                                if(TMath::Abs(V2_CvetanQuentin_Random[ptbin][z]-moypar12[ptbin])>(SigmaCutOutliers*typeApar12[ptbin]) && TMath::Abs(errV2_CvetanQuentin_Random[ptbin][z]-moyparerr12[ptbin])>(SigmaCutOutliers*sigparerr12[ptbin])){
+                                    NewOutliers++;
+                                    std::cout << "Iteration with Yield Value: " << V2_CvetanQuentin_Random[ptbin][z] << " and Error: " << errV2_CvetanQuentin_Random[ptbin][z] << " is an outlier. Suppressed"<<endl;
+                                    fileLog << "Iteration with Yield Value: " << V2_CvetanQuentin_Random[ptbin][z] << " and Error: " << errV2_CvetanQuentin_Random[ptbin][z] << " is an outlier. Suppressed"<<endl;
+                                    V2_CvetanQuentin_Random[ptbin][z] =0;
+                                    errV2_CvetanQuentin_Random[ptbin][z] =0;
+                                }
+                            }
+                        }
+
+                        std::cout << "There were " << failures << " failures"<<endl;
+                        std::cout << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin]<<endl;
+                        
+                        fileLog << "There were " << failures << " failures"<<endl;
+                        fileLog << "moypar12: " << moypar12[ptbin] << ", moyparerr12: " << moyparerr12[ptbin] << ", typeApar12: "<<typeApar12[ptbin]<<endl;
+                    
+                    }
+                }
+            }
             
             
             // Fit Cvetan putting my constraints (F=1, V1 free, V0 not 1) - PtBinned
@@ -3045,6 +3191,11 @@ void FitTrainingPtBinned(){
             
     
         }
+        
+        for(int ptb=0; ptb<NbPtBins; ptb++){
+            std::cout << "ptb, Cvetan results random: " << ptb <<endl;
+            std::cout << "moypar12: " << moypar12[ptb] << ", moyparerr12: " << moyparerr12[ptb] << ", typeApar12: "<<typeApar12[ptb]<<endl;
+        }
     }
 
     
@@ -3096,12 +3247,12 @@ void FitTrainingPtBinned(){
     PtMiddle[ptbin] += 0.02;
     }
 
-    TGraphErrors *grV2_wrt_PtCvetanQuentinMe = new TGraphErrors(NbPtBins,PtMiddle,V2_CvetanQuentinMe,PtErrorSize,errV2_CvetanQuentinMe);
-     // TGraph *gr3 = new TGraph (n, K3, chi);
-    grV2_wrt_PtCvetanQuentinMe->SetMarkerColor(6);
-    grV2_wrt_PtCvetanQuentinMe->SetLineColor(6);
-    grV2_wrt_PtCvetanQuentinMe->SetMarkerStyle(4);
-      grV2_wrt_PtCvetanQuentinMe->Draw("P");
+//    TGraphErrors *grV2_wrt_PtCvetanQuentinMe = new TGraphErrors(NbPtBins,PtMiddle,V2_CvetanQuentinMe,PtErrorSize,errV2_CvetanQuentinMe);
+//     // TGraph *gr3 = new TGraph (n, K3, chi);
+//    grV2_wrt_PtCvetanQuentinMe->SetMarkerColor(6);
+//    grV2_wrt_PtCvetanQuentinMe->SetLineColor(6);
+//    grV2_wrt_PtCvetanQuentinMe->SetMarkerStyle(4);
+//      grV2_wrt_PtCvetanQuentinMe->Draw("P");
     
     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
     PtMiddle[ptbin] += 0.02;
@@ -3137,15 +3288,15 @@ void FitTrainingPtBinned(){
       grV2_wrt_PtPRLPeriphZYAM->Draw("P");
     
     TLegend *legendo=new TLegend(0.12,0.80,0.40,0.90);
-             legendo->SetTextFont(61);
-             legendo->SetTextSize(0.03);
+             legendo->SetTextFont(41);
+             legendo->SetTextSize(0.02);
            legendo->AddEntry(grV2_wrt_Pt1,"V2_Ext1 (pPb-like)");
             legendo->AddEntry(grV2_wrt_Pt2,"V2_Ext2 (pPb-like)");
             legendo->AddEntry(grV2_wrt_PtCvetanQuentin,"V2_CvetanQuentin (Template + ZYAM Periph)");
-            legendo->AddEntry(grV2_wrt_PtCvetanQuentinMe,"V2_CvetanQuentinMe");
+          //  legendo->AddEntry(grV2_wrt_PtCvetanQuentinMe,"V2_CvetanQuentinMe");
             legendo->AddEntry(grV2_wrt_PtZYAM,"V2_ZYAM");
-            legendo->AddEntry(grV2_wrt_PtPRL,"V2_PRL (ATLAS Template)");
-            legendo->AddEntry(grV2_wrt_PtPRLPeriphZYAM,"V2_PRLPeriphZYAM (ATLAS Template and ZYAM)");
+            legendo->AddEntry(grV2_wrt_PtPRL,"V2_ATLAS Template");
+            legendo->AddEntry(grV2_wrt_PtPRLPeriphZYAM,"V2_ATLAS Template and ZYAM)");
              legendo->Draw();
     
     cV2Pt->Update();
@@ -3204,11 +3355,11 @@ void FitTrainingPtBinned(){
       grF_wrt_PtPRLPeriphZYAM->Draw("P");
     
     TLegend *legendf=new TLegend(0.12,0.80,0.40,0.90);
-             legendf->SetTextFont(61);
-             legendf->SetTextSize(0.03);
+             legendf->SetTextFont(41);
+             legendf->SetTextSize(0.02);
             legendf->AddEntry(grF_wrt_PtCvetanQuentin,"F_CvetanQuentin (Template + ZYAM Periph)");
-            legendf->AddEntry(grF_wrt_PtPRL,"F_PRL (ATLAS Template)");
-            legendf->AddEntry(grF_wrt_PtPRLPeriphZYAM,"F_PRLPeriphZYAM (ATLAS Template and ZYAM)");
+            legendf->AddEntry(grF_wrt_PtPRL,"F_ATLAS Template");
+            legendf->AddEntry(grF_wrt_PtPRLPeriphZYAM,"F_ATLAS Template and ZYAM");
              legendf->Draw();
     
     cFPt->Update();
@@ -3218,7 +3369,167 @@ void FitTrainingPtBinned(){
     lF->SetLineWidth(1);
     lF->SetLineStyle(9);
     lF->Draw();
+    
+    
+    
+    // Prendre les résultats sur V2JPsi-Tkl et utiliser ceux sur v2tkl pour trouver le v2JPsi pour chaque méthode
+    
+    //Résultats TKL 0-5% 40-90% - Baseline central 0
+    
+    double v2ClassiqueTKL = 0.065334;
+    double errv2ClassiqueTKL = 0.000541066;
+    double v2CvetanQuentinTKL = 0.0662997;
+    double errv2CvetanQuentinTKL = 0.000409345;
+    double v2CvetanQuentinMeTKL = 0.0654186;
+    double errv2CvetanQuentinMeTKL = 0.000414581;
+    double v2ZYAMTKL = 0.0653334;
+    double errv2ZYAMTKL = 0.00104418;
+    double v2PRLTKL = 0.131845;
+    double errv2PRLTKL = 0.00186927;
+    double v2PRLPeriphZYAMTKL = 0.0673054;
+    double errv2PRLPeriphZYAMTKL = 0.000405759;
 
+    //
+    
+    double v2_Ext1[NbPtBins] = {0};
+    double v2_Ext2[NbPtBins] = {0};
+    double v2_CvetanQuentin[NbPtBins] = {0};
+    double v2_CvetanQuentinMe[NbPtBins] = {0};
+    double v2_ZYAM[NbPtBins] = {0};
+    double v2_PRL[NbPtBins] = {0};
+    double v2_PRLPeriphZYAM[NbPtBins] = {0};
+    double errv2_Ext1[NbPtBins] = {0};
+    double errv2_Ext2[NbPtBins] = {0};
+    double errv2_CvetanQuentin[NbPtBins] = {0};
+    double errv2_CvetanQuentinMe[NbPtBins] = {0};
+    double errv2_ZYAM[NbPtBins] = {0};
+    double errv2_PRL[NbPtBins] = {0};
+    double errv2_PRLPeriphZYAM[NbPtBins] = {0};
+    
+    for(int pt_idx=0; pt_idx < NbPtBins; pt_idx++){
+        v2_Ext1[pt_idx] = V2_Ext1[pt_idx]/v2ClassiqueTKL;
+        v2_Ext2[pt_idx] = V2_Ext2[pt_idx]/v2ClassiqueTKL;
+        v2_CvetanQuentin[pt_idx] = V2_CvetanQuentin[pt_idx]/v2CvetanQuentinTKL;
+        v2_CvetanQuentinMe[pt_idx] = V2_CvetanQuentinMe[pt_idx]/v2CvetanQuentinMeTKL;
+        v2_ZYAM[pt_idx] = V2_ZYAM[pt_idx]/v2ZYAMTKL;
+        v2_PRL[pt_idx] = V2_PRL[pt_idx]/v2PRLTKL;
+        v2_PRLPeriphZYAM[pt_idx] = V2_PRLPeriphZYAM[pt_idx]/v2PRLPeriphZYAMTKL;
+    }
+    
+    for(int pt_idx=0; pt_idx < NbPtBins; pt_idx++){
+        errv2_Ext1[pt_idx] = abs(sqrt(pow(errV2_Ext1[pt_idx]/V2_Ext1[pt_idx],2)+pow(errv2ClassiqueTKL/v2ClassiqueTKL,2))*v2_Ext1[pt_idx]);
+        errv2_Ext2[pt_idx] = abs(sqrt(pow(errV2_Ext2[pt_idx]/V2_Ext2[pt_idx],2)+pow(errv2ClassiqueTKL/v2ClassiqueTKL,2))*v2_Ext2[pt_idx]);
+        errv2_CvetanQuentin[pt_idx] = abs(sqrt(pow(errV2_CvetanQuentin[pt_idx]/V2_CvetanQuentin[pt_idx],2)+pow(errv2CvetanQuentinTKL/v2CvetanQuentinTKL,2))*v2_CvetanQuentin[pt_idx]);
+        errv2_CvetanQuentinMe[pt_idx] = abs(sqrt(pow(errV2_CvetanQuentinMe[pt_idx]/V2_CvetanQuentinMe[pt_idx],2)+pow(errv2CvetanQuentinMeTKL/v2CvetanQuentinMeTKL,2))*v2_CvetanQuentinMe[pt_idx]);
+        errv2_ZYAM[pt_idx] = abs(sqrt(pow(errV2_ZYAM[pt_idx]/V2_ZYAM[pt_idx],2)+pow(errv2ZYAMTKL/v2ZYAMTKL,2))*v2_ZYAM[pt_idx]);
+        errv2_PRL[pt_idx] = abs(sqrt(pow(errV2_PRL[pt_idx]/V2_PRL[pt_idx],2)+pow(errv2PRLTKL/v2PRLTKL,2))*v2_PRL[pt_idx]);
+        errv2_PRLPeriphZYAM[pt_idx] = abs(sqrt(pow(errV2_PRLPeriphZYAM[pt_idx]/V2_PRLPeriphZYAM[pt_idx],2)+pow(errv2PRLPeriphZYAMTKL/v2PRLPeriphZYAMTKL,2))*v2_PRLPeriphZYAM[pt_idx]);
+    }
+    
+    for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+         PtMiddle[ptbin] = (PtBins[ptbin]+PtBins[ptbin+1])/2 - 0.02*3;
+         PtErrorSize[ptbin] = (PtBins[ptbin+1]-PtBins[ptbin])/2;
+     }
+     
+     TCanvas* cv2Pt = new TCanvas;
+     cv2Pt->cd();
+     
+     TGraphErrors *grv2_wrt_Pt1 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext1,PtErrorSize,errv2_Ext1);
+              // TGraph *gr3 = new TGraph (n, K3, chi);
+               grv2_wrt_Pt1->SetTitle("v2 JPsi wrt Pt for different extraction methods");
+               grv2_wrt_Pt1->GetXaxis()->SetTitle("Pt (GeV/c)");
+               grv2_wrt_Pt1->GetYaxis()->SetTitle("v2 (JPsi)");
+             grv2_wrt_Pt1->SetMarkerColor(4);
+             grv2_wrt_Pt1->SetLineColor(4);
+             grv2_wrt_Pt1->SetMarkerStyle(5);
+               grv2_wrt_Pt1->Draw("AP");
+     
+     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+     PtMiddle[ptbin] += 0.02;
+     }
+     
+     TGraphErrors *grv2_wrt_Pt2 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext2,PtErrorSize,errv2_Ext2);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+     grv2_wrt_Pt2->SetMarkerColor(3);
+     grv2_wrt_Pt2->SetLineColor(3);
+     grv2_wrt_Pt2->SetMarkerStyle(4);
+       grv2_wrt_Pt2->Draw("P");
+     
+     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+     PtMiddle[ptbin] += 0.02;
+     }
+     
+     TGraphErrors *grv2_wrt_PtCvetanQuentin = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentin,PtErrorSize,errv2_CvetanQuentin);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+     grv2_wrt_PtCvetanQuentin->SetMarkerColor(28);
+     grv2_wrt_PtCvetanQuentin->SetLineColor(28);
+     grv2_wrt_PtCvetanQuentin->SetMarkerStyle(3);
+       grv2_wrt_PtCvetanQuentin->Draw("P");
+     
+     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+     PtMiddle[ptbin] += 0.02;
+     }
+
+//     TGraphErrors *grv2_wrt_PtCvetanQuentinMe = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentinMe,PtErrorSize,errv2_CvetanQuentinMe);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//     grv2_wrt_PtCvetanQuentinMe->SetMarkerColor(6);
+//     grv2_wrt_PtCvetanQuentinMe->SetLineColor(6);
+//     grv2_wrt_PtCvetanQuentinMe->SetMarkerStyle(4);
+//       grv2_wrt_PtCvetanQuentinMe->Draw("P");
+     
+     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+     PtMiddle[ptbin] += 0.02;
+     }
+     
+     TGraphErrors *grv2_wrt_PtZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_ZYAM,PtErrorSize,errv2_ZYAM);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+     grv2_wrt_PtZYAM->SetMarkerColor(7);
+     grv2_wrt_PtZYAM->SetLineColor(7);
+     grv2_wrt_PtZYAM->SetMarkerStyle(42);
+       grv2_wrt_PtZYAM->Draw("P");
+     
+     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+     PtMiddle[ptbin] += 0.02;
+     }
+     
+     TGraphErrors *grv2_wrt_PtPRL = new TGraphErrors(NbPtBins,PtMiddle,v2_PRL,PtErrorSize,errv2_PRL);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+     grv2_wrt_PtPRL->SetMarkerColor(2);
+     grv2_wrt_PtPRL->SetLineColor(2);
+     grv2_wrt_PtPRL->SetMarkerStyle(26);
+       grv2_wrt_PtPRL->Draw("P");
+     
+     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+     PtMiddle[ptbin] += 0.02;
+     }
+     
+     TGraphErrors *grv2_wrt_PtPRLPeriphZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_PRLPeriphZYAM,PtErrorSize,errv2_PRLPeriphZYAM);
+      // TGraph *gr3 = new TGraph (n, K3, chi);
+     grv2_wrt_PtPRLPeriphZYAM->SetMarkerColor(1);
+     grv2_wrt_PtPRLPeriphZYAM->SetLineColor(1);
+     grv2_wrt_PtPRLPeriphZYAM->SetMarkerStyle(25);
+       grv2_wrt_PtPRLPeriphZYAM->Draw("P");
+     
+     TLegend *legendov=new TLegend(0.12,0.80,0.40,0.90);
+              legendov->SetTextFont(41);
+              legendov->SetTextSize(0.02);
+            legendov->AddEntry(grv2_wrt_Pt1,"v2_Ext1 (pPb-like)");
+             legendov->AddEntry(grv2_wrt_Pt2,"v2_Ext2 (pPb-like)");
+             legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v2_CvetanQuentin (Template + ZYAM Periph)");
+           //  legendov->AddEntry(grv2_wrt_PtCvetanQuentinMe,"v2_CvetanQuentinMe");
+             legendov->AddEntry(grv2_wrt_PtZYAM,"v2_ZYAM");
+             legendov->AddEntry(grv2_wrt_PtPRL,"v2_ATLAS Template");
+             legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v2_ATLAS Template and ZYAM");
+              legendov->Draw();
+     
+     cv2Pt->Update();
+    // TLine *l=new TLine(cV2Pt->GetUxmin(),0.0,cV2Pt->GetUxmax(),0.0);
+     TLine *lv=new TLine(0.0,0.0,12.0,0.0);
+     lv->SetLineColor(kBlack);
+     lv->SetLineWidth(1);
+     lv->SetLineStyle(9);
+     lv->Draw();
+    
 
     if(doTracklets){
 
@@ -3483,7 +3794,7 @@ Double_t CvetanFPtBinned(Double_t *x,Double_t *par)
 
 {   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
     int ptbin = par[0];
-    double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bintolook+1);
+    double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned_Random[ptbin]->GetBinContent(bintolook+1);
     return baseline_centralPtBinned[ptbin]*(par[1] + 2*par[2]*cos(x[0]) + 2*par[3]*cos(2*x[0])) + par[4]*YMinusBp; }
 
 Double_t CvetanFTKL(Double_t *x,Double_t *par)
