@@ -424,6 +424,10 @@ void PlotFromTreePtBinned(){
     int DeltaEtaLongCMS = 1.6;
     int DeltaEtaShortCMS = 1.0;
     
+    double R_SPD1 = 3.9;
+    double R_SPD2 = 7.6;
+    double corrFactorDeltaPhi = R_SPD1/(R_SPD2-R_SPD1);
+    
     
   //  Char_t Group_Period[50] = "Group1";
    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
@@ -1668,7 +1672,7 @@ void PlotFromTreePtBinned(){
             int NumberOfTrackletsPassingEtaCut = 0;
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                 trac = (TrackletLight*)fTracklets->At(j);
-                hsingletrac->Fill(trac->fPhi, trac->fEta);
+                hsingletrac->Fill((trac->fPhi)+corrFactorDeltaPhi*(trac->fDPhi), trac->fEta);
                 if((TMath::Abs(trac->fEta) < TklEtaCut) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
                     NumberOfTrackletsPassingEtaCut++;
                     hnseg9->Fill(fEvent->fVertexZ, trac->fEta);
@@ -1818,7 +1822,7 @@ void PlotFromTreePtBinned(){
                                trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME
                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                   double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                    double trackletMEEta = trackletME->fEta;
                                    Pools[centintME][zvintME].push_back(trackletMEPhi);
                                    Pools[centintME][zvintME].push_back(trackletMEEta);
@@ -1833,7 +1837,7 @@ void PlotFromTreePtBinned(){
                                    trackletME = (TrackletLight*)fTracklets->At(j);
                                    //FIXME
                                    if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
-                                       double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                       double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                        double trackletMEEta = trackletME->fEta;
                                        Pools[centintME][zvintME].push_back(trackletMEPhi);
                                        Pools[centintME][zvintME].push_back(trackletMEEta);
@@ -1899,7 +1903,7 @@ void PlotFromTreePtBinned(){
                                trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME
                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                   double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                    double trackletMEEta = trackletME->fEta;
                                    PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEPhi);
                                    PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEEta);
@@ -1914,7 +1918,7 @@ void PlotFromTreePtBinned(){
                                    trackletME = (TrackletLight*)fTracklets->At(j);
                                    //FIXME
                                    if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
-                                       double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                       double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                        double trackletMEEta = trackletME->fEta;
                                        PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEPhi);
                                        PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEEta);
@@ -1942,12 +1946,10 @@ void PlotFromTreePtBinned(){
 // ***********************************
 // Boucle sur les correlations, notés j    *
 // ***********************************
-            int counter_one = 0;
             for (Int_t j=0; j<fEvent->fNCorrelations; j++) {
                 correl = (CorrelationLight*)fCorrelations->At(j);
                 if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) && FIXME
-                    counter_one++;
-                    Float_t DeltaPhi = correl->fDeltaPhi;
+                    Float_t DeltaPhi = correl->fDeltaPhi + (corrFactorDeltaPhi*(correl->fTrackletDPhi));
                     if(DeltaPhi < -TMath::Pi()/2){
                         DeltaPhi += 2* TMath::Pi();
                     }
@@ -2020,7 +2022,7 @@ void PlotFromTreePtBinned(){
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
                     if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts FIXME
-                            Float_t DeltaPhi = tracklet1->fPhi - tracklet2->fPhi;
+                        Float_t DeltaPhi = (tracklet1->fPhi + corrFactorDeltaPhi*(tracklet1->fDPhi)) - (tracklet2->fPhi + corrFactorDeltaPhi*(tracklet2->fDPhi));
                             if(DeltaPhi < -TMath::Pi()/2){
                                 DeltaPhi += 2* TMath::Pi();
                             }
@@ -2076,7 +2078,7 @@ void PlotFromTreePtBinned(){
                                 if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){ //FIXME
 
                                   for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
-                                              double correlTklMEPhi = tracklet1->fPhi - PoolsTkl[centintME][zvintME].at(k);
+                                              double correlTklMEPhi = (tracklet1->fPhi + corrFactorDeltaPhi*(tracklet1->fDPhi)) - PoolsTkl[centintME][zvintME].at(k);
                                               if(correlTklMEPhi < -TMath::Pi()/2){
                                                   correlTklMEPhi += 2* TMath::Pi();
                                               }
@@ -2144,7 +2146,7 @@ void PlotFromTreePtBinned(){
                                trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME
                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
-                                   double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                   double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                    double trackletMEEta = trackletME->fEta;
                                    PoolsTkl[centintME][zvintME].push_back(trackletMEPhi);
                                    PoolsTkl[centintME][zvintME].push_back(trackletMEEta);
@@ -2163,7 +2165,7 @@ void PlotFromTreePtBinned(){
                                 trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME
                                 if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
-                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
+                                    double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                     double trackletMEEta = trackletME->fEta;
                                     PoolsTkl[centintME][zvintME].push_back(trackletMEPhi);
                                     PoolsTkl[centintME][zvintME].push_back(trackletMEEta);
