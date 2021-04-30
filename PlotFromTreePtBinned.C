@@ -74,12 +74,12 @@ int GetPtBin(double pt);
 //13: 90-100%
 
 int CentralLowBound = 0;
-int CentralHighBound = 0;
+int CentralHighBound = 2;
 int PeripheralLowBound = 8;
-int PeripheralHighBound = 12;
+int PeripheralHighBound = 13;
 
-double PtBins[] = {0,12};
-const int NbPtBins = 1;
+double PtBins[] = {0,2,4,6,8,12};
+const int NbPtBins = 5;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
 
@@ -361,7 +361,8 @@ double errV2_Ext2[NbPtBins] = {0};
 void PlotFromTreePtBinned(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kTRUE;
+    bool doTracklets = kFALSE;
+    bool isCMSMethod = kFALSE;
     bool doMixedEvents = kTRUE;
     bool KeepOnlyOne = kFALSE;
     int valueOnlyOne = 3;
@@ -420,11 +421,15 @@ void PlotFromTreePtBinned(){
     const int NbBinsZvtx = 20;
     
     
+    int DeltaEtaLongCMS = 1.6;
+    int DeltaEtaShortCMS = 1.0;
+    
+    
   //  Char_t Group_Period[50] = "Group1";
- //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
-  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
-   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j"};
-   Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+   Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+  // Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU_OnlyMuonTrackCutsApplied"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -433,8 +438,9 @@ void PlotFromTreePtBinned(){
     Char_t CanvasName[200];
     Char_t FitFileName[200];
 
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_TKL_16h_0-1_40-90.root");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 mars/PlotFromTreePtBinned_GoodPU/TKL_16h_0-1_40-90");
+  //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Run2_0-5_60-100_pt0-2-4-6-8-12.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
+    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 avril/GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12");
     
     
 
@@ -484,12 +490,20 @@ void PlotFromTreePtBinned(){
     
     TH1F* Yields[NbBinsCent][NbinsInvMass]{ NULL };
     TH1F* YieldsTkl[NbBinsCent]{ NULL };
+    TH1F* YieldsTklShortCMS[NbBinsCent]{ NULL };
+    TH1F* YieldsTklLongCMS[NbBinsCent]{ NULL };
     TH2F* Correlations[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2F* CorrelationsTkl[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2F* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2F* CorrelationsTklLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2I* CorrelationsME[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2I* CorrelationsTklME[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsTklMEShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsTklMELongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2F* CorrelationsMEScaled[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2F* CorrelationsTklMEScaled[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2F* CorrelationsTklMEScaledShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2F* CorrelationsTklMEScaledLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
     TH1F* Yield_tampon(NULL);
     TH1F* YieldTkl_tampon(NULL);
     TH1F* YieldWrtMass_tampon(NULL);
@@ -501,6 +515,14 @@ void PlotFromTreePtBinned(){
     TH1F* YieldTkl_Central(NULL);
     TH1F* YieldTkl_Periph(NULL);
     TH1F* YieldTkl_Difference(NULL);
+    TH1F* YieldTkl_allCShortCMS(NULL);
+    TH1F* YieldTkl_CentralShortCMS(NULL);
+    TH1F* YieldTkl_PeriphShortCMS(NULL);
+    TH1F* YieldTkl_DifferenceShortCMS(NULL);
+    TH1F* YieldTkl_allCLongCMS(NULL);
+    TH1F* YieldTkl_CentralLongCMS(NULL);
+    TH1F* YieldTkl_PeriphLongCMS(NULL);
+    TH1F* YieldTkl_DifferenceLongCMS(NULL);
     TH1F* Yield_Central_MassBin[NbinsInvMass] = { NULL };
     TH1F* Yield_Periph_MassBin[NbinsInvMass] = { NULL };
     TH1F* Yield_Difference_MassBin[NbinsInvMass] = { NULL };
@@ -778,6 +800,16 @@ void PlotFromTreePtBinned(){
                           "Yields Correlation Tkl wrt delta phi",
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
         YieldsTkl[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        sprintf(hname,"Yields Tkl ShortCMS %d ",i);
+        YieldsTklShortCMS[i] = new TH1F(hname,
+                          "Yields Correlation Tkl ShortCMS wrt delta phi",
+                          NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+        YieldsTklShortCMS[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        sprintf(hname,"Yields Tkl LongCMS %d ",i);
+        YieldsTklLongCMS[i] = new TH1F(hname,
+                          "Yields Correlation Tkl LongCMS wrt delta phi",
+                          NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+        YieldsTklLongCMS[i]->SetXTitle("Correlation DeltaPhi (rad)");
         for(int j=0; j<NbBinsZvtx; j++){
             sprintf(hname,"Correlations Tkl %d %d ",i,j);
             CorrelationsTkl[i][j] = new TH2F(hname,
@@ -797,6 +829,44 @@ void PlotFromTreePtBinned(){
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
             CorrelationsTklMEScaled[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
             CorrelationsTklMEScaled[i][j]->SetYTitle("Correlation DeltaEta");
+            
+            sprintf(hname,"Correlations Tkl ShortCMS %d %d ",i,j);
+            CorrelationsTklShortCMS[i][j] = new TH2F(hname,
+                              "Correlation Tkl ShortCMS delta eta wrt delta phi",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklShortCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            sprintf(hname,"CorrelationsME Tkl ShortCMS %d %d ",i,j);
+            CorrelationsTklMEShortCMS[i][j] = new TH2I(hname,
+                              "MixedEvent Correlation Tkl ShortCMS delta eta wrt delta phi",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklMEShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklMEShortCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            sprintf(hname,"CorrelationsME Tkl ShortCMS Scaled %d %d ",i,j);
+            CorrelationsTklMEScaledShortCMS[i][j] = new TH2F(hname,
+                              "MixedEvent Correlation Tkl ShortCMS delta eta wrt delta phi - Scaled",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklMEScaledShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklMEScaledShortCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            
+            sprintf(hname,"Correlations Tkl LongCMS %d %d ",i,j);
+            CorrelationsTklLongCMS[i][j] = new TH2F(hname,
+                              "Correlation Tkl LongCMS delta eta wrt delta phi",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklLongCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklLongCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            sprintf(hname,"CorrelationsME Tkl LongCMS %d %d ",i,j);
+            CorrelationsTklMELongCMS[i][j] = new TH2I(hname,
+                              "MixedEvent Correlation Tkl LongCMS delta eta wrt delta phi",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklMELongCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklMELongCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            sprintf(hname,"CorrelationsME Tkl LongCMS Scaled %d %d ",i,j);
+            CorrelationsTklMEScaledLongCMS[i][j] = new TH2F(hname,
+                              "MixedEvent Correlation Tkl LongCMS delta eta wrt delta phi - Scaled",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            CorrelationsTklMEScaledLongCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
+            CorrelationsTklMEScaledLongCMS[i][j]->SetYTitle("Correlation DeltaEta");
         }
     }
     
@@ -881,6 +951,39 @@ void PlotFromTreePtBinned(){
                       "Yields Correlation Tkl wrt delta phi, all C, all mass",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
     YieldTkl_tampon->SetXTitle("Correlation DeltaPhi (rad)");
+    
+    YieldTkl_allCShortCMS = new TH1F("YieldTkl_allCShortCMS",
+                         "Yields Correlation Tkl ShortCMS wrt delta phi, all C, all mass",
+                         NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+       YieldTkl_allCShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_CentralShortCMS = new TH1F("YieldTkl_CentralShortCMS",
+                      "Yields Correlation Tkl ShortCMS wrt delta phi, Central",
+                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+    YieldTkl_CentralShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_PeriphShortCMS = new TH1F("YieldTkl_PeriphShortCMS",
+                      "Yields Correlation Tkl ShortCMS wrt delta phi, Periph",
+                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+    YieldTkl_PeriphShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_DifferenceShortCMS = new TH1F("YieldTkl_DifferenceShortCMS",
+                      "Yields Correlation Tkl ShortCMS wrt delta phi, Central-Periph, all mass",
+                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+    YieldTkl_DifferenceShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_allCLongCMS = new TH1F("YieldTkl_allCLongCMS",
+                         "Yields Correlation Tkl LongCMS wrt delta phi, all C, all mass",
+                         NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+       YieldTkl_allCLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_CentralLongCMS = new TH1F("YieldTkl_CentralLongCMS",
+                      "Yields Correlation Tkl LongCMS wrt delta phi, Central",
+                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+    YieldTkl_CentralLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_PeriphLongCMS = new TH1F("YieldTkl_PeriphLongCMS",
+                      "Yields Correlation Tkl LongCMS wrt delta phi, Periph",
+                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+    YieldTkl_PeriphLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_DifferenceLongCMS = new TH1F("YieldTkl_DifferenceLongCMS",
+                      "Yields Correlation Tkl LongCMS wrt delta phi, Central-Periph, all mass",
+                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+    YieldTkl_DifferenceLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
     
     
     hnseg = new TH1F("hnseg",
@@ -1278,6 +1381,10 @@ void PlotFromTreePtBinned(){
     double NormME[NbBinsCent][NbBinsZvtx][NbinsInvMass] = {0};
     double NormMETkl[NbBinsCent][NbBinsZvtx] = {0};
     
+    //Nassoc
+    int Nassoc_Central_TKL = 0;
+    int Nassoc_Periph_TKL = 0;
+    
     
     //For PtBinning
     int DimuSeenMassCutPtBinned[NbPtBins] = {0};
@@ -1480,10 +1587,10 @@ void PlotFromTreePtBinned(){
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
     TFile fileIn(fileInLoc);
         
-        char str [20];
+        char str [50];
         int GroupNum;
         
         std::vector <double> Pools[NbBinsCent][NbBinsZvtx]; //[12]
@@ -1629,6 +1736,13 @@ void PlotFromTreePtBinned(){
                        double zv = fEvent->fVertexZ;
                        int zvint = floor(zv) + ZvtxCut;
                         
+                        {
+                            hnseg2->Fill(dimu->fPt );
+                            hnseg3->Fill(dimu->fEta );
+                            hnseg4->Fill(dimu->fY);
+                            hnseg5->Fill(dimu->fPhi);
+                        }
+                        
                 //      int centint = GetCent(cent);
                         centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                         DimuonCounter[centint][zvint][massint]++;
@@ -1702,6 +1816,7 @@ void PlotFromTreePtBinned(){
                             }
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
+                                //FIXME
                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
                                    double trackletMEEta = trackletME->fEta;
@@ -1716,6 +1831,7 @@ void PlotFromTreePtBinned(){
                         else if(PoolsSize[centintME][zvintME] < 100){
                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                    trackletME = (TrackletLight*)fTracklets->At(j);
+                                   //FIXME
                                    if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                        double trackletMEPhi = (Float_t)trackletME->fPhi;
                                        double trackletMEEta = trackletME->fEta;
@@ -1781,6 +1897,7 @@ void PlotFromTreePtBinned(){
                             }
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
+                                //FIXME
                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
                                    double trackletMEEta = trackletME->fEta;
@@ -1795,6 +1912,7 @@ void PlotFromTreePtBinned(){
                         else if(PoolsSizePtBinned[centintME][zvintME][ptintME] < 100){
                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                    trackletME = (TrackletLight*)fTracklets->At(j);
+                                   //FIXME
                                    if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                        double trackletMEPhi = (Float_t)trackletME->fPhi;
                                        double trackletMEEta = trackletME->fEta;
@@ -1827,7 +1945,7 @@ void PlotFromTreePtBinned(){
             int counter_one = 0;
             for (Int_t j=0; j<fEvent->fNCorrelations; j++) {
                 correl = (CorrelationLight*)fCorrelations->At(j);
-                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) &&
+                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) && FIXME
                     counter_one++;
                     Float_t DeltaPhi = correl->fDeltaPhi;
                     if(DeltaPhi < -TMath::Pi()/2){
@@ -1836,12 +1954,7 @@ void PlotFromTreePtBinned(){
                     if(DeltaPhi > 1.5*TMath::Pi()){
                         DeltaPhi -= 2* TMath::Pi();
                     }
-                    if (counter_one==1){
-                        hnseg2->Fill(correl->fDimuonPt);
-                        hnseg3->Fill(correl->fDimuonEta);
-                        hnseg4->Fill(correl->fDimuonY);
-                        hnseg5->Fill(correl->fDimuonPhi);
-                    }
+
                     hnseg6->Fill(DeltaPhi);
                     hnseg7->Fill(correl->fDeltaEta);
                     hnseg8->Fill(DeltaPhi, correl->fDeltaEta);
@@ -1856,11 +1969,11 @@ void PlotFromTreePtBinned(){
                     int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
-                        
                         if(PtBinned){
                             int ptint = GetPtBin(correl->fDimuonPt);
                             CorrelationsPtBinned[centint][zvint][massint][ptint]->Fill(DeltaPhi,correl->fDeltaEta);
                         }
+                        
                       //  if(cent <= CentSPDTrackletsCentral){
                         if(isCentral(centint)){
                             YCentral->Fill(DeltaPhi,correl->fDeltaEta);
@@ -1906,7 +2019,7 @@ void PlotFromTreePtBinned(){
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
-                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts
+                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts FIXME
                             Float_t DeltaPhi = tracklet1->fPhi - tracklet2->fPhi;
                             if(DeltaPhi < -TMath::Pi()/2){
                                 DeltaPhi += 2* TMath::Pi();
@@ -1924,13 +2037,23 @@ void PlotFromTreePtBinned(){
                                int zvint = floor(zv) + ZvtxCut;
                                 int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
                                CorrelationsTkl[centint][zvint]->Fill(DeltaPhi,DeltaEta);
+                        if(isCMSMethod){
+                            if(TMath::Abs(DeltaEta)<DeltaEtaShortCMS){
+                                 CorrelationsTklShortCMS[centint][zvint]->Fill(DeltaPhi,DeltaEta);
+                             }
+                            if(TMath::Abs(DeltaEta)>DeltaEtaLongCMS){
+                                CorrelationsTklLongCMS[centint][zvint]->Fill(DeltaPhi,DeltaEta);
+                            }
+                        }
                               //  if(cent <= CentSPDTrackletsCentral){
                                 if(isCentral(centint)){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
+                                    Nassoc_Central_TKL++;
                                 }
                               //  else if(cent > CentSPDTrackletsPeriph){
                                 else if(isPeripheral(centint)){
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
+                                    Nassoc_Periph_TKL++;
                                 }
                    }
                 }
@@ -1950,7 +2073,7 @@ void PlotFromTreePtBinned(){
                         if(PoolsSizeTkl[centintME][zvintME]>=10){
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                               tracklet1 = (TrackletLight*)fTracklets->At(j);
-                                if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){
+                                if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){ //FIXME
 
                                   for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
                                               double correlTklMEPhi = tracklet1->fPhi - PoolsTkl[centintME][zvintME].at(k);
@@ -1964,6 +2087,16 @@ void PlotFromTreePtBinned(){
                                           if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
                                                CorrelationsTklME[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
                                            }
+                                      
+                                      if(isCMSMethod){
+                                          if(TMath::Abs(correlTklMEEta)<DeltaEtaShortCMS){
+                                                   CorrelationsTklMEShortCMS[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
+                                               }
+                                          if(TMath::Abs(correlTklMEEta)>DeltaEtaLongCMS){
+                                              CorrelationsTklMELongCMS[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
+                                          }
+                                      }
+                                      
                                             if(correlTklMEPhi > -SizeBinDeltaPhiTKL/2 && correlTklMEPhi < SizeBinDeltaPhiTKL/2 && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL/2){
                                                 NormMETkl[centintME][zvintME] += 1.;
                                             }
@@ -2009,6 +2142,7 @@ void PlotFromTreePtBinned(){
                            //  cout << "Will now add new event"<<endl;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
+                                //FIXME
                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi;
                                    double trackletMEEta = trackletME->fEta;
@@ -2027,6 +2161,7 @@ void PlotFromTreePtBinned(){
                            //   cout << "Pool is not full - Will add event"<<endl;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                 trackletME = (TrackletLight*)fTracklets->At(j);
+                                //FIXME
                                 if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                     double trackletMEPhi = (Float_t)trackletME->fPhi;
                                     double trackletMEEta = trackletME->fEta;
@@ -2360,6 +2495,7 @@ void PlotFromTreePtBinned(){
         //Scaling all CorrelationsMETkl
         cout << "Scaling CorrelationsMETkl" <<endl;
         
+        if(doTracklets){
         for(int i=0; i<NbBinsCent; i++){
                for(int j=0; j<NbBinsZvtx; j++){
                  //  cout << i << " " << j <<endl;
@@ -2375,6 +2511,32 @@ void PlotFromTreePtBinned(){
                    }
                    
                }
+        }
+        }
+        
+        if(doTracklets && isCMSMethod){
+        for(int i=0; i<NbBinsCent; i++){
+               for(int j=0; j<NbBinsZvtx; j++){
+                 //  cout << i << " " << j <<endl;
+                //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
+                   if(NormMETkl[i][j]>0){
+                        // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                       for(int binx=1; binx<(1+CorrelationsTklMEShortCMS[i][j]->GetNbinsX()); binx++){
+                           for(int biny=1; biny<(1+CorrelationsTklMEShortCMS[i][j]->GetNbinsY()); biny++){
+                               CorrelationsTklMEScaledShortCMS[i][j]->SetBinContent(binx,biny, (CorrelationsTklMEShortCMS[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                                CorrelationsTklMEScaledShortCMS[i][j]->SetBinError(binx,biny, (CorrelationsTklMEShortCMS[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                           }
+                       }
+                       for(int binx=1; binx<(1+CorrelationsTklMELongCMS[i][j]->GetNbinsX()); binx++){
+                           for(int biny=1; biny<(1+CorrelationsTklMELongCMS[i][j]->GetNbinsY()); biny++){
+                               CorrelationsTklMEScaledLongCMS[i][j]->SetBinContent(binx,biny, (CorrelationsTklMELongCMS[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                                CorrelationsTklMEScaledLongCMS[i][j]->SetBinError(binx,biny, (CorrelationsTklMELongCMS[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                           }
+                       }
+                   }
+
+               }
+        }
         }
 }
     
@@ -2423,29 +2585,7 @@ void PlotFromTreePtBinned(){
                 }
         }
             
-        
-        
-            cout << "Normalisation of CorrelationsTklME based on max of Eta projected  applied" <<endl;
-            
-            //Scaling all CorrelationsMETkl
-            cout << "Scaling CorrelationsMETkl" <<endl;
-            
-            for(int i=0; i<NbBinsCent; i++){
-                   for(int j=0; j<NbBinsZvtx; j++){
-                       if(NormMETkl[i][j]>0){
-                           for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
-                               for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
-                                   CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
-                                    CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
-                               }
-                           }
-                       }
-                       
-                   }
-            }
-        
     }
-    
     
 
     cout << "Calculation of DimuonCOunterZint[Cent][mass]" <<endl;
@@ -3101,6 +3241,168 @@ void PlotFromTreePtBinned(){
         
     }
     
+    if(doTracklets && isCMSMethod){
+
+
+           cout << "Calculation of YieldsTklShortCMS[Cent]" <<endl;
+           for(int i=0; i<NbBinsCent; i++){
+                         SoverMi->Reset();
+                         for(int j=0; j<NbBinsZvtx; j++){
+                             SoverMij->Reset();
+                             ProjCopyTkl->Reset();
+                             ProjCopy2Tkl->Reset();
+                             if(doMixedEvents){
+                                 ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaledShortCMS[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
+                             }
+                             SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTklShortCMS[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
+
+                             ProjCopyTkl->Add(SE_proj_Tkl_tampon);
+                             //   ProjCopy->Sumw2();
+                             if(doMixedEvents){
+                                 ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
+                             }
+                             //   ProjCopy2->Sumw2();
+                             if(doMixedEvents){
+                                 SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
+                             }
+                             else if(!doMixedEvents){
+                                 SoverMij->Add(ProjCopyTkl);
+                             }
+
+
+                               SoverMi->Add(SoverMij);
+
+                         }
+                         YieldsTklShortCMS[i]->Add(SoverMi);
+                         if(RefTklCounterZint[i] >0){
+                           //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                             for(int binx=1; binx<(1+YieldsTklShortCMS[i]->GetNbinsX()); binx++){
+
+                                       double oldContent = YieldsTklShortCMS[i]->GetBinContent(binx);
+                                       double oldError = YieldsTklShortCMS[i]->GetBinError(binx);
+                                       YieldsTklShortCMS[i]->SetBinContent(binx, (YieldsTklShortCMS[i]->GetBinContent(binx))/RefTklCounterZint[i]);
+                                       double newContent = YieldsTklShortCMS[i]->GetBinContent(binx);
+                                       YieldsTklShortCMS[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
+
+                               }
+                         }
+
+
+             }
+
+
+           cout << "Calculation of YieldsTklShortCMS for allC, central, periph" <<endl;
+           for(int i=0; i<NbBinsCent; i++){
+                   YieldTkl_tampon->Reset();
+                   YieldTkl_tampon->Add(YieldsTklShortCMS[i]);
+                   YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                   YieldTkl_allCShortCMS->Add(YieldTkl_tampon);
+           }
+           YieldTkl_allCShortCMS->Scale(1./RefTracklets);
+
+           int RefTklCnt=0;
+           for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+               YieldTkl_tampon->Reset();
+               YieldTkl_tampon->Add(YieldsTklShortCMS[i]);
+               YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+               YieldTkl_CentralShortCMS->Add(YieldTkl_tampon);
+               RefTklCnt += RefTklCounterZint[i];
+           }
+            YieldTkl_CentralShortCMS->Scale(1./RefTklCnt);
+           RefTklCnt=0;
+           for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+               YieldTkl_tampon->Reset();
+               YieldTkl_tampon->Add(YieldsTklShortCMS[i]);
+               YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+               YieldTkl_PeriphShortCMS->Add(YieldTkl_tampon);
+               RefTklCnt += RefTklCounterZint[i];
+           }
+           YieldTkl_PeriphShortCMS->Scale(1./RefTklCnt);
+           YieldTkl_DifferenceShortCMS->Add(YieldTkl_CentralShortCMS,YieldTkl_PeriphShortCMS,1,-1);
+
+       }
+    
+    if(doTracklets && isCMSMethod){
+
+
+        cout << "Calculation of YieldsTklLongCMS[Cent]" <<endl;
+        for(int i=0; i<NbBinsCent; i++){
+                      SoverMi->Reset();
+                      for(int j=0; j<NbBinsZvtx; j++){
+                          SoverMij->Reset();
+                          ProjCopyTkl->Reset();
+                          ProjCopy2Tkl->Reset();
+                          if(doMixedEvents){
+                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaledLongCMS[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
+                          }
+                          SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTklLongCMS[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
+
+                          ProjCopyTkl->Add(SE_proj_Tkl_tampon);
+                          //   ProjCopy->Sumw2();
+                          if(doMixedEvents){
+                              ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
+                          }
+                          //   ProjCopy2->Sumw2();
+                          if(doMixedEvents){
+                              SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
+                          }
+                          else if(!doMixedEvents){
+                              SoverMij->Add(ProjCopyTkl);
+                          }
+
+
+                            SoverMi->Add(SoverMij);
+
+                      }
+                      YieldsTklLongCMS[i]->Add(SoverMi);
+                      if(RefTklCounterZint[i] >0){
+                        //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                          for(int binx=1; binx<(1+YieldsTklLongCMS[i]->GetNbinsX()); binx++){
+
+                                    double oldContent = YieldsTklLongCMS[i]->GetBinContent(binx);
+                                    double oldError = YieldsTklLongCMS[i]->GetBinError(binx);
+                                    YieldsTklLongCMS[i]->SetBinContent(binx, (YieldsTklLongCMS[i]->GetBinContent(binx))/RefTklCounterZint[i]);
+                                    double newContent = YieldsTklLongCMS[i]->GetBinContent(binx);
+                                    YieldsTklLongCMS[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
+
+                            }
+                      }
+
+
+          }
+
+
+        cout << "Calculation of YieldsTklLongCMS for allC, central, periph" <<endl;
+        for(int i=0; i<NbBinsCent; i++){
+                YieldTkl_tampon->Reset();
+                YieldTkl_tampon->Add(YieldsTklLongCMS[i]);
+                YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                YieldTkl_allCLongCMS->Add(YieldTkl_tampon);
+        }
+        YieldTkl_allCLongCMS->Scale(1./RefTracklets);
+
+        int RefTklCnt=0;
+        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+            YieldTkl_tampon->Reset();
+            YieldTkl_tampon->Add(YieldsTklLongCMS[i]);
+            YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+            YieldTkl_CentralLongCMS->Add(YieldTkl_tampon);
+            RefTklCnt += RefTklCounterZint[i];
+        }
+         YieldTkl_CentralLongCMS->Scale(1./RefTklCnt);
+        RefTklCnt=0;
+        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+            YieldTkl_tampon->Reset();
+            YieldTkl_tampon->Add(YieldsTklLongCMS[i]);
+            YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+            YieldTkl_PeriphLongCMS->Add(YieldTkl_tampon);
+            RefTklCnt += RefTklCounterZint[i];
+        }
+        YieldTkl_PeriphLongCMS->Scale(1./RefTklCnt);
+        YieldTkl_DifferenceLongCMS->Add(YieldTkl_CentralLongCMS,YieldTkl_PeriphLongCMS,1,-1);
+
+    }
+    
     std::cout << "==================== Analysis Terminated - PLOTTING TIME ====================" << std::endl;
     //}
     
@@ -3485,7 +3787,7 @@ void PlotFromTreePtBinned(){
     f->Close();
     
     TFile *outputFile;
-     outputFile = new TFile("/Volumes/SEBUSB/InvMass0.root","RECREATE");
+     outputFile = new TFile("/Volumes/SEBUSB/InvMass3.root","RECREATE");
      hnseg->Write();
     InvMass_Central->Write();
     InvMass_Periph->Write();
@@ -4499,7 +4801,7 @@ void PlotFromTreePtBinned(){
         // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
             TH1F *histo = YieldTkl_Difference;
           // create a TF1 with the range from 0 to 3 and 6 parameters
-          TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+          TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
           fitFcnV2TKL->SetNpx(500);
           fitFcnV2TKL->SetLineWidth(4);
           fitFcnV2TKL->SetLineColor(kMagenta);
@@ -4558,6 +4860,224 @@ void PlotFromTreePtBinned(){
         c14TKL->SaveAs(CanvasName);
         
     }
+    
+    Double_t Acoef_Periph[4];
+    Double_t Acoef_Central[4];
+    Double_t errAcoef_Periph[4];
+    Double_t errAcoef_Central[4];
+    
+    if (doTracklets && isCMSMethod){
+            
+            TCanvas*c14TKLperiph=new TCanvas();
+            //Tracklets Yield difference wrt Phi fit
+            c14TKLperiph->cd();
+            // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                TH1F *histo = YieldTkl_Periph;
+              // create a TF1 with the range from 0 to 3 and 6 parameters
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+              fitFcnV2TKL->SetNpx(500);
+              fitFcnV2TKL->SetLineWidth(4);
+              fitFcnV2TKL->SetLineColor(kMagenta);
+              // first try without starting values for the parameters
+              // This defaults to 1 for each param.
+              // this results in an ok fit for the polynomial function
+              // however the non-linear part (lorenzian) does not
+              // respond well.
+               Double_t params[4] = {1,0.01,0.01, 0.01};
+              fitFcnV2TKL->SetParameters(params);
+               TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(histo)->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+               
+               fitFcnV2TKL->SetParName(0,"a0");
+               fitFcnV2TKL->SetParName(1,"a1");
+               fitFcnV2TKL->SetParName(2,"a2");
+                fitFcnV2TKL->SetParName(3,"a3");
+    //            fitFcnV2TKL->SetParName(4,"a4");
+    //        fitFcnV2TKL->SetParName(5,"a5");
+    //        fitFcnV2TKL->SetParName(6,"a6");
+    //        fitFcnV2TKL->SetParName(7,"a7");
+    //        fitFcnV2TKL->SetParName(8,"a8");
+    //        fitFcnV2TKL->SetParName(9,"a9");
+    //        fitFcnV2TKL->SetParName(10,"a10");
+    //        fitFcnV2TKL->SetParName(11,"a11");
+    //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+               
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+              // improve the pictu
+            //   std::cout << "integral error: " << integralerror << std::endl;
+                fitFcnV2TKL->GetParameters(Acoef_Periph);
+        for(int index=0; index<4;index++){
+            errAcoef_Periph[index] = fitFcnV2TKL->GetParError(index);
+        }
+              fitFcnV2TKL->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+              legend->SetTextFont(61);
+              legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                legend->AddEntry(fitFcnV2TKL,message);
+            sprintf(message,"V2 Tkl-Tkl Periph: %.4f / %.4f = %.4f +- %.4f",Acoef_Periph[2],Acoef_Periph[0],Acoef_Periph[2]/(Acoef_Periph[0]),(Acoef_Periph[2]/(Acoef_Periph[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Periph[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Periph[0],2))));
+            legend->AddEntry(fitFcnV2TKL,message);
+            if(res->CovMatrixStatus() == 3){
+                       sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                   }
+                   legend->AddEntry(fitFcnV2TKL,message);
+              legend->AddEntry(histo,"Data","lpe");
+              legend->Draw();
+        
+        }
+    
+    if (doTracklets && isCMSMethod){
+            
+            TCanvas*c14TKLcent=new TCanvas();
+            //Tracklets Yield difference wrt Phi fit
+            c14TKLcent->cd();
+            // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                TH1F *histo = YieldTkl_Central;
+              // create a TF1 with the range from 0 to 3 and 6 parameters
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+              fitFcnV2TKL->SetNpx(500);
+              fitFcnV2TKL->SetLineWidth(4);
+              fitFcnV2TKL->SetLineColor(kMagenta);
+              // first try without starting values for the parameters
+              // This defaults to 1 for each param.
+              // this results in an ok fit for the polynomial function
+              // however the non-linear part (lorenzian) does not
+              // respond well.
+               Double_t params[4] = {1,0.01,0.01, 0.01};
+              fitFcnV2TKL->SetParameters(params);
+               TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(histo)->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+               
+               fitFcnV2TKL->SetParName(0,"a0");
+               fitFcnV2TKL->SetParName(1,"a1");
+               fitFcnV2TKL->SetParName(2,"a2");
+                fitFcnV2TKL->SetParName(3,"a3");
+    //            fitFcnV2TKL->SetParName(4,"a4");
+    //        fitFcnV2TKL->SetParName(5,"a5");
+    //        fitFcnV2TKL->SetParName(6,"a6");
+    //        fitFcnV2TKL->SetParName(7,"a7");
+    //        fitFcnV2TKL->SetParName(8,"a8");
+    //        fitFcnV2TKL->SetParName(9,"a9");
+    //        fitFcnV2TKL->SetParName(10,"a10");
+    //        fitFcnV2TKL->SetParName(11,"a11");
+    //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+               
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+              // improve the pictu
+            //   std::cout << "integral error: " << integralerror << std::endl;
+                fitFcnV2TKL->GetParameters(Acoef_Central);
+                for(int index=0; index<4;index++){
+                    errAcoef_Central[index] = fitFcnV2TKL->GetParError(index);
+                }
+              fitFcnV2TKL->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+              legend->SetTextFont(61);
+              legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                legend->AddEntry(fitFcnV2TKL,message);
+            sprintf(message,"V2 Tkl-Tkl Periph: %.4f / %.4f = %.4f +- %.4f",Acoef_Central[2],Acoef_Central[0],Acoef_Central[2]/(Acoef_Central[0]),(Acoef_Central[2]/(Acoef_Central[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Central[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Central[0],2))));
+            legend->AddEntry(fitFcnV2TKL,message);
+            if(res->CovMatrixStatus() == 3){
+                       sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                   }
+                   legend->AddEntry(fitFcnV2TKL,message);
+              legend->AddEntry(histo,"Data","lpe");
+              legend->Draw();
+        
+        }
+    
+    if(doTracklets && isCMSMethod){
+        Double_t V2_CMS_Periph[4];
+        Double_t V2_CMS_Central[4];
+        Double_t V2_CMS_Difference[4];
+        Double_t errV2_CMS_Periph[4];
+        Double_t errV2_CMS_Central[4];
+        Double_t errV2_CMS_Difference[4];
+        Double_t errCompound[4];
+        
+        for(int index=0; index<4; index++){
+            cout << "Acoef_Periph_" << index << " = " << Acoef_Periph[index] <<" +/- "<<errAcoef_Periph[index]<<endl;
+        }
+        for(int index=0; index<4; index++){
+                   cout << "Acoef_Central_" << index << " = " << Acoef_Central[index] <<" +/- "<< errAcoef_Central[index] <<endl;
+               }
+        
+        //Calculation V2 Periph and Central
+        for(int index=0; index<4; index++){
+            V2_CMS_Periph[index]=Acoef_Periph[index]/Acoef_Periph[0];
+            V2_CMS_Central[index]=Acoef_Central[index]/Acoef_Central[0];
+            
+            errV2_CMS_Periph[index] = V2_CMS_Periph[index]*sqrt(pow(errAcoef_Periph[index]/Acoef_Periph[index],2)+pow(errAcoef_Periph[0]/Acoef_Periph[0],2));
+            errV2_CMS_Central[index] = V2_CMS_Central[index]*sqrt(pow(errAcoef_Central[index]/Acoef_Central[index],2)+pow(errAcoef_Central[0]/Acoef_Central[0],2));
+        }
+        
+        for(int index=0; index<4; index++){
+                   cout << "V2_Periph_" << index << " = " << V2_CMS_Periph[index] <<" +/- "<<errV2_CMS_Periph[index]<<endl;
+               }
+               for(int index=0; index<4; index++){
+                          cout << "V2_Central_" << index << " = " << V2_CMS_Central[index] <<" +/- "<< errV2_CMS_Central[index] <<endl;
+                      }
+        
+        TCanvas* ctry=new TCanvas();
+        ctry->Divide(1,2);
+        ctry->cd(1);
+        YieldTkl_CentralLongCMS->DrawCopy();
+        ctry->cd(2);
+        YieldTkl_CentralShortCMS->DrawCopy();
+        
+        TCanvas* ctry2=new TCanvas();
+        ctry2->Divide(1,2);
+        ctry2->cd(1);
+        YieldTkl_PeriphLongCMS->DrawCopy();
+        ctry2->cd(2);
+        YieldTkl_PeriphShortCMS->DrawCopy();
+        
+        //Calculation Y_jet_Central and Y_jet_Periph
+        Double_t e1;
+        Double_t e2;
+        Double_t e3;
+        Double_t e4;
+        
+        Double_t Y_jet_Central = -(YieldTkl_CentralLongCMS->IntegralAndError(1,YieldTkl_CentralLongCMS->GetNbinsX(),e1) - YieldTkl_CentralShortCMS->IntegralAndError(1,YieldTkl_CentralShortCMS->GetNbinsX(),e2));
+        Double_t Y_jet_Periph = -(YieldTkl_PeriphLongCMS->IntegralAndError(1,YieldTkl_PeriphLongCMS->GetNbinsX(),e3) - YieldTkl_PeriphShortCMS->IntegralAndError(1,YieldTkl_PeriphShortCMS->GetNbinsX(),e4)) ;
+        Double_t errY_jet_Central = sqrt(pow(e1,2)+pow(e2,2));
+        Double_t errY_jet_Periph = sqrt(pow(e3,2)+pow(e4,2));
+        
+        cout << "Y_jet_Central = " << Y_jet_Central << " +/- " << errY_jet_Central <<endl;
+        cout << "Y_jet_Periph = " << Y_jet_Periph << " +/- " << errY_jet_Periph <<endl;
+        
+        cout << "Nassoc_Central_TKL = " << Nassoc_Central_TKL<<endl;
+        cout << "Nassoc_Periph_TKL = " << Nassoc_Periph_TKL<<endl;
+        
+        Double_t factorCMS = static_cast<Double_t>(double(Nassoc_Periph_TKL)/Nassoc_Central_TKL)*(Y_jet_Central/Y_jet_Periph);
+        Double_t errfactorCMS = factorCMS*sqrt(pow(1/sqrt(Nassoc_Periph_TKL),2) + pow(1/sqrt(Nassoc_Central_TKL),2) + pow(errY_jet_Central/Y_jet_Central,2) + pow(errY_jet_Periph/Y_jet_Periph,2));
+        
+        cout << "factorCMS = " << factorCMS<<endl;
+        
+        for(int index=0; index<4; index++){
+            V2_CMS_Difference[index] = V2_CMS_Central[index] - V2_CMS_Periph[index]*factorCMS;
+            errCompound[index] = V2_CMS_Periph[index]*factorCMS*sqrt(pow(errfactorCMS/factorCMS,2) + pow(errV2_CMS_Periph[index]/V2_CMS_Periph[index],2));
+            errV2_CMS_Difference[index] = sqrt(pow(errV2_CMS_Central[index],2)+pow(errCompound[index],2));
+            
+            cout << "V_CMSDiff_" << index << " = " << V2_CMS_Difference[index] << " +/- " <<  errV2_CMS_Difference[index]<<endl;
+        }
+
+    }
+    
     
     
     
@@ -4627,7 +5147,7 @@ Double_t FourierV2(Double_t *x,Double_t *par)
 
 Double_t FourierV5(Double_t *x,Double_t *par)
 
-{ return par[0] + 2*par[2]*cos(2*x[0]) + 2*par[1]*cos(x[0]);}// + 2*par[3]*cos(3*x[0]);}// + 2*par[4]*cos(4*x[0]);}// + 2*par[5]*cos(5*x[0]) + 2*par[6]*cos(6*x[0]) + 2*par[7]*cos(7*x[0]) + 2*par[8]*cos(8*x[0]) + 2*par[9]*cos(9*x[0]) + 2*par[10]*cos(10*x[0]) + 2*par[11]*cos(11*x[0]);}
+{ return par[0] + 2*par[2]*cos(2*x[0]) + 2*par[1]*cos(x[0]) + 2*par[3]*cos(3*x[0]);}// + 2*par[4]*cos(4*x[0]);}// + 2*par[5]*cos(5*x[0]) + 2*par[6]*cos(6*x[0]) + 2*par[7]*cos(7*x[0]) + 2*par[8]*cos(8*x[0]) + 2*par[9]*cos(9*x[0]) + 2*par[10]*cos(10*x[0]) + 2*par[11]*cos(11*x[0]);}
 
 Double_t TwoCBE2E(Double_t *x,Double_t *par)
 
@@ -4728,7 +5248,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
      10: Norlmalisation After
      11: Exponent After
      */
-    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass0.root");
+    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass3.root");
     
     cinvmass->cd(i+1);
    cinvmass->SetFillColor(33);
@@ -4828,7 +5348,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
 //   auto covMatrix = res->GetCovarianceMatrix();
 //   std::cout << "Covariance matrix from the fit ";
 //   covMatrix.Print();
-   Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))/0.01;
+   Double_t integral = (signalFcnJPsi->Integral(2.1,5.1))/0.012;
     auto covtot = res->GetCovarianceMatrix();
     auto covsgn = covtot.GetSub(0,8,0,8);
     std::cout << "Matrice totale" <<endl;
@@ -4836,7 +5356,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     std::cout << "Matrice réduite" <<endl;
     covsgn.Print();
     std::cout << "STATUS COV " << res->CovMatrixStatus() <<endl;
-   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.01;
+   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,5.1,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.012;
     std::cout << "Erreur integrale " << integralerror <<endl;
     
     std::cout << "Fitted " << histoname << std::endl;
