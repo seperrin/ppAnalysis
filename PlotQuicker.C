@@ -33,12 +33,14 @@
 # include "TH2F.h"
 # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
-
+//Code pour faire des plots rapides d'observables
 // FUNCTIONS
 
 void PlotQuicker();
 Double_t myFunc(double x);
 Double_t myFunc2(double x);
+Double_t myEtaLow(double x);
+Double_t myEtaHigh(double x);
 TH2I* hPlotDimuEtaPhi(NULL);
 TH2I* hPlotTklEtaPhi(NULL);
 
@@ -110,6 +112,7 @@ void PlotQuicker(){
     TH1I* hnseg_spdtklval_dist(NULL);
     TH1I* hnseg_Ntkl_dist(NULL);
     TH2F* hPlotXY(NULL);
+    TH2F* hEtaWrtZ(NULL);
     TProfile* hn(NULL);
     TH2I* hPlotTklTklDeltaEtaDeltaPhi(NULL);
     TH2I* hPlotDimuTklDeltaEtaDeltaPhi(NULL);
@@ -228,6 +231,12 @@ void PlotQuicker(){
                      81,-10,10);
     hn->SetXTitle("Zvtx");
     hn->SetYTitle("Mean SPDTklVal");
+    
+    hEtaWrtZ = new TH2F("hEtaWrtZ",
+                      "Tracklet eta wrt z_vertex",
+                      100,-15,15,100,-2.5,2.5);
+    hEtaWrtZ->SetXTitle("Z_{vertex} (cm)");
+    hEtaWrtZ->SetYTitle("Tracklet Eta");
 
 // *************************
 // Analyse                 *
@@ -299,6 +308,10 @@ void PlotQuicker(){
 //            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
             //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
           //  cout << "Computing the number of tracklets in Event " << i << endl;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                hEtaWrtZ->Fill(fEvent->fVertexZ, trac->fEta);
+            }
             
           //  cout << "Reading Event " << i <<endl;
             // Apply a cut on the TrackletEta at +-1
@@ -418,7 +431,7 @@ void PlotQuicker(){
     TF2 *fPhiEtaTkl = new TF2("fPhiEtaTkl","myFunc(x,y)",0,TMath::Pi()*2,-1,1);
     TF2 *fPhiEtaDimu = new TF2("fPhiEtaDimu","myFunc2(x,y)",0,TMath::Pi()*2,-6,0);
     
-    for(int essai=0; essai<1000000000;essai++){
+    for(int essai=0; essai<1000000;essai++){
         if(essai%1000000 == 0){
             cout << essai << "/1000000000"<<endl;
         }
@@ -518,6 +531,14 @@ void PlotQuicker(){
     PercentileMethodLimits->Draw("colz");
     
     
+    TF1 *fEtaLow = new TF1("fEtaLow","myEtaLow(x)",-10,10);
+    TF1 *fEtaHigh = new TF1("fEtaHigh","myEtaHigh(x)",-10,10);
+    
+    TCanvas*cAA=new TCanvas();
+    hEtaWrtZ->Draw("colz");
+    fEtaLow->Draw("same");
+    fEtaHigh->Draw("same");
+    
 }
     
 Double_t myFunc(double x, double y){
@@ -525,3 +546,9 @@ Double_t myFunc(double x, double y){
 
 Double_t myFunc2(double x, double y){
     return hPlotDimuEtaPhi->GetBinContent(floor(720*x/(2*TMath::Pi())),floor(100*(y+6)/6)); }
+
+Double_t myEtaLow(double x){
+    return TMath::Log(TMath::Tan(0.5*TMath::ATan(7.6/(14.1+(floor(x)+0.5))))) + 0.1; }
+
+Double_t myEtaHigh(double x){
+return -(TMath::Log(TMath::Tan(0.5*TMath::ATan(7.6/(14.1-(floor(x)+0.5)))))) - 0.05; }
