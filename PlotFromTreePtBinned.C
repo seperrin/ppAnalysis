@@ -34,6 +34,7 @@
 # include "TH2F.h"
 # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
+// Code d'analyse complet
 
 // FUNCTIONS
 
@@ -56,6 +57,8 @@ int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
 bool isCentral(int centint);
 bool isPeripheral(int centint);
 int GetPtBin(double pt);
+Double_t myEtaLow(double x);
+Double_t myEtaHigh(double x);
 
 // Centrality bins:
 //0: 0-1%
@@ -76,10 +79,10 @@ int GetPtBin(double pt);
 int CentralLowBound = 0;
 int CentralHighBound = 2;
 int PeripheralLowBound = 8;
-int PeripheralHighBound = 13;
+int PeripheralHighBound = 11;
 
-double PtBins[] = {0,2,4,6,8,12};
-const int NbPtBins = 5;
+double PtBins[] = {0,12};
+const int NbPtBins = 1;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
 
@@ -361,7 +364,7 @@ double errV2_Ext2[NbPtBins] = {0};
 void PlotFromTreePtBinned(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kFALSE;
+    bool doTracklets = kTRUE;
     bool isCMSMethod = kFALSE;
     bool doMixedEvents = kTRUE;
     bool KeepOnlyOne = kFALSE;
@@ -405,6 +408,7 @@ void PlotFromTreePtBinned(){
     double MinDeltaEta = 0;
     double MaxDeltaEta = 6;
     const int NbinsDeltaEta = 20;
+    double DeltaEtaDimuCut = 1.5;
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     
    double MinDeltaEtaTKL = -2.4; //1.2
@@ -421,7 +425,7 @@ void PlotFromTreePtBinned(){
     const int NbBinsZvtx = 20;
     
     
-    int DeltaEtaLongCMS = 1.6;
+    int DeltaEtaLongCMS = 2.0;
     int DeltaEtaShortCMS = 1.0;
     
     double R_SPD1 = 3.9;
@@ -430,9 +434,9 @@ void PlotFromTreePtBinned(){
     
     
   //  Char_t Group_Period[50] = "Group1";
-   Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
-   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
-   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+ //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16o"};
   // Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU_OnlyMuonTrackCutsApplied"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
@@ -443,8 +447,8 @@ void PlotFromTreePtBinned(){
     Char_t FitFileName[200];
 
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Run2_0-5_60-100_pt0-2-4-6-8-12.root");
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 avril/GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_16hjo10_TKL_0-5_40-80_pt0-12.root");
+    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 avril/NewAnalysis_16hjo10_TKL_0-5_40-80_pt0-12");
     
     
 
@@ -498,7 +502,7 @@ void PlotFromTreePtBinned(){
     TH1F* YieldsTklLongCMS[NbBinsCent]{ NULL };
     TH2F* Correlations[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2F* CorrelationsTkl[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2F* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2F* CorrelationsTklLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2I* CorrelationsME[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2I* CorrelationsTklME[NbBinsCent][NbBinsZvtx]{ NULL };
@@ -835,7 +839,7 @@ void PlotFromTreePtBinned(){
             CorrelationsTklMEScaled[i][j]->SetYTitle("Correlation DeltaEta");
             
             sprintf(hname,"Correlations Tkl ShortCMS %d %d ",i,j);
-            CorrelationsTklShortCMS[i][j] = new TH2F(hname,
+            CorrelationsTklShortCMS[i][j] = new TH2I(hname,
                               "Correlation Tkl ShortCMS delta eta wrt delta phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
             CorrelationsTklShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
@@ -1651,9 +1655,9 @@ void PlotFromTreePtBinned(){
                     std::cout.flush();
                 std::cout << std::endl;
             }
-//            if(doTracklets && (i%10!=0)){
-//                continue;
-//            }
+            if(doTracklets && (i%10!=0)){
+                continue;
+            }
                 theTree->GetEvent(i);
             if(fEvent->fIsPileupFromSPDMultBins){
                 EventPileUpMult++;
@@ -1809,7 +1813,9 @@ void PlotFromTreePtBinned(){
                                            correlMEPhi -= 2* TMath::Pi();
                                        }
                                        double correlMEEta = TMath::Abs(dimu->fEta - Pools[centintME][zvintME].at(k+1)); //[phintME]
+                               if((correlMEEta>DeltaEtaDimuCut) && (correlMEEta<MaxDeltaEta)){
                                             CorrelationsME[centintME][zvintME][massintME]->Fill(correlMEPhi,correlMEEta);
+                               }
                            }
                         }
                         if(PoolsSize[centintME][zvintME] == 100){
@@ -1820,8 +1826,8 @@ void PlotFromTreePtBinned(){
                             }
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
-                                //FIXME
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                //FIXME ok
+                               if(trackletME->fEta < myEtaHigh(zvME) && trackletME->fEta > myEtaLow(zvME) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                    double trackletMEEta = trackletME->fEta;
                                    Pools[centintME][zvintME].push_back(trackletMEPhi);
@@ -1835,8 +1841,8 @@ void PlotFromTreePtBinned(){
                         else if(PoolsSize[centintME][zvintME] < 100){
                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                    trackletME = (TrackletLight*)fTracklets->At(j);
-                                   //FIXME
-                                   if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                   //FIXME ok
+                                   if(trackletME->fEta < myEtaHigh(zvME) && trackletME->fEta > myEtaLow(zvME) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                        double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                        double trackletMEEta = trackletME->fEta;
                                        Pools[centintME][zvintME].push_back(trackletMEPhi);
@@ -1890,7 +1896,9 @@ void PlotFromTreePtBinned(){
                                            correlMEPhi -= 2* TMath::Pi();
                                        }
                                        double correlMEEta = TMath::Abs(dimu->fEta - PoolsPtBinned[centintME][zvintME][ptintME].at(k+1)); //[phintME]
+                                        if((correlMEEta>DeltaEtaDimuCut) && (correlMEEta<MaxDeltaEta)){
                                             CorrelationsMEPtBinned[centintME][zvintME][massintME][ptintME]->Fill(correlMEPhi,correlMEEta);
+                                        }
                            }
                         }
                         if(PoolsSizePtBinned[centintME][zvintME][ptintME] == 100){
@@ -1901,8 +1909,8 @@ void PlotFromTreePtBinned(){
                             }
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
-                                //FIXME
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                //FIXME ok
+                               if(trackletME->fEta < myEtaHigh(zvME) && trackletME->fEta > myEtaLow(zvME) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                    double trackletMEEta = trackletME->fEta;
                                    PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEPhi);
@@ -1916,8 +1924,8 @@ void PlotFromTreePtBinned(){
                         else if(PoolsSizePtBinned[centintME][zvintME][ptintME] < 100){
                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                    trackletME = (TrackletLight*)fTracklets->At(j);
-                                   //FIXME
-                                   if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                   //FIXME ok
+                                   if(trackletME->fEta < myEtaHigh(zvME) && trackletME->fEta > myEtaLow(zvME) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                        double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                        double trackletMEEta = trackletME->fEta;
                                        PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEPhi);
@@ -1948,7 +1956,7 @@ void PlotFromTreePtBinned(){
 // ***********************************
             for (Int_t j=0; j<fEvent->fNCorrelations; j++) {
                 correl = (CorrelationLight*)fCorrelations->At(j);
-                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut) && (TMath::Abs(correl->fTrackletEta) < 1) && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (TMath::Abs(correl->fTrackletEta) < TklEtaCut)){   //Cuts    (fEvent->fNPileupVtx == 0) && FIXME
+                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (correl->fDimuonY < HighDimuYCut ) && (correl->fDimuonY > LowDimuYCut) && (correl->fDimuonCharge == 0) && (correl->fDimuonPt > LowDimuPtCut) && (correl->fDimuonPt < HighDimuPtCut)  && (TMath::Abs(correl->fTrackletDPhi) < DPhiCut) && (correl->fTrackletEta < myEtaHigh(fEvent->fVertexZ)) && (correl->fTrackletEta > myEtaLow(fEvent->fVertexZ))){   //Cuts    (fEvent->fNPileupVtx == 0) && FIXME ok
                     Float_t DeltaPhi = correl->fDeltaPhi + (corrFactorDeltaPhi*(correl->fTrackletDPhi));
                     if(DeltaPhi < -TMath::Pi()/2){
                         DeltaPhi += 2* TMath::Pi();
@@ -1961,7 +1969,7 @@ void PlotFromTreePtBinned(){
                     hnseg7->Fill(correl->fDeltaEta);
                     hnseg8->Fill(DeltaPhi, correl->fDeltaEta);
                     
-                    if((correl->fDimuonInvMass > MinInvMass) && (correl->fDimuonInvMass < MaxInvMass)){
+                    if((correl->fDimuonInvMass > MinInvMass) && (correl->fDimuonInvMass < MaxInvMass) && (TMath::Abs(correl->fDeltaEta)>DeltaEtaDimuCut) && (TMath::Abs(correl->fDeltaEta)<MaxDeltaEta) ){
                     double mass = correl->fDimuonInvMass;
                      int massint = int((mass-MinInvMass)/SizeBinInvMass);
                    // double cent = fEvent->fCentralitySPDTracklets;
@@ -2021,7 +2029,7 @@ void PlotFromTreePtBinned(){
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
-                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (TMath::Abs(tracklet1->fEta) < TklEtaCut) && (TMath::Abs(tracklet2->fEta) < TklEtaCut)){   //Cuts FIXME
+                    if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut) && (TMath::Abs(tracklet2->fDPhi) < DPhiCut) && (tracklet1->fEta < myEtaHigh(fEvent->fVertexZ)) && (tracklet1->fEta > myEtaLow(fEvent->fVertexZ)) && (tracklet2->fEta < myEtaHigh(fEvent->fVertexZ)) && (tracklet2->fEta > myEtaLow(fEvent->fVertexZ))){   //Cuts FIXME ok
                         Float_t DeltaPhi = (tracklet1->fPhi + corrFactorDeltaPhi*(tracklet1->fDPhi)) - (tracklet2->fPhi + corrFactorDeltaPhi*(tracklet2->fDPhi));
                             if(DeltaPhi < -TMath::Pi()/2){
                                 DeltaPhi += 2* TMath::Pi();
@@ -2030,32 +2038,38 @@ void PlotFromTreePtBinned(){
                                 DeltaPhi -= 2* TMath::Pi();
                             }
                             Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
-                        if(TMath::Abs(DeltaEta)<DeltaEtaTKLCut){
-                            continue;
-                        }
-                            //   double cent = fEvent->fCentralitySPDTracklets;
-                          //     int centint = GetCent(cent);
-                               double zv = fEvent->fVertexZ;
-                               int zvint = floor(zv) + ZvtxCut;
-                                int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
-                               CorrelationsTkl[centint][zvint]->Fill(DeltaPhi,DeltaEta);
+                        double zv = fEvent->fVertexZ;
+                        int zvint = floor(zv) + ZvtxCut;
+                         int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                        
                         if(isCMSMethod){
                             if(TMath::Abs(DeltaEta)<DeltaEtaShortCMS){
                                  CorrelationsTklShortCMS[centint][zvint]->Fill(DeltaPhi,DeltaEta);
                              }
-                            if(TMath::Abs(DeltaEta)>DeltaEtaLongCMS){
+                            if(TMath::Abs(DeltaEta)>DeltaEtaLongCMS && TMath::Abs(DeltaEta)<MaxDeltaEtaTKL){
                                 CorrelationsTklLongCMS[centint][zvint]->Fill(DeltaPhi,DeltaEta);
                             }
                         }
+                        if(isCentral(centint)){
+                              Nassoc_Central_TKL++;
+                          }
+                          else if(isPeripheral(centint)){
+                              Nassoc_Periph_TKL++;
+                          }
+                        
+                        if((TMath::Abs(DeltaEta)<DeltaEtaTKLCut) || (TMath::Abs(DeltaEta)>MaxDeltaEtaTKL)){
+                            continue;
+                        }
+                            //   double cent = fEvent->fCentralitySPDTracklets;
+                          //     int centint = GetCent(cent);
+                               CorrelationsTkl[centint][zvint]->Fill(DeltaPhi,DeltaEta);
                               //  if(cent <= CentSPDTrackletsCentral){
                                 if(isCentral(centint)){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
-                                    Nassoc_Central_TKL++;
                                 }
                               //  else if(cent > CentSPDTrackletsPeriph){
                                 else if(isPeripheral(centint)){
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
-                                    Nassoc_Periph_TKL++;
                                 }
                    }
                 }
@@ -2075,7 +2089,7 @@ void PlotFromTreePtBinned(){
                         if(PoolsSizeTkl[centintME][zvintME]>=10){
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                               tracklet1 = (TrackletLight*)fTracklets->At(j);
-                                if(TMath::Abs(tracklet1->fEta) < TklEtaCut && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){ //FIXME
+                                if((tracklet1->fEta < myEtaHigh(zvME)) && (tracklet1->fEta > myEtaLow(zvME)) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){ //FIXME ok
 
                                   for(int k=0; k< PoolsTkl[centintME][zvintME].size(); k+=2){
                                               double correlTklMEPhi = (tracklet1->fPhi + corrFactorDeltaPhi*(tracklet1->fDPhi)) - PoolsTkl[centintME][zvintME].at(k);
@@ -2086,7 +2100,7 @@ void PlotFromTreePtBinned(){
                                                   correlTklMEPhi -= 2* TMath::Pi();
                                               }
                                       double correlTklMEEta = tracklet1->fEta - PoolsTkl[centintME][zvintME].at(k+1); //DeltaEtaAbs
-                                          if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                          if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut && TMath::Abs(correlTklMEEta)<MaxDeltaEtaTKL){
                                                CorrelationsTklME[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
                                            }
                                       
@@ -2106,7 +2120,7 @@ void PlotFromTreePtBinned(){
                                       
                                   //        if(cent <= CentSPDTrackletsCentral){
                                       if(isCentral(centintME)){
-                                              if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                              if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut && TMath::Abs(correlTklMEEta)<MaxDeltaEtaTKL){
                                                   YTklCentralME->Fill(correlTklMEPhi,correlTklMEEta);
                                               }
                                               if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
@@ -2115,7 +2129,7 @@ void PlotFromTreePtBinned(){
                                           }
                                  //         else if(cent > CentSPDTrackletsPeriph){
                                       else if(isPeripheral(centintME)){
-                                             if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut){
+                                             if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut && TMath::Abs(correlTklMEEta)<MaxDeltaEtaTKL){
                                                   YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
                                               }
                                               if(correlTklMEPhi > 0 && correlTklMEPhi < SizeBinDeltaPhiTKL && TMath::Abs(correlTklMEEta) < SizeBinDeltaEtaTKL){
@@ -2144,8 +2158,8 @@ void PlotFromTreePtBinned(){
                            //  cout << "Will now add new event"<<endl;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
-                                //FIXME
-                               if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                //FIXME ok
+                               if((trackletME->fEta < myEtaHigh(zvME)) && (trackletME->fEta > myEtaLow(zvME)) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                    double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                    double trackletMEEta = trackletME->fEta;
                                    PoolsTkl[centintME][zvintME].push_back(trackletMEPhi);
@@ -2163,8 +2177,8 @@ void PlotFromTreePtBinned(){
                            //   cout << "Pool is not full - Will add event"<<endl;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                 trackletME = (TrackletLight*)fTracklets->At(j);
-                                //FIXME
-                                if(TMath::Abs(trackletME->fEta) < TklEtaCut && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
+                                //FIXME ok
+                                if((trackletME->fEta < myEtaHigh(zvME)) && (trackletME->fEta > myEtaLow(zvME)) && (TMath::Abs(trackletME->fDPhi) < DPhiCut)){
                                     double trackletMEPhi = (Float_t)trackletME->fPhi + corrFactorDeltaPhi*(trackletME->fDPhi);
                                     double trackletMEEta = trackletME->fEta;
                                     PoolsTkl[centintME][zvintME].push_back(trackletMEPhi);
@@ -3457,10 +3471,15 @@ void PlotFromTreePtBinned(){
     sprintf(CanvasName,"%s/DPhiDist.pdf",FolderName);
     cDPhi->SaveAs(CanvasName);
 
+    TF1 *fEtaLow = new TF1("fEtaLow","myEtaLow(x)",-10,10);
+    TF1 *fEtaHigh = new TF1("fEtaHigh","myEtaHigh(x)",-10,10);
+    
     TCanvas*c2=new TCanvas();
     c2->SetTitle("TklEtaWrtZvtx");
     //Plot TrkEtaWrtZvtx
     hnseg9->Draw("colz");
+    fEtaLow->Draw("same");
+    fEtaHigh->Draw("same");
     sprintf(CanvasName,"%s/TklEtaZvtx.pdf",FolderName);
     c2->SaveAs(CanvasName);
     
@@ -3789,7 +3808,7 @@ void PlotFromTreePtBinned(){
     f->Close();
     
     TFile *outputFile;
-     outputFile = new TFile("/Volumes/SEBUSB/InvMass3.root","RECREATE");
+     outputFile = new TFile("/Volumes/SEBUSB/InvMass4.root","RECREATE");
      hnseg->Write();
     InvMass_Central->Write();
     InvMass_Periph->Write();
@@ -5250,7 +5269,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
      10: Norlmalisation After
      11: Exponent After
      */
-    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass3.root");
+    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass4.root");
     
     cinvmass->cd(i+1);
    cinvmass->SetFillColor(33);
@@ -5496,3 +5515,9 @@ int GetPtBin(double pt){
         }
     }
 }
+
+Double_t myEtaLow(double x){
+    return TMath::Log(TMath::Tan(0.5*TMath::ATan(7.6/(14.1+(floor(x)+0.5))))) + 0.1; }
+
+Double_t myEtaHigh(double x){
+return -(TMath::Log(TMath::Tan(0.5*TMath::ATan(7.6/(14.1-(floor(x)+0.5)))))) - 0.05; }
