@@ -35,6 +35,7 @@
  # include "TH2F.h"
  # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
+//Code utilisé pour suivre l'évolution des incertitude dans la succession de fits
 
  // FUNCTIONS
 
@@ -829,7 +830,7 @@ void FitExt2UncA(){
     c16->SetTitle("Extraction method 2");
     
     char histoname[50];
-    int niterations = 100;
+    int niterations = 50;
     TRandom rand = 0;
     rand.SetSeed(1234);
     
