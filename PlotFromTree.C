@@ -34,7 +34,7 @@
 # include "TH2F.h"
 # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
-
+//Vieux code d'analyse pas adapté à PtBinned
 // FUNCTIONS
 
 void PlotFromTree();
@@ -73,9 +73,9 @@ bool isPeripheral(int centint);
 //13: 90-100%
 
 int CentralLowBound = 0;
-int CentralHighBound = 1;
-int PeripheralLowBound = 7;
-int PeripheralHighBound = 11;
+int CentralHighBound = 2;
+int PeripheralLowBound = 8;
+int PeripheralHighBound = 12;
 
 bool isCentral(int centint){
     if((centint>=CentralLowBound)&&(centint<=CentralHighBound))
@@ -349,7 +349,7 @@ TH1F* V2JPsiTkl(NULL);
 void PlotFromTree(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kFALSE;
+    bool doTracklets = kTRUE;
     bool doMixedEvents = kTRUE;
     bool CombineFits = kFALSE;
     bool KeepOnlyOne = kFALSE;
@@ -369,7 +369,7 @@ void PlotFromTree(){
     double TklEtaCut  = 1;
     double LowDimuYCut = -4;
     double HighDimuYCut = -2.5;
-    double LowDimuPtCut = 10;
+    double LowDimuPtCut = 0;
     double HighDimuPtCut = 12;
 //    double MinMultCentral = 37;
 //    double MaxMultPeriph = 23;
@@ -410,9 +410,9 @@ void PlotFromTree(){
     
     
   //  Char_t Group_Period[50] = "Group1";
-   Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+  // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
-  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -1318,9 +1318,9 @@ void PlotFromTree(){
                     std::cout.flush();
                 std::cout << std::endl;
             }
-//            if(doTracklets && (i%10!=0)){
-//                continue;
-//            }
+            if(doTracklets && (i%100!=0)){
+                continue;
+            }
                 theTree->GetEvent(i);
             if(fEvent->fIsPileupFromSPDMultBins){
                 EventPileUpMult++;
@@ -2420,7 +2420,7 @@ void PlotFromTree(){
                       }
                       YieldsTkl[i]->Add(SoverMi);
                       if(RefTklCounterZint[i] >0){
-                          YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                        //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
                           for(int binx=1; binx<(1+YieldsTkl[i]->GetNbinsX()); binx++){
 
                                     double oldContent = YieldsTkl[i]->GetBinContent(binx);
