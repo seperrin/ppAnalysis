@@ -33,6 +33,8 @@
 # include "TH2F.h"
 # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
+//Code pour regarder les statistiques et les effets des différents cuts (notamment pour comprendre l'effetd es PU cuts)
+
 
 // FUNCTIONS
 
@@ -77,7 +79,7 @@ void StatsPU(){
     
     Char_t Group_Period[50] = "Group1_LHC16h";
    // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU"};
+    Char_t *arrayOfPeriods[] = {"NewAnalysis/Group12_LHC18m"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -119,13 +121,13 @@ void StatsPU(){
     
     hDistVertexNC = new TH1I("hDistVertexNC",
                      "Number of VertexNC per event",
-                     100,-0.5,99.5);
+                     120,-20.5,99.5);
     hDistVertexNC->SetXTitle("Number of VertexNC");
     hDistVertexNC->SetYTitle("Count");
     
     hDistNPileupVtx = new TH1I("hDistNPileupVtx",
                      "Number of NPileupVtx per event",
-                     120,-0.5,119.5);
+                     140,-20.5,119.5);
     hDistNPileupVtx->SetXTitle("Number of NPileupVtx");
     hDistNPileupVtx->SetYTitle("Count");
     
@@ -173,6 +175,13 @@ void StatsPU(){
     int RejectedByZ = 0;
     int SafeEventsWOPU = 0;
     int SafeEventsRemovedByPU = 0;
+    int ManuelCount = 0;
+    int RejectedByTklNoMrad = 0;
+    int RejectedByNC = 0;
+    int RejectedByTklMrad = 0;
+    int EventCountMrad = 0;
+    int HarshCount = 0;
+    int EventsInTTree = 0;
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
@@ -204,6 +213,7 @@ void StatsPU(){
         branch->SetAddress(&fEvent);
     std::cout << "4" <<std::endl;
     auto nevent = theTree->GetEntries();
+        EventsInTTree = nevent;
     
     std::cout << "5" <<std::endl;
     fCorrelations = fEvent->fCorrelations;
@@ -233,6 +243,35 @@ void StatsPU(){
             }
             theTree->GetEvent(i);
             
+            // Event counter à la Manuel
+            
+            int NumberCloseEtaTrackletsManuel = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1)){
+                        NumberCloseEtaTrackletsManuel++;
+                }
+                
+            }
+            
+            if(NumberCloseEtaTrackletsManuel ==0){
+                RejectedByTklNoMrad++;
+            }
+            
+            if( fEvent->fVertexNC <= 0){
+                RejectedByNC++;
+            }
+            
+            if(!fEvent->fIsPileupFromSPDMultBins && fEvent->fSPDVertexSigmaZ<=0.25 && TMath::Abs(fEvent->fVertexZ)<10 && NumberCloseEtaTrackletsManuel != 0 && fEvent->fVertexNC > 0){
+                ManuelCount++;
+            }
+            
+            if(!fEvent->fIsPileupFromSPDMultBins && fEvent->fSPDVertexSigmaZ<=0.25 && TMath::Abs(fEvent->fVertexZ)<10 && NumberCloseEtaTrackletsManuel != 0 && fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0){
+                HarshCount++;
+            }
+            
+            
+            
             hDistDimuons->Fill(fEvent->fNDimuons);
             
             int NumberCloseEtaTracklets = 0;
@@ -256,9 +295,17 @@ void StatsPU(){
                 RejectedByZ++;
             }
             
-            if(fEvent->fVertexZ>0.25){
+            if(fEvent->fSPDVertexSigmaZ>0.25){
                            RejectedBySigmaZ++;
                 }
+            
+            if(NumberCloseEtaTracklets == 0){
+                RejectedByTklMrad++;
+            }
+            
+            if(!fEvent->fIsPileupFromSPDMultBins && fEvent->fSPDVertexSigmaZ<=0.25 && TMath::Abs(fEvent->fVertexZ)<10 && NumberCloseEtaTracklets != 0 && fEvent->fVertexNC > 0){
+                EventCountMrad++;
+            }
             
             if(NumberCloseEtaTracklets>0 && TMath::Abs(fEvent->fVertexZ)<10 && fEvent->fSPDVertexSigmaZ<=0.25){
                 SafeEventsWOPU++;
@@ -266,7 +313,7 @@ void StatsPU(){
                 if(fEvent->fSPDClustersValue <= (100 + 4*(fEvent->fSPDTrackletsValue)) && fEvent->fVertexNC > 0 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0){
                     hDistNclustNspdCut->Fill(fEvent->fSPDTrackletsValue, fEvent->fSPDClustersValue);
                 }
-                if(fEvent->fVertexNC == 0 || fEvent->fNPileupVtx != 0 || fEvent->fIsPileupFromSPDMultBins != 0 ){
+                if(fEvent->fVertexNC < 1 || fEvent->fNPileupVtx != 0 || fEvent->fIsPileupFromSPDMultBins != 0 ){
                     SafeEventsRemovedByPU++;
                 }
             }
@@ -350,14 +397,19 @@ void StatsPU(){
       c3->SetTitle("Distribution of VertexNC per event");
     hDistVertexNC->Draw();
     
-    cout << hDistVertexNC->GetBinContent(1) << " events have 0 vertex contributors, will be discarded bu PU cuts"<<endl;
+    int rejectVNC = 0;
+    for(int binno=1; binno<22; binno++){
+        rejectVNC += hDistVertexNC->GetBinContent(binno);
+    }
+    
+    cout << rejectVNC << " events have 0 vertex contributors, will be discarded bu PU cuts"<<endl;
     
     TCanvas*c4=new TCanvas();
       // ROOT THAT Extraction 2 plot
       c4->SetTitle("Distribution of NPileupVtx per event");
     hDistNPileupVtx->Draw();
     
-    cout << hDistNPileupVtx->GetEntries()-hDistNPileupVtx->GetBinContent(1) << " events have PU vertices, will be discarded bu PU cuts"<<endl;
+    cout << hDistNPileupVtx->GetEntries()-hDistNPileupVtx->GetBinContent(21) << " events have PU vertices, will be discarded bu PU cuts"<<endl;
     
     TCanvas*c5=new TCanvas();
       // ROOT THAT Extraction 2 plot
@@ -384,6 +436,24 @@ void StatsPU(){
       // ROOT THAT Extraction 2 plot
       c10->SetTitle("PhysicsSelection Distribution");
     hPhysicsSelection->Draw();
+    
+    cout << "Applying Manuel's Analysis Cuts, we arrive at: " << ManuelCount << "#CMUL7 events"<<endl;
+    
+    cout << "+++++++++++++++++++++++++++++++++" <<endl;
+    
+    cout << "Group: " << arrayOfPeriods[0] <<endl;
+    cout << "Number of events in TTree: " << EventsInTTree <<endl;
+    cout << "Number of events not passing PU mult cut: " << hDistIsPileupFromSPDMultBins->GetBinContent(2)<<endl;
+    cout << "Number of events not having at least a vertex contributor: " << RejectedByNC<<endl;
+    cout << "Number of events not passing SigmaZ cut: "<< RejectedBySigmaZ<<endl;
+    cout << "Number of events not passing Z cut: " << RejectedByZ<<endl;
+    cout << "Number of events not having valid tracklets (Eta acceptance): " << RejectedByTklNoMrad<<endl;
+    cout << "Valid CMUL7 events [Manuel-like selection]: " << ManuelCount<<endl;
+    cout << "Number of events not having valid tracklets (Eta acceptance and 10 mrad cut): " <<RejectedByTklMrad<<endl;
+    cout << "Valid CMUL7 events [10 mrad additional Tkl cut]: " << EventCountMrad<<endl;
+    cout << "Number of events removed from harsh PU cut :"<< long(hDistNPileupVtx->GetEntries()-hDistNPileupVtx->GetBinContent(21))<<endl;
+    cout << "Valid CMUL7 events [Harsh PU, no mrad]: "<<HarshCount<<endl;
+    
     
 }
 
