@@ -35,6 +35,7 @@
  # include "TH2F.h"
  # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
+// Re-tourner le post-processing et les fits à partir de données déjà enregistrées
 
  // FUNCTIONS
 
@@ -153,11 +154,13 @@ Char_t FitFileName[200];
 
 void FitTrainingPtBinned(){
     
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
+  //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
+  //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Gr1_0-5_40-100_pt8-12.root");
     
     TH1::SetDefaultSumw2();
         bool doTracklets = kFALSE;
-        bool doMixedEvents = kFALSE;
+        bool doMixedEvents = kTRUE;
     bool Extraction2Combined = kFALSE;
         bool CombineFits = kFALSE;
     bool PtBinned = kTRUE;
@@ -2432,11 +2435,23 @@ void FitTrainingPtBinned(){
             signalFcnJPsiY_1Central->SetParameters(param);
           //  signalFcnJPsiY_1Central->Draw("same");
             backFcnY_1Central->Draw("same");
+// Calcul baseline central
                 
                 if(param[12]<baseline_centralPtBinned[ptbin]){ //En central baseline = minimum
                     baseline_centralPtBinned[ptbin] = param[12];
                     errbaseline_centralPtBinned[ptbin] = fitY_1Central->GetParError(12);
                 }
+                
+//                if(i==2){ // Si baseline = ... DeltaPhi = 0
+//                    baseline_centralPtBinned[ptbin] = param[12];
+//                    errbaseline_centralPtBinned[ptbin] = fitY_1Central->GetParError(12);
+//                }
+//                if(i==3){
+//                    baseline_centralPtBinned[ptbin] += param[12];
+//                    baseline_centralPtBinned[ptbin] /= 2;
+//                    errbaseline_centralPtBinned[ptbin] = sqrt(pow(errbaseline_centralPtBinned[ptbin],2)+pow(fitY_1Central->GetParError(12),2));
+//                }
+                
 
                     Yields_Central_1PtBinned[ptbin]->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]); //AEUGG
                     Yields_Central_1PtBinned[ptbin]->SetBinError(i+1,fitY_1Central->GetParError(12));
@@ -2996,7 +3011,7 @@ void FitTrainingPtBinned(){
                             // this results in an ok fit for the polynomial function
                             // however the non-linear part (lorenzian) does not
                             // respond well.
-                             Double_t params[3] = {static_cast<Double_t>(ptbin),1,1};
+                             Double_t params[3] = {static_cast<Double_t>(ptbin),0.1,1};
                             fitFcnV2_PRLTemplate->SetParameters(params);
                              TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetMaxIterations(10000);
                              TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetPrecision();
@@ -3340,7 +3355,7 @@ void FitTrainingPtBinned(){
 //            double v2PRLPeriphZYAMTKL = 0.0673054;
 //            double errv2PRLPeriphZYAMTKL = 0.000405759;
     
-    //Résultats TKL 0-5% 40-90% - Baseline central 0 Yp unc. NOT PROPAGATED
+    //Résultats TKL 0-5% 40-90% - Baseline central 0 Yp unc.  PROPAGATED
        
                double v2ClassiqueTKL = 0.065334;
                double errv2ClassiqueTKL = 0.000541066;
@@ -3354,6 +3369,21 @@ void FitTrainingPtBinned(){
                double errv2PRLTKL = 0.00237045;
                double v2PRLPeriphZYAMTKL = 0.0672543;
                double errv2PRLPeriphZYAMTKL = 0.000672808;
+    
+    //Résultats TKL 0-5% 40-90% - Baseline central min Yp unc. PROPAGATED
+    
+//            double v2ClassiqueTKL = 0.065334;
+//            double errv2ClassiqueTKL = 0.000541066;
+//            double v2CvetanQuentinTKL = 0.067723;
+//            double errv2CvetanQuentinTKL = 0.000668852;
+//            double v2CvetanQuentinMeTKL = 0.0655555;
+//            double errv2CvetanQuentinMeTKL = 0.000690527;
+//            double v2ZYAMTKL = 0.0652409;
+//            double errv2ZYAMTKL = 0.000812056;
+//            double v2PRLTKL = 0.131677;
+//            double errv2PRLTKL = 0.00237045;
+//            double v2PRLPeriphZYAMTKL = 0.0672543;
+//            double errv2PRLPeriphZYAMTKL = 0.000672808;
 
 
     //
@@ -3372,6 +3402,15 @@ void FitTrainingPtBinned(){
     double errv2_ZYAM[NbPtBins] = {0};
     double errv2_PRL[NbPtBins] = {0};
     double errv2_PRLPeriphZYAM[NbPtBins] = {0};
+    
+    double v2_PbPb[NbPtBins-1] = {0.01,0.06,0.075,0.05};
+    double v2_pPb[NbPtBins] = {0,-0.015,0.035,0.08,0.04};
+    double errv2_PbPb[NbPtBins-1] = {0.015,0.015,0.02,0.03};
+    double errv2_pPb[NbPtBins] = {0.015,0.02,0.02,0.015,0.04};
+    double PbPbMiddle[NbPtBins-1] = {1,3,5,7};
+    double PbPbPtErrorSize[NbPtBins-1] = {1,1,1,1};
+    double pPbMiddle[NbPtBins] = {1,2.5,3.5,5,7};
+    double pPbPtErrorSize[NbPtBins] = {1,0.5,0.5,1,1};
     
     for(int pt_idx=0; pt_idx < NbPtBins; pt_idx++){
         v2_Ext1[pt_idx] = V2_Ext1[pt_idx]/v2ClassiqueTKL;
@@ -3401,41 +3440,41 @@ void FitTrainingPtBinned(){
      TCanvas* cv2Pt = new TCanvas;
      cv2Pt->cd();
      
-     TGraphErrors *grv2_wrt_Pt1 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext1,PtErrorSize,errv2_Ext1);
-              // TGraph *gr3 = new TGraph (n, K3, chi);
-               grv2_wrt_Pt1->SetTitle("v2 JPsi wrt Pt for different extraction methods");
-               grv2_wrt_Pt1->GetXaxis()->SetTitle("Pt (GeV/c)");
-               grv2_wrt_Pt1->GetYaxis()->SetTitle("v2 (JPsi)");
-             grv2_wrt_Pt1->SetMarkerColor(4);
-             grv2_wrt_Pt1->SetLineColor(4);
-             grv2_wrt_Pt1->SetMarkerStyle(5);
-               grv2_wrt_Pt1->Draw("AP");
+//     TGraphErrors *grv2_wrt_Pt1 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext1,PtErrorSize,errv2_Ext1);
+//              // TGraph *gr3 = new TGraph (n, K3, chi);
+//               grv2_wrt_Pt1->SetTitle("v2 JPsi wrt Pt for different extraction methods");
+//               grv2_wrt_Pt1->GetXaxis()->SetTitle("Pt (GeV/c)");
+//               grv2_wrt_Pt1->GetYaxis()->SetTitle("v2 (JPsi)");
+//             grv2_wrt_Pt1->SetMarkerColor(4);
+//             grv2_wrt_Pt1->SetLineColor(4);
+//             grv2_wrt_Pt1->SetMarkerStyle(5);
+//               grv2_wrt_Pt1->Draw("AP");
+//
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
      
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
+//     TGraphErrors *grv2_wrt_Pt2 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext2,PtErrorSize,errv2_Ext2);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//     grv2_wrt_Pt2->SetMarkerColor(3);
+//     grv2_wrt_Pt2->SetLineColor(3);
+//     grv2_wrt_Pt2->SetMarkerStyle(4);
+//       grv2_wrt_Pt2->Draw("P");
+//
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
      
-     TGraphErrors *grv2_wrt_Pt2 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext2,PtErrorSize,errv2_Ext2);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-     grv2_wrt_Pt2->SetMarkerColor(3);
-     grv2_wrt_Pt2->SetLineColor(3);
-     grv2_wrt_Pt2->SetMarkerStyle(4);
-       grv2_wrt_Pt2->Draw("P");
-     
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
-     
-     TGraphErrors *grv2_wrt_PtCvetanQuentin = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentin,PtErrorSize,errv2_CvetanQuentin);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-     grv2_wrt_PtCvetanQuentin->SetMarkerColor(28);
-     grv2_wrt_PtCvetanQuentin->SetLineColor(28);
-     grv2_wrt_PtCvetanQuentin->SetMarkerStyle(3);
-       grv2_wrt_PtCvetanQuentin->Draw("P");
-     
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
+//     TGraphErrors *grv2_wrt_PtCvetanQuentin = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentin,PtErrorSize,errv2_CvetanQuentin);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//     grv2_wrt_PtCvetanQuentin->SetMarkerColor(28);
+//     grv2_wrt_PtCvetanQuentin->SetLineColor(28);
+//     grv2_wrt_PtCvetanQuentin->SetMarkerStyle(3);
+//       grv2_wrt_PtCvetanQuentin->Draw("P");
+//
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
 
 //     TGraphErrors *grv2_wrt_PtCvetanQuentinMe = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentinMe,PtErrorSize,errv2_CvetanQuentinMe);
 //      // TGraph *gr3 = new TGraph (n, K3, chi);
@@ -3444,49 +3483,68 @@ void FitTrainingPtBinned(){
 //     grv2_wrt_PtCvetanQuentinMe->SetMarkerStyle(4);
 //       grv2_wrt_PtCvetanQuentinMe->Draw("P");
      
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
-     
-     TGraphErrors *grv2_wrt_PtZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_ZYAM,PtErrorSize,errv2_ZYAM);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-     grv2_wrt_PtZYAM->SetMarkerColor(7);
-     grv2_wrt_PtZYAM->SetLineColor(7);
-     grv2_wrt_PtZYAM->SetMarkerStyle(42);
-       grv2_wrt_PtZYAM->Draw("P");
-     
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
+//
+//     TGraphErrors *grv2_wrt_PtZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_ZYAM,PtErrorSize,errv2_ZYAM);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//     grv2_wrt_PtZYAM->SetMarkerColor(7);
+//     grv2_wrt_PtZYAM->SetLineColor(7);
+//     grv2_wrt_PtZYAM->SetMarkerStyle(42);
+//       grv2_wrt_PtZYAM->Draw("P");
+//
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
      
      TGraphErrors *grv2_wrt_PtPRL = new TGraphErrors(NbPtBins,PtMiddle,v2_PRL,PtErrorSize,errv2_PRL);
       // TGraph *gr3 = new TGraph (n, K3, chi);
+    grv2_wrt_PtPRL->SetTitle("v2 JPsi wrt Pt for different systems");
+                   grv2_wrt_PtPRL->GetXaxis()->SetTitle("Pt (GeV/c)");
+                   grv2_wrt_PtPRL->GetYaxis()->SetTitle("v2 (JPsi)");
      grv2_wrt_PtPRL->SetMarkerColor(2);
      grv2_wrt_PtPRL->SetLineColor(2);
      grv2_wrt_PtPRL->SetMarkerStyle(26);
-       grv2_wrt_PtPRL->Draw("P");
+       grv2_wrt_PtPRL->Draw("AP");
+    
+    TGraphErrors *grv2_wrt_PtPbPb = new TGraphErrors(NbPtBins-1,PbPbMiddle,v2_PbPb,PbPbPtErrorSize,errv2_PbPb);
+        // TGraph *gr3 = new TGraph (n, K3, chi);
+       grv2_wrt_PtPbPb->SetMarkerColor(kBlack);
+       grv2_wrt_PtPbPb->SetLineColor(kBlack);
+       grv2_wrt_PtPbPb->SetMarkerStyle(26);
+         grv2_wrt_PtPbPb->Draw("P");
+
+    TGraphErrors *grv2_wrt_PtpPb = new TGraphErrors(NbPtBins,pPbMiddle,v2_pPb,pPbPtErrorSize,errv2_pPb);
+     // TGraph *gr3 = new TGraph (n, K3, chi);
+    grv2_wrt_PtpPb->SetMarkerColor(kBlue);
+    grv2_wrt_PtpPb->SetLineColor(kBlue);
+    grv2_wrt_PtpPb->SetMarkerStyle(26);
+      grv2_wrt_PtpPb->Draw("P");
      
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
-     
-     TGraphErrors *grv2_wrt_PtPRLPeriphZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_PRLPeriphZYAM,PtErrorSize,errv2_PRLPeriphZYAM);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-     grv2_wrt_PtPRLPeriphZYAM->SetMarkerColor(1);
-     grv2_wrt_PtPRLPeriphZYAM->SetLineColor(1);
-     grv2_wrt_PtPRLPeriphZYAM->SetMarkerStyle(25);
-       grv2_wrt_PtPRLPeriphZYAM->Draw("P");
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
+//
+//     TGraphErrors *grv2_wrt_PtPRLPeriphZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_PRLPeriphZYAM,PtErrorSize,errv2_PRLPeriphZYAM);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//     grv2_wrt_PtPRLPeriphZYAM->SetMarkerColor(1);
+//     grv2_wrt_PtPRLPeriphZYAM->SetLineColor(1);
+//     grv2_wrt_PtPRLPeriphZYAM->SetMarkerStyle(25);
+//       grv2_wrt_PtPRLPeriphZYAM->Draw("P");
      
      TLegend *legendov=new TLegend(0.12,0.80,0.40,0.90);
               legendov->SetTextFont(41);
               legendov->SetTextSize(0.02);
-            legendov->AddEntry(grv2_wrt_Pt1,"v2_Ext1 (pPb-like)");
-             legendov->AddEntry(grv2_wrt_Pt2,"v2_Ext2 (pPb-like)");
-             legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v2_CvetanQuentin (Template + ZYAM Periph)");
+       //     legendov->AddEntry(grv2_wrt_Pt1,"v2_Ext1 (pPb-like)");
+         //    legendov->AddEntry(grv2_wrt_Pt2,"v2_Ext2 (pPb-like)");
+           //  legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v2_CvetanQuentin (Template + ZYAM Periph)");
            //  legendov->AddEntry(grv2_wrt_PtCvetanQuentinMe,"v2_CvetanQuentinMe");
-             legendov->AddEntry(grv2_wrt_PtZYAM,"v2_ZYAM");
+          //   legendov->AddEntry(grv2_wrt_PtZYAM,"v2_ZYAM");
              legendov->AddEntry(grv2_wrt_PtPRL,"v2_ATLAS Template");
-             legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v2_ATLAS Template and ZYAM");
+    legendov->AddEntry(grv2_wrt_PtPbPb,"Pb-Pb, 5.02 TeV, 5-20%");
+    legendov->AddEntry(grv2_wrt_PtpPb,"p-Pb, 5.02-8.16 TeV, y>0 direction");
+            // legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v2_ATLAS Template and ZYAM");
               legendov->Draw();
      
      cv2Pt->Update();
