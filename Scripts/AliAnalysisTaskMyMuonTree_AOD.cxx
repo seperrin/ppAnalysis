@@ -50,6 +50,9 @@ ClassImp(CorrelationLight);
 ClassImp(DimuonLight);
 ClassImp(MCDimuonLight);
 
+int buildno = 0;
+int newlyremoved = 0;
+
 // TClonesArray *MyEventLight::fgTracks = 0;
 // TClonesArray *MyEventLight::fgDimuonLights = 0;
 // TClonesArray *MyEventLight::fgMCDimuonLights = 0;
@@ -386,15 +389,29 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
   //	cout << "isEventSelected " << isEventSelected << " isPhysSelected " <<
   // sisPhysSelected << endl;
 
+//    Printf("isPhysSelectedMUFAST: %d",isPhysSelectedMUFAST );
+//    Printf("isPhysSelected: %d",isPhysSelected );
+//    Printf("triggerCMUL7: %d",triggerCMUL7 );
+//    Printf("clusterMUFAST: %d",clusterMUFAST );
+//    Printf("Number of events built: %d",buildno );
+//    Printf("newlyremoved: %d",newlyremoved );
   if (!isPhysSelected)
+  {
+//      Printf("Event !isPhysSelected\n");
     fHistEvents->Fill(0);
+  }
   else
+  {
     fHistEvents->Fill(1);
+//    Printf("Event isPhysSelected\n");
+  }
 
   //  if (isPhysSelectedMUFAST && isTriggerSelected && (clusterMUFAST)) {
- if (isPhysSelectedMUFAST && triggerCMUL7 && clusterMUFAST) {
- // >>>>>> if (isPhysSelectedINT7CENT && triggerCINT7CENT) { // >>> CINT7 ou CINT7CENT ?
-    fEvent->Build(fAOD, isPhysSelectedMUFAST, fMuonTrackCuts, fMC); //>>>>> isPhysSelectedMUFAST or isPhysSelectedINT7CENT ou INT7MUFAST
+ // >>>>> if (isPhysSelectedMUFAST && triggerCMUL7 && clusterMUFAST) {
+ if (isPhysSelectedINT7CENT && triggerCINT7CENT) { // >>> CINT7 ou CINT7CENT ?
+//     Printf("Run build\n");
+     buildno++;
+    fEvent->Build(fAOD, isPhysSelectedINT7CENT, fMuonTrackCuts, fMC); //>>>>> isPhysSelectedMUFAST or isPhysSelectedINT7CENT ou INT7MUFAST
     fMyMuonTree->Fill();
   }
 
@@ -475,7 +492,7 @@ CorrelationLight::CorrelationLight()
 //_______________________________________________________________________
 MyEventLight::MyEventLight()
     : TObject(), fNTracklets(0), fNDimuons(0), fNMCDimuons(0), fNCorrelations(0), fRunNumber(0),
-      fNPileupVtx(0), fIsPileupFromSPDMultBins(0), fVertexZ(0), fVertexXSPD(0), fVertexYSPD(0), fVertexZSPD(0), fVertexSigmaZ(0), fSPDVertexSigmaZ(0), fVertexNC(0), fSPDVertexNC(0), fCentralityV0M(0), fCentralitySPDTracklets(0), fSPDTrackletsValue(0), fSPDClustersValue(0), fPassPhysicsSelection(0),
+    fNPileupVtx(0), fIsPileupFromSPDMultBins(0), fVertexZ(0), fVertexXSPD(0), fVertexYSPD(0), fVertexZSPD(0), fVertexSigmaZ(0), fSPDVertexSigmaZ(0), fVertexNC(0), fSPDVertexNC(0), fCentralityV0M(0), fCentralityTKL(0), fCentralityZNAC(0), fCentralitySPDTracklets(0), fCentralitySPDClusters(0), fV0MValue(0), fADMValue(0), fADAValue(0), fADCValue(0), fTKLValue(0), fZNACValue(0), fSPDTrackletsValue(0), fSPDClustersValue(0), fPassPhysicsSelection(0), fV0AValue(0), fV0CValue(0), fZNAValue(0), fZNCValue(0), fCentralityV0A(0), fCentralityV0C(0), fCentralityADA(0), fCentralityADC(0), fCentralityADM(0), fCentralityZNA(0), fCentralityZNC(0),
       fTracklets(new TClonesArray("TrackletLight", 0)),
       fDimuons(new TClonesArray("DimuonLight", 0)),
       fCorrelations(new TClonesArray("CorrelationLight", 0)),
@@ -569,8 +586,8 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
   //	if(fTriggerCINTB || fTriggerCMSLB || fTriggerCMSHB || fTriggerCMULB ||
   // fTriggerCMLLB)
   //  if(fTriggerCMUL7 || fTriggerCMLL7)
-if (fTriggerCMUL7)
- // >>>>> if (fTriggerCINT7CENT)
+// >>>>> if (fTriggerCMUL7)
+if (fTriggerCINT7CENT)
     fPassTriggerSelection = 1;
   else
     fPassTriggerSelection = 0;
@@ -579,14 +596,38 @@ if (fTriggerCMUL7)
       (AliMultSelection *)aod->FindListObject("MultSelection");
   //	Printf("MultSelection %p \n",MultSelection);
   fCentralityV0M = MultSelection->GetMultiplicityPercentile("V0M");
-//    fCentralityTKL = MultSelection->GetMultiplicityPercentile("TKL");
-//    fCentralityCL0 = MultSelection->GetMultiplicityPercentile("CL0");
-//    fCentralityCL1 = MultSelection->GetMultiplicityPercentile("CL1");
+    fCentralityV0A = MultSelection->GetMultiplicityPercentile("V0A");
+    fCentralityV0C = MultSelection->GetMultiplicityPercentile("V0C");
+    fCentralityADM = MultSelection->GetMultiplicityPercentile("ADM");
+    fCentralityADA = MultSelection->GetMultiplicityPercentile("ADA");
+    fCentralityADC = MultSelection->GetMultiplicityPercentile("ADC");
+    fCentralityZNA = MultSelection->GetMultiplicityPercentile("ZNApp");
+    fCentralityZNC = MultSelection->GetMultiplicityPercentile("ZNCpp");
+    fCentralityZNAC = MultSelection->GetMultiplicityPercentile("ZNACpp");
     fCentralitySPDTracklets = MultSelection->GetMultiplicityPercentile("SPDTracklets"); // >>>>>>>> ,true);
+    fCentralitySPDClusters = MultSelection->GetMultiplicityPercentile("SPDClusters");
     AliMultEstimator *AliMuEst = MultSelection->GetEstimator("SPDTracklets");
     fSPDTrackletsValue = AliMuEst->GetValue();
     AliMultEstimator *AliMuEst2 = MultSelection->GetEstimator("SPDClusters");
     fSPDClustersValue = AliMuEst2->GetValue();
+    AliMultEstimator *AliMuEst5 = MultSelection->GetEstimator("ZNCpp");
+    fZNCValue = AliMuEst5->GetValue();
+    AliMultEstimator *AliMuEst6 = MultSelection->GetEstimator("ZNApp");
+    fZNAValue = AliMuEst6->GetValue();
+    AliMultEstimator *AliMuEst7 = MultSelection->GetEstimator("ZNACpp");
+    fZNACValue = AliMuEst7->GetValue();
+    AliMultEstimator *AliMuEst8 = MultSelection->GetEstimator("V0C");
+    fV0CValue = AliMuEst8->GetValue();
+    AliMultEstimator *AliMuEst9 = MultSelection->GetEstimator("V0A");
+    fV0AValue = AliMuEst9->GetValue();
+    AliMultEstimator *AliMuEst10 = MultSelection->GetEstimator("V0M");
+    fV0MValue = AliMuEst10->GetValue();
+    AliMultEstimator *AliMuEst11 = MultSelection->GetEstimator("ADC");
+    fADCValue = AliMuEst11->GetValue();
+    AliMultEstimator *AliMuEst12 = MultSelection->GetEstimator("ADA");
+    fADAValue = AliMuEst12->GetValue();
+    AliMultEstimator *AliMuEst13 = MultSelection->GetEstimator("ADM");
+    fADMValue = AliMuEst13->GetValue();
 //    fCentralitySPDClusters = MultSelection->GetMultiplicityPercentile("SPDClusters");
 //    fCentralityTKLvsV0M = MultSelection->GetMultiplicityPercentile("TKLvsV0M");
 
@@ -678,6 +719,9 @@ if (fTriggerCMUL7)
     if (!track1->IsMuonTrack())
       continue;
     // first muon lorentz vector
+//      if ( ! trackCuts->IsSelected(track1) )
+//      {
+//          continue;}
     muon1L.SetPxPyPzE(track1->Px(), track1->Py(), track1->Pz(), track1->E());
 
     // loop over second muon, and construct jpsi candidates
@@ -695,10 +739,14 @@ if (fTriggerCMUL7)
             Printf("track 2 not muon\n");
             continue;
         }
+        
+//        if ( ! trackCuts->IsSelected(track2) ){
+//        continue;}
 
           muon2L.SetPxPyPzE(track2->Px(), track2->Py(), track2->Pz(), track2->E());
-        if (!IsSelected(track1) || !IsSelected(track2)){
+        if (!trackCuts->IsSelected(track1) || !trackCuts->IsSelected(track2)){
             Printf("One of 2 tracks is not selected\n");
+            newlyremoved++;
             continue;
         }
         // find the J/psi candidate's lorentz vector

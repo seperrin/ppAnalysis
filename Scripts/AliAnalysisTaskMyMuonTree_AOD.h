@@ -86,12 +86,30 @@ public:
   // 1: events passing trigger selection
 
   Float_t fCentralityV0M;
-//  Float_t fCentralityTKL;
-//    Float_t fCentralityCL0;
-//    Float_t fCentralityCL1;
+  Float_t fCentralityTKL;
+    Float_t fCentralityZNAC;
     Float_t fCentralitySPDTracklets;
+    Float_t fCentralitySPDClusters;
+    Float_t fCentralityV0A;
+      Float_t fCentralityV0C;
+    Float_t fCentralityADM;
+    Float_t fCentralityADA;
+    Float_t fCentralityADC;
+      Float_t fCentralityZNA;
+      Float_t fCentralityZNC;
+    
     Float_t fSPDTrackletsValue;
     Float_t fSPDClustersValue;
+    Float_t fV0MValue;
+    Float_t fTKLValue;
+    Float_t fZNACValue;
+    Float_t fV0AValue;
+    Float_t fV0CValue;
+    Float_t fADMValue;
+    Float_t fADAValue;
+    Float_t fADCValue;
+    Float_t fZNAValue;
+    Float_t fZNCValue;
 //    Float_t fCentralitySPDClusters;
 //  Float_t fCentralityTKLvsV0M;
 

@@ -53,14 +53,14 @@ void runTaskMyMuonTreeGrid_AOD(Int_t runno = 0, Bool_t bSig = kFALSE) {
 //      "$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"));
 //  AliPhysicsSelectionTask *physseltask =
 //      reinterpret_cast<AliPhysicsSelectionTask *>(physseladd.Exec());
-   AliPhysicsSelectionTask *physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"),kFALSE,kTRUE)));
+   AliPhysicsSelectionTask *physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"),kFALSE,kTRUE))); //kFALSE, kTRUE (not MC, remove PU)
 
   // centrality task
   TMacro multseladd(gSystem->ExpandPathName(
       "$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C"));
   AliMultSelectionTask *taskCentrality =
       reinterpret_cast<AliMultSelectionTask *>(multseladd.Exec()); // user mode:
-  taskCentrality->SetSelectedTriggerClass(AliVEvent::kAny); // default but //kAny pour CMUL //kINT7 pour CINT7
+  taskCentrality->SetSelectedTriggerClass(AliVEvent::kINT7); // default but //kAny pour CMUL //kINT7 pour CINT7 >>>
   //  configurable taskCentrality->SetUseDefaultCalib(kTRUE);
 //taskCentrality->SetAlternateOADBFullManualBypass("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/data/OADB-LHC18q.root");
 
