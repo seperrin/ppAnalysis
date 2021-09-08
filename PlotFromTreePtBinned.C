@@ -3,6 +3,7 @@
 #include <TCanvas.h>
 #include <TClass.h>
 #include <TMath.h>
+#include <TLatex.h>
 #include <TObject.h>
 #include <TClonesArray.h>
 #include <TFile.h>
@@ -28,6 +29,7 @@
 # include "TMinuit.h"
 # include "TRandom.h"
 # include <iostream>
+# include <fstream>
 # include <string>
 # include "TH1F.h"
 # include "TH1D.h"
@@ -52,8 +54,8 @@ Double_t Psi2SCrystalBallExtended(Double_t *x,Double_t *par);
 TFitResultPtr FittingAllInvMass(const char *histoname, TCanvas *canvas);
 TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i);
 void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *p, Int_t /*iflag */  );
-int GetCent(double cent);
-int GetCentPM(int Ntkl, int Zvtx, int groupnumber);
+int GetCent(int cent);
+int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPer, int zvtx_idx, int groupnumber);
 bool isCentral(int centint);
 bool isPeripheral(int centint);
 int GetPtBin(double pt);
@@ -79,12 +81,19 @@ Double_t myEtaHigh(double x);
 int CentralLowBound = 0;
 int CentralHighBound = 2;
 int PeripheralLowBound = 8;
-int PeripheralHighBound = 11;
+int PeripheralHighBound = 13;
+
+string centralityMethod = "PercentileMethodSPDTracklets";
 
 double PtBins[] = {0,12};
 const int NbPtBins = 1;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
+
+double MinInvMass = 2.1;
+double MaxInvMass = 5.1;
+
+const int NbinsDimuInvMass = 250;
 
 bool isCentral(int centint){
     if((centint>=CentralLowBound)&&(centint<=CentralHighBound))
@@ -102,7 +111,7 @@ bool isPeripheral(int centint){
     }
 }
 
-int LimitsPM[12][20][14] =
+int LimitsPM_SPDTracklets_Uncal_DataDriven[12][20][14] =
 {       {   {27, 21, 18, 15, 12, 10, 8, 6, 5, 4, 3, 2, 1, 0}, //Group1
             {28, 22, 19, 15, 13, 11, 8, 6, 5, 4, 3, 2, 1, 0},
             {30, 23, 20, 16, 14, 12, 9, 7, 5, 4, 3, 2, 1, 0},
@@ -373,7 +382,7 @@ void PlotFromTreePtBinned(){
     int valueAdditionalCutNtkl = 3; //<=
     int preciseZbinFocus = 10;
     int preciseCentFocus = 10;
-    bool PtBinned = kTRUE;
+    bool PtBinned = kFALSE;
     
     
 // ************************************
@@ -394,8 +403,6 @@ void PlotFromTreePtBinned(){
     double LowJPsiMass = 3.0;
     double HighJPsiMass = 3.3;
 
-    double MinInvMass = 2.1;
-    double MaxInvMass = 5.1;
     const int NbinsInvMass = 10;
     double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
 
@@ -411,10 +418,10 @@ void PlotFromTreePtBinned(){
     double DeltaEtaDimuCut = 1.5;
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     
-   double MinDeltaEtaTKL = -2.4; //1.2
+   double MinDeltaEtaTKL = -2.4; //1.2  //2.4
     double MaxDeltaEtaTKL = 2.4;
     const int NbinsDeltaEtaTKL = 48; //24
-    double DeltaEtaTKLCut = 1.2; //1.2
+    double DeltaEtaTKLCut = 1.2; //1.2  //1.2
     double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
     
     const int NbinsDeltaPhiTKL = 48;
@@ -434,9 +441,10 @@ void PlotFromTreePtBinned(){
     
     
   //  Char_t Group_Period[50] = "Group1";
- //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+  // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16o"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j"};
   // Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU_OnlyMuonTrackCutsApplied"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
@@ -447,8 +455,8 @@ void PlotFromTreePtBinned(){
     Char_t FitFileName[200];
 
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Run2_0-5_60-100_pt0-2-4-6-8-12.root");
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_16hjo10_TKL_0-5_40-80_pt0-12.root");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 avril/NewAnalysis_16hjo10_TKL_0-5_40-80_pt0-12");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_TKL_16h25_PercentileMethodSPDTracklets_0-5_40-100_pt0-12.root");
+    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 septembre/NewAnalysisAllEst_TKL_16h25_PercentileMethodSPDTracklets_0-5_40-100_pt0-12");
     
     
 
@@ -457,7 +465,7 @@ void PlotFromTreePtBinned(){
 // *************************
     
     TH2F* hsingletrac(NULL);
-    TH1F* hnseg(NULL);
+    TH1F* hnseg;
     TH1F* hnseg2(NULL);
     TH1F* hnseg3(NULL);
     TH1F* hnseg4(NULL);
@@ -483,7 +491,7 @@ void PlotFromTreePtBinned(){
     TH1F* ME_proj_Tkl_tampon(NULL);
     TH1F* ME_proj(NULL);
     TH1F* SE_proj_tampon(NULL);
-    TH1F* SE_proj_Tkl_tampon(NULL);
+    TH1I* SE_proj_Tkl_tampon(NULL);
     TH1F* SE_proj(NULL);
     
     TH1F* Sijk(NULL);
@@ -501,9 +509,9 @@ void PlotFromTreePtBinned(){
     TH1F* YieldsTklShortCMS[NbBinsCent]{ NULL };
     TH1F* YieldsTklLongCMS[NbBinsCent]{ NULL };
     TH2F* Correlations[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
-    TH2F* CorrelationsTkl[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsTkl[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2I* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2F* CorrelationsTklLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsTklLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2I* CorrelationsME[NbBinsCent][NbBinsZvtx][NbinsInvMass]{ NULL };
     TH2I* CorrelationsTklME[NbBinsCent][NbBinsZvtx]{ NULL };
     TH2I* CorrelationsTklMEShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
@@ -569,9 +577,9 @@ void PlotFromTreePtBinned(){
     TH2F* YPeriph(NULL);
     TH2F* YDifference(NULL);
     TH2F* YTklCentral(NULL);
-    TH2F* YTklCentralME(NULL);
+    TH2I* YTklCentralME(NULL);
     TH2F* YTklPeriph(NULL);
-    TH2F* YTklPeriphME(NULL);
+    TH2I* YTklPeriphME(NULL);
     TH2F* YTklDifference(NULL);
     TH1D* YTklCentral_proj_tampon(NULL);
     TH1D* Correl_tampon(NULL);
@@ -581,51 +589,51 @@ void PlotFromTreePtBinned(){
     TH1D* YTklPeriphME_proj_tampon(NULL);
     
     hsingletrac = new TH2F("hsingletrac",
-                      "Single tracklet EtaPhi distribution",
+                      "Single tracklet #eta,#phi distribution",
                            NbinsDeltaPhi,0,MaxDeltaPhi-MinDeltaPhi,40,-2,2);
-    hsingletrac->SetXTitle("Tkl Phi (rad)");
-    hsingletrac->SetYTitle("Tkl Eta");
+    hsingletrac->SetXTitle("Tkl #phi (rad)");
+    hsingletrac->SetYTitle("Tkl #eta");
     
     YCentral = new TH2F("YCentral",
-                      "Yield delta eta wrt delta phi - Central",
+                      "Yield dimuon-tkl #Delta#eta wrt #Delta#phi - Central",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    YCentral->SetXTitle("Correlation DeltaPhi (rad)");
-    YCentral->SetYTitle("Correlation DeltaEta");
+    YCentral->SetXTitle("Correlation #Delta#phi (rad)");
+    YCentral->SetYTitle("Correlation #Delta#eta");
     YPeriph = new TH2F("YPeriph",
-                      "Yield delta eta wrt delta phi - Periph",
+                      "Yield dimuon-tkl #Delta#eta wrt #Delta#phi - Periph",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    YPeriph->SetXTitle("Correlation DeltaPhi (rad)");
-    YPeriph->SetYTitle("Correlation DeltaEta");
+    YPeriph->SetXTitle("Correlation #Delta#phi (rad)");
+    YPeriph->SetYTitle("Correlation #Delta#eta");
     YDifference = new TH2F("YDifference",
-                      "Yield delta eta wrt delta phi - Difference",
+                      "Yield dimuon-tkl #Delta#eta wrt #Delta#phi - Difference",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    YDifference->SetXTitle("Correlation DeltaPhi (rad)");
-    YDifference->SetYTitle("Correlation DeltaEta");
+    YDifference->SetXTitle("Correlation #Delta#phi (rad)");
+    YDifference->SetYTitle("Correlation #Delta#eta");
     YTklCentral = new TH2F("YTklCentral",
-                      "Yield delta eta wrt delta phi - Tkl Central",
+                      "Yield #Delta#eta wrt #Delta#phi - Tkl Central",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    YTklCentral->SetXTitle("Correlation DeltaPhi (rad)");
-    YTklCentral->SetYTitle("Correlation DeltaEta");
+    YTklCentral->SetXTitle("Correlation #Delta#phi (rad)");
+    YTklCentral->SetYTitle("Correlation #Delta#eta");
     YTklPeriph = new TH2F("YTklPeriph",
-                      "Yield delta eta wrt delta phi - Tkl Periph",
+                      "Yield #Delta#eta wrt #Delta#phi - Tkl Periph",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    YTklPeriph->SetXTitle("Correlation DeltaPhi (rad)");
-    YTklPeriph->SetYTitle("Correlation DeltaEta");
+    YTklPeriph->SetXTitle("Correlation #Delta#phi (rad)");
+    YTklPeriph->SetYTitle("Correlation #Delta#eta");
     YTklDifference = new TH2F("YTklDifference",
-                      "Yield delta eta wrt delta phi - Tkl Difference",
+                      "Yield #Delta#eta wrt #Delta#phi - Tkl Difference",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    YTklDifference->SetXTitle("Correlation DeltaPhi (rad)");
-    YTklDifference->SetYTitle("Correlation DeltaEta");
-    YTklCentralME = new TH2F("YTklCentralME",
-                      "Yield delta eta wrt delta phi - Tkl Central",
+    YTklDifference->SetXTitle("Correlation #Delta#phi (rad)");
+    YTklDifference->SetYTitle("Correlation #Delta#eta");
+    YTklCentralME = new TH2I("YTklCentralME",
+                      "Yield #Delta#eta wrt #Delta#phi - Tkl Central ME",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    YTklCentralME->SetXTitle("Correlation DeltaPhi (rad)");
-    YTklCentralME->SetYTitle("Correlation DeltaEta");
-    YTklPeriphME = new TH2F("YTklPeriphME",
-                      "Yield delta eta wrt delta phi - Tkl Periph",
+    YTklCentralME->SetXTitle("Correlation #Delta#phi (rad)");
+    YTklCentralME->SetYTitle("Correlation #Delta#eta");
+    YTklPeriphME = new TH2I("YTklPeriphME",
+                      "Yield #Delta#eta wrt #Delta#phi - Tkl Periph ME",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    YTklPeriphME->SetXTitle("Correlation DeltaPhi (rad)");
-    YTklPeriphME->SetYTitle("Correlation DeltaEta");
+    YTklPeriphME->SetXTitle("Correlation #Delta#phi (rad)");
+    YTklPeriphME->SetYTitle("Correlation #Delta#eta");
     // AE
     
     TH2F* hnseg9(NULL);
@@ -662,91 +670,95 @@ void PlotFromTreePtBinned(){
     ProjCopy = new TH1F("ProjCopy",
                       "ProjCopy",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    ProjCopy->SetXTitle("Correlation DeltaPhi (rad)");
-    ProjCopy->SetYTitle("Correlation DeltaEta");
+    ProjCopy->SetXTitle("Correlation #Delta#phi (rad)");
+    ProjCopy->SetYTitle("Correlation #Delta#eta");
     ProjCopy2 = new TH1F("ProjCopy2",
                       "ProjCopy2",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    ProjCopy2->SetXTitle("Correlation DeltaPhi (rad)");
-    ProjCopy2->SetYTitle("Correlation DeltaEta");
+    ProjCopy2->SetXTitle("Correlation #Delta#phi (rad)");
+    ProjCopy2->SetYTitle("Correlation #Delta#eta");
     
     ProjCopyTkl = new TH1F("ProjCopyTkl",
                       "ProjCopyTkl",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    ProjCopyTkl->SetXTitle("Correlation DeltaPhi (rad)");
-    ProjCopyTkl->SetYTitle("Correlation DeltaEta");
+    ProjCopyTkl->SetXTitle("Correlation #Delta#phi (rad)");
+    ProjCopyTkl->SetYTitle("Correlation #Delta#eta");
     ProjCopy2Tkl = new TH1F("ProjCopy2Tkl",
                       "ProjCopy2Tkl",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    ProjCopy2Tkl->SetXTitle("Correlation DeltaPhi (rad)");
-    ProjCopy2Tkl->SetYTitle("Correlation DeltaEta");
+    ProjCopy2Tkl->SetXTitle("Correlation #Delta#phi (rad)");
+    ProjCopy2Tkl->SetYTitle("Correlation #Delta#eta");
     
     
     Yields_Central_1 = new TH1F("Yields_Central_1",
-                     "Yield of JPsi-tkl in Central collisions wrt Phi",
+                     "Yield of J/#psi-tkl in Central collisions wrt #Delta#phi",
                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Yields_Central_1->SetXTitle("Phi of the correlation (rad)");
-    Yields_Central_1->SetYTitle("Yield");
+    Yields_Central_1->SetXTitle("#Delta#phi of the correlation (rad)");
+    Yields_Central_1->SetYTitle("Yield_{Central}");
     
     Yields_Periph_1 = new TH1F("Yields_Periph_1",
-                     "Yield of JPsi-tkl in Periph collisions wrt Phi",
+                     "Yield of J/#psi-tkl in Periph collisions wrt #Delta#phi",
                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Yields_Periph_1->SetXTitle("Phi of the correlation (rad)");
-    Yields_Periph_1->SetYTitle("Yield");
+    Yields_Periph_1->SetXTitle("#Delta#phi of the correlation (rad)");
+    Yields_Periph_1->SetYTitle("Yield_{Periph}");
     
     Yields_Difference_1 = new TH1F("Yields_Difference_1",
-                     "Yield of JPsi-tkl in (Central-Periph) collisions wrt Phi",
+                     "Subtracted yield of J/#psi-tkl (Central-Periph) wrt #Delta#phi",
                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Yields_Difference_1->SetXTitle("Phi of the correlation (rad)");
-    Yields_Difference_1->SetYTitle("Yield");
+    Yields_Difference_1->SetXTitle("#Delta#phi of the correlation (rad)");
+    Yields_Difference_1->SetYTitle("Yield_{Subtracted}");
     
     coefficients0 = new TH1F("coefficients0",
-                        "Coefficient Fourrier 0",
+                        "0^{th} Fourier coefficient wrt dimuon mass",
                         NbinsInvMass,MinInvMass,MaxInvMass);
        coefficients0->SetXTitle("Mass of dimuon (GeV/c^{2})");
-       coefficients0->SetYTitle("Coefficient 0 (Fourier)");
+       coefficients0->SetYTitle("0^{th} Fourier coefficient");
     coefficients1 = new TH1F("coefficients1",
-                           "Coefficient Fourrier 1",
+                           "1^{st} Fourier coefficient wrt dimuon mass",
                            NbinsInvMass,MinInvMass,MaxInvMass);
           coefficients1->SetXTitle("Mass of dimuon (GeV/c^{2})");
-          coefficients1->SetYTitle("Coefficient 1 (Fourier)");
+          coefficients1->SetYTitle("1^{st} Fourier coefficient");
     coefficients2 = new TH1F("coefficients2",
-                           "Coefficient Fourrier 2",
+                           "2^{nd} Fourier coefficient wrt dimuon mass",
                            NbinsInvMass,MinInvMass,MaxInvMass);
           coefficients2->SetXTitle("Mass of dimuon (GeV/c^{2})");
-          coefficients2->SetYTitle("Coefficient 2 (Fourier)");
+          coefficients2->SetYTitle("2^{nd} Fourier coefficient");
     baselines0 = new TH1F("baselines0",
-                     "Baseline 0",
+                     "Baseline_{Periph} wrt dimuon mass",
                      NbinsInvMass,MinInvMass,MaxInvMass);
     baselines0->SetXTitle("Mass of dimuon (GeV/c^{2})");
-    baselines0->SetYTitle("Baseline 0 (YieldPeriph deltaPhi=0)");
+    baselines0->SetYTitle("Baseline_{Periph}");
     c2b0 = new TH1F("c2b0",
-                     "Coefficient 2 + Baseline 0",
+                     "2^{nd} Fourier coefficient + Baseline_{Periph} wrt dimuon mass",
                      NbinsInvMass,MinInvMass,MaxInvMass);
     c2b0->SetXTitle("Mass of dimuon (GeV/c^{2})");
-    c2b0->SetYTitle("Coefficient 2 + Baseline 0");
+    c2b0->SetYTitle("2^{nd} Fourier coefficient + Baseline_{Periph}");
     V2JPsiTkl = new TH1F("V2JPsiTkl",
-                           "V2JPsiTkl wrt Mass",
-                           NbinsInvMass,MinInvMass,MaxInvMass);
-          V2JPsiTkl->SetXTitle("Mass of dimuon (GeV/c^{2})");
-          V2JPsiTkl->SetYTitle("V2JPsiTkl");
+                     "V_{2,J/#psi-tkl} wrt dimuon mass",
+                     NbinsInvMass,MinInvMass,MaxInvMass);
+    V2JPsiTkl->SetXTitle("Mass of dimuon (GeV/c^{2})");
+    V2JPsiTkl->SetYTitle("V_{2,J/#psi-tkl}");
     
-    char hname[100];
-    char hname2[100];
+    char hname[200];
+    char hname1[200];
+    char hname2[200];
     
     for (int j=0; j <NbinsInvMass; j++){
-       sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Central",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
-       Yield_Central_MassBin[j] = new TH1F(hname, hname,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-       }
+    sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Central",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+    sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Central",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+     Yield_Central_MassBin[j] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+    }
        
        for (int j=0; j <NbinsInvMass; j++){
-       sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Periph",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
-       Yield_Periph_MassBin[j] = new TH1F(hname, hname,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-       }
+       sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Periph",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+          sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Periph",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+          Yield_Periph_MassBin[j] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+          }
        
        for (int j=0; j <NbinsInvMass; j++){
-       sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Difference",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
-       Yield_Difference_MassBin[j] = new TH1F(hname, hname,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+           sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Difference",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+       sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Difference",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+       Yield_Difference_MassBin[j] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
        }
     
     TH1F* InvMass_Central(NULL);
@@ -770,368 +782,380 @@ void PlotFromTreePtBinned(){
     
     for(int i=0; i<NbBinsCent; i++){
         for(int k=0; k<NbinsInvMass; k++){
-            char hname[100];
+            char hname[200];
             sprintf(hname,"Yields %d %d ",i,k);
             Yields[i][k] = new TH1F(hname,
-                              "Yields Correlation wrt delta phi",
+                              "Yields Correlation wrt #Delta#phi",
                               NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-            Yields[i][k]->SetXTitle("Correlation DeltaPhi (rad)");
+            Yields[i][k]->SetXTitle("Correlation #Delta#phi (rad)");
             for(int j=0; j<NbBinsZvtx; j++){
                 sprintf(hname,"Correlations %d %d %d ",i,j,k);
                 Correlations[i][j][k] = new TH2F(hname,
-                                  "Correlation delta eta wrt delta phi",
+                                  "Correlation #Delta#eta wrt #Delta#phi",
                                   NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-                Correlations[i][j][k]->SetXTitle("Correlation DeltaPhi (rad)");
-                Correlations[i][j][k]->SetYTitle("Correlation DeltaEta");
+                Correlations[i][j][k]->SetXTitle("Correlation #Delta#phi (rad)");
+                Correlations[i][j][k]->SetYTitle("Correlation #Delta#eta");
                 sprintf(hname,"CorrelationsME %d %d %d ",i,j,k);
                 CorrelationsME[i][j][k] = new TH2I(hname,
-                                  "MixedEvent Correlation delta eta wrt delta phi",
+                                  "MixedEvent Correlation #Delta#eta wrt #Delta#phi",
                                   NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-                CorrelationsME[i][j][k]->SetXTitle("Correlation DeltaPhi (rad)");
-                CorrelationsME[i][j][k]->SetYTitle("Correlation DeltaEta");
-                
+                CorrelationsME[i][j][k]->SetXTitle("Correlation #Delta#phi (rad)");
+                CorrelationsME[i][j][k]->SetYTitle("Correlation #Delta#eta");
                 sprintf(hname,"CorrelationsMEScaled %d %d %d ",i,j,k);
                 CorrelationsMEScaled[i][j][k] = new TH2F(hname,
-                                  "MixedEvent Correlation delta eta wrt delta phi - Scaled",
-                                  NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-                CorrelationsMEScaled[i][j][k]->SetXTitle("Correlation DeltaPhi (rad)");
-                CorrelationsMEScaled[i][j][k]->SetYTitle("Correlation DeltaEta");
+                                                 "MixedEvent Correlation #Delta#eta wrt #Delta#phi - Scaled",
+                                                 NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+                               CorrelationsMEScaled[i][j][k]->SetXTitle("Correlation #Delta#phi (rad)");
+                               CorrelationsMEScaled[i][j][k]->SetYTitle("Correlation #Delta#eta");
             }
         }
         
     }
     
     for(int i=0; i<NbBinsCent; i++){
-        char hname[100];
+        char hname[200];
         sprintf(hname,"Yields Tkl %d ",i);
         YieldsTkl[i] = new TH1F(hname,
-                          "Yields Correlation Tkl wrt delta phi",
+                          "Yields Correlation Tkl wrt #Delta#phi",
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-        YieldsTkl[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        YieldsTkl[i]->SetXTitle("Correlation #Delta#phi (rad)");
         sprintf(hname,"Yields Tkl ShortCMS %d ",i);
         YieldsTklShortCMS[i] = new TH1F(hname,
-                          "Yields Correlation Tkl ShortCMS wrt delta phi",
+                          "Yields Correlation Tkl ShortCMS wrt #Delta#phi",
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-        YieldsTklShortCMS[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        YieldsTklShortCMS[i]->SetXTitle("Correlation #Delta#phi (rad)");
         sprintf(hname,"Yields Tkl LongCMS %d ",i);
         YieldsTklLongCMS[i] = new TH1F(hname,
-                          "Yields Correlation Tkl LongCMS wrt delta phi",
+                          "Yields Correlation Tkl LongCMS wrt #Delta#phi",
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-        YieldsTklLongCMS[i]->SetXTitle("Correlation DeltaPhi (rad)");
+        YieldsTklLongCMS[i]->SetXTitle("Correlation #Delta#phi (rad)");
         for(int j=0; j<NbBinsZvtx; j++){
             sprintf(hname,"Correlations Tkl %d %d ",i,j);
-            CorrelationsTkl[i][j] = new TH2F(hname,
-                              "Correlation Tkl delta eta wrt delta phi",
+            CorrelationsTkl[i][j] = new TH2I(hname,
+                              "Correlation Tkl #Delta#eta wrt #Delta#phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTkl[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTkl[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTkl[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTkl[i][j]->SetYTitle("Correlation #Delta#eta");
             sprintf(hname,"CorrelationsME Tkl %d %d ",i,j);
             CorrelationsTklME[i][j] = new TH2I(hname,
-                              "MixedEvent Correlation Tkl delta eta wrt delta phi",
+                              "MixedEvent Correlation Tkl #Delta#eta wrt #Delta#phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklME[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklME[i][j]->SetYTitle("Correlation DeltaEta");
-            sprintf(hname,"CorrelationsME Tkl Scaled %d %d ",i,j);
+            CorrelationsTklME[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklME[i][j]->SetYTitle("Correlation #Delta#eta");
+            sprintf(hname,"CorrelationsMEScaled Tkl %d %d ",i,j);
             CorrelationsTklMEScaled[i][j] = new TH2F(hname,
-                              "MixedEvent Correlation Tkl delta eta wrt delta phi - Scaled",
+                              "MixedEvent Correlation Tkl #Delta#eta wrt #Delta#phi - Scaled",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklMEScaled[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklMEScaled[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklMEScaled[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklMEScaled[i][j]->SetYTitle("Correlation #Delta#eta");
             
             sprintf(hname,"Correlations Tkl ShortCMS %d %d ",i,j);
             CorrelationsTklShortCMS[i][j] = new TH2I(hname,
-                              "Correlation Tkl ShortCMS delta eta wrt delta phi",
+                              "Correlation Tkl ShortCMS #Delta#eta wrt #Delta#phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklShortCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklShortCMS[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklShortCMS[i][j]->SetYTitle("Correlation #Delta#eta");
             sprintf(hname,"CorrelationsME Tkl ShortCMS %d %d ",i,j);
             CorrelationsTklMEShortCMS[i][j] = new TH2I(hname,
-                              "MixedEvent Correlation Tkl ShortCMS delta eta wrt delta phi",
+                              "MixedEvent Correlation Tkl ShortCMS #Delta#eta wrt #Delta#phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklMEShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklMEShortCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklMEShortCMS[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklMEShortCMS[i][j]->SetYTitle("Correlation #Delta#eta");
             sprintf(hname,"CorrelationsME Tkl ShortCMS Scaled %d %d ",i,j);
             CorrelationsTklMEScaledShortCMS[i][j] = new TH2F(hname,
-                              "MixedEvent Correlation Tkl ShortCMS delta eta wrt delta phi - Scaled",
+                              "MixedEvent Correlation Tkl ShortCMS #Delta#eta wrt #Delta#phi - Scaled",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklMEScaledShortCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklMEScaledShortCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklMEScaledShortCMS[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklMEScaledShortCMS[i][j]->SetYTitle("Correlation #Delta#eta");
             
             sprintf(hname,"Correlations Tkl LongCMS %d %d ",i,j);
-            CorrelationsTklLongCMS[i][j] = new TH2F(hname,
-                              "Correlation Tkl LongCMS delta eta wrt delta phi",
+            CorrelationsTklLongCMS[i][j] = new TH2I(hname,
+                              "Correlation Tkl LongCMS #Delta#eta wrt #Delta#phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklLongCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklLongCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklLongCMS[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklLongCMS[i][j]->SetYTitle("Correlation #Delta#eta");
             sprintf(hname,"CorrelationsME Tkl LongCMS %d %d ",i,j);
             CorrelationsTklMELongCMS[i][j] = new TH2I(hname,
-                              "MixedEvent Correlation Tkl LongCMS delta eta wrt delta phi",
+                              "MixedEvent Correlation Tkl LongCMS #Delta#eta wrt #Delta#phi",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklMELongCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklMELongCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklMELongCMS[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklMELongCMS[i][j]->SetYTitle("Correlation #Delta#eta");
             sprintf(hname,"CorrelationsME Tkl LongCMS Scaled %d %d ",i,j);
             CorrelationsTklMEScaledLongCMS[i][j] = new TH2F(hname,
-                              "MixedEvent Correlation Tkl LongCMS delta eta wrt delta phi - Scaled",
+                              "MixedEvent Correlation Tkl LongCMS #Delta#eta wrt #Delta#phi - Scaled",
                               NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-            CorrelationsTklMEScaledLongCMS[i][j]->SetXTitle("Correlation DeltaPhi (rad)");
-            CorrelationsTklMEScaledLongCMS[i][j]->SetYTitle("Correlation DeltaEta");
+            CorrelationsTklMEScaledLongCMS[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            CorrelationsTklMEScaledLongCMS[i][j]->SetYTitle("Correlation #Delta#eta");
         }
     }
     
     for(int i=0; i<NbBinsCent; i++){
            for(int p=0; p<NbinsDeltaPhi; p++){
-               char hname[100];
-               sprintf(hname,"Yields PhiBin %d %d ",i,p);
-               Yields_PhiBin[i][p] = new TH1F(hname,
-                                 "Yields Correlation wrt mass",
-                                 NbinsInvMass,MinInvMass,MaxInvMass);
-               Yields_PhiBin[i][p]->SetXTitle("Correlation Inv Mass (GeV)");
-       }
+                   char hname[200];
+                   sprintf(hname,"Yields PhiBin %d %d ",i,p);
+                   Yields_PhiBin[i][p] = new TH1F(hname,
+                                     "Yields Correlation wrt dimuon mass",
+                                     NbinsInvMass,MinInvMass,MaxInvMass);
+                   Yields_PhiBin[i][p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
+           }
     }
         
     for(int p=0; p<NbinsDeltaPhi; p++){
-            char hname[100];
-            char hname2[100];
+            char hname[200];
+            char hname2[200];
             sprintf(hname,"Yields PhiBin %d All C",p);
             YieldWrtMass_allC[p] = new TH1F(hname,
-                              "Yields Correlation wrt mass, all C",
+                              "Yields dimuon-tkl wrt dimuon mass, all C",
                               NbinsInvMass,MinInvMass,MaxInvMass);
-            YieldWrtMass_allC[p]->SetXTitle("Correlation Inv Mass (GeV)");
+            YieldWrtMass_allC[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
         
-        sprintf(hname,"Yields PhiBin %d Periph ",p);
-        sprintf(hname2,"Yields Correlation wrt mass, Periph, Phi: %d pi/6 to %d pi/6",p-3, p-2);
+        sprintf(hname,"Yields PhiBin %d Periph",p);
+        sprintf(hname2,"Yields dimuon-tkl wrt wrt dimuon mass, Periph, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
         YieldWrtMass_Periph[p] = new TH1F(hname,
                           hname2,
                           NbinsInvMass,MinInvMass,MaxInvMass);
-        YieldWrtMass_Periph[p]->SetXTitle("Correlation Inv Mass (GeV)");
+        YieldWrtMass_Periph[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
         
         sprintf(hname,"Yields PhiBin %d Central",p);
-        sprintf(hname2,"Yields Correlation wrt mass, Central, Phi: %d pi/6 to %d pi/6",p-3, p-2);
+        sprintf(hname2,"Yields dimuon-tkl wrt wrt dimuon mass, Central, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
         YieldWrtMass_Central[p] = new TH1F(hname,
                           hname2,
                           NbinsInvMass,MinInvMass,MaxInvMass);
-        YieldWrtMass_Central[p]->SetXTitle("Correlation Inv Mass (GeV)");
+        YieldWrtMass_Central[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
     }
         
     
     Yield_allC = new TH1F("Yield_allC",
-                         "Yields Correlation wrt delta phi, all C, all mass",
+                         "Yields dimuon-tkl wrt #Delta#phi, all C, all mass",
                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-       Yield_allC->SetXTitle("Correlation DeltaPhi (rad)");
+       Yield_allC->SetXTitle("#Delta#phi (rad)");
+        Yield_allC->SetYTitle("Yields");
     Yield_Central = new TH1F("Yield_Central",
-                      "Yields Correlation wrt delta phi, Central, 3.0-3.25 GeV",
+                      "Yields dimuon-tkl wrt #Delta#phi, Central, 3.0-3.25 GeV",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Yield_Central->SetXTitle("Correlation DeltaPhi (rad)");
+    Yield_Central->SetXTitle("#Delta#phi (rad)");
+    Yield_Central->SetYTitle("Yields_{Central}");
     Yield_Periph = new TH1F("Yield_Periph",
-                      "Yields Correlation wrt delta phi, Periph, 3.0-3.25 GeV",
+                      "Yields dimuon-tkl wrt #Delta#phi, Periph, 3.0-3.25 GeV",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Yield_Periph->SetXTitle("Correlation DeltaPhi (rad)");
+    Yield_Periph->SetXTitle("#Delta#phi (rad)");
+    Yield_Periph->SetYTitle("Yields_{Periph}");
     Yield_Difference = new TH1F("Yield_Difference",
-                      "Yields Correlation wrt delta phi, Central-Periph, all mass",
+                      "Yields dimuon-tkl wrt #Delta#phi, Central-Periph, all mass",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Yield_Difference->SetXTitle("Correlation DeltaPhi (rad)");
+    Yield_Difference->SetXTitle("#Delta#phi (rad)");
+    Yield_Difference->SetXTitle("Yields_{Subtracted}");
        Yield_tampon = new TH1F("Yield_tampon",
-                         "Yields Correlation wrt delta phi, all C, all mass",
+                         "Yields dimuon-tkl wrt #Delta#phi, all C, all mass",
                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-       Yield_tampon->SetXTitle("Correlation DeltaPhi (rad)");
+       Yield_tampon->SetXTitle("#Delta#phi (rad)");
+        Yield_tampon->SetYTitle("Yields");
     YieldWrtMass_tampon = new TH1F("YieldWrtMass_tampon",
-                      "Yields Correlation wrt inv mass",
+                      "Yields dimuon-tkl wrt dimuon mass",
                       NbinsInvMass,MinInvMass,MaxInvMass);
-    YieldWrtMass_tampon->SetXTitle("Correlation Inv Mass (GeV)");
+    YieldWrtMass_tampon->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
+    YieldWrtMass_tampon->SetYTitle("Yields");
     
-    YieldTkl_allC = new TH1F("YieldTkl_allC",
-                         "Yields Correlation Tkl wrt delta phi, all C, all mass",
+     YieldTkl_allC = new TH1F("YieldTkl_allC",
+                            "Yields tkl-tkl wrt #Delta#phi, all C, all mass",
+                            NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+          YieldTkl_allC->SetXTitle("#Delta#phi (rad)");
+       YieldTkl_allC->SetXTitle("Yields");
+       YieldTkl_Central = new TH1F("YieldTkl_Central",
+                         "Yields tkl-tkl wrt #Delta#phi, Central",
                          NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-       YieldTkl_allC->SetXTitle("Correlation DeltaPhi (rad)");
-    YieldTkl_Central = new TH1F("YieldTkl_Central",
-                      "Yields Correlation Tkl wrt delta phi, Central",
-                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_Central->SetXTitle("Correlation DeltaPhi (rad)");
-    YieldTkl_Periph = new TH1F("YieldTkl_Periph",
-                      "Yields Correlation Tkl wrt delta phi, Periph",
-                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_Periph->SetXTitle("Correlation DeltaPhi (rad)");
-    YieldTkl_Difference = new TH1F("YieldTkl_Difference",
-                      "Yields Correlation Tkl wrt delta phi, Central-Periph, all mass",
-                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_Difference->SetXTitle("Correlation DeltaPhi (rad)");
-    YieldTkl_tampon = new TH1F("YieldTkl_tampon",
-                      "Yields Correlation Tkl wrt delta phi, all C, all mass",
-                      NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_tampon->SetXTitle("Correlation DeltaPhi (rad)");
+       YieldTkl_Central->SetXTitle("#Delta#phi (rad)");
+       YieldTkl_Central->SetYTitle("Yields_{Central}");
+       YieldTkl_Periph = new TH1F("YieldTkl_Periph",
+                         "Yields tkl-tkl wrt #Delta#phi, Periph",
+                         NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+       YieldTkl_Periph->SetXTitle("#Delta#phi (rad)");
+       YieldTkl_Periph->SetYTitle("Yields_{Periph}");
+       YieldTkl_Difference = new TH1F("YieldTkl_Difference",
+                         "Yields tkl-tkl wrt #Delta#phi, Central-Periph, all mass",
+                         NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+       YieldTkl_Difference->SetXTitle("#Delta#phi (rad)");
+       YieldTkl_Difference->SetYTitle("Yields_{Subtracted}");
+       YieldTkl_tampon = new TH1F("YieldTkl_tampon",
+                         "Yields tkl-tkl wrt #Delta#phi, all C, all mass",
+                         NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
+       YieldTkl_tampon->SetXTitle("#Delta#phi (rad)");
+       YieldTkl_tampon->SetYTitle("Yields");
     
     YieldTkl_allCShortCMS = new TH1F("YieldTkl_allCShortCMS",
-                         "Yields Correlation Tkl ShortCMS wrt delta phi, all C, all mass",
+                         "Yields Correlation Tkl ShortCMS wrt #Delta#phi, all C, all mass",
                          NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-       YieldTkl_allCShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+       YieldTkl_allCShortCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_CentralShortCMS = new TH1F("YieldTkl_CentralShortCMS",
-                      "Yields Correlation Tkl ShortCMS wrt delta phi, Central",
+                      "Yields Correlation Tkl ShortCMS wrt #Delta#phi, Central",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_CentralShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_CentralShortCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_PeriphShortCMS = new TH1F("YieldTkl_PeriphShortCMS",
-                      "Yields Correlation Tkl ShortCMS wrt delta phi, Periph",
+                      "Yields Correlation Tkl ShortCMS wrt #Delta#phi, Periph",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_PeriphShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_PeriphShortCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_DifferenceShortCMS = new TH1F("YieldTkl_DifferenceShortCMS",
-                      "Yields Correlation Tkl ShortCMS wrt delta phi, Central-Periph, all mass",
+                      "Yields Correlation Tkl ShortCMS wrt #Delta#phi, Central-Periph, all mass",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_DifferenceShortCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_DifferenceShortCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_allCLongCMS = new TH1F("YieldTkl_allCLongCMS",
-                         "Yields Correlation Tkl LongCMS wrt delta phi, all C, all mass",
+                         "Yields Correlation Tkl LongCMS wrt #Delta#phi, all C, all mass",
                          NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-       YieldTkl_allCLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+       YieldTkl_allCLongCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_CentralLongCMS = new TH1F("YieldTkl_CentralLongCMS",
-                      "Yields Correlation Tkl LongCMS wrt delta phi, Central",
+                      "Yields Correlation Tkl LongCMS wrt #Delta#phi, Central",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_CentralLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_CentralLongCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_PeriphLongCMS = new TH1F("YieldTkl_PeriphLongCMS",
-                      "Yields Correlation Tkl LongCMS wrt delta phi, Periph",
+                      "Yields Correlation Tkl LongCMS wrt #Delta#phi, Periph",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_PeriphLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_PeriphLongCMS->SetXTitle("Correlation #Delta#phi (rad)");
     YieldTkl_DifferenceLongCMS = new TH1F("YieldTkl_DifferenceLongCMS",
-                      "Yields Correlation Tkl LongCMS wrt delta phi, Central-Periph, all mass",
+                      "Yields Correlation Tkl LongCMS wrt #Delta#phi, Central-Periph, all mass",
                       NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    YieldTkl_DifferenceLongCMS->SetXTitle("Correlation DeltaPhi (rad)");
+    YieldTkl_DifferenceLongCMS->SetXTitle("Correlation #Delta#phi (rad)");
     
     
-    hnseg = new TH1F("hnseg",
-                     "Invariant mass of dimuon",
-                     250,MinInvMass,MaxInvMass);
-    hnseg->SetXTitle("Mass of dimuon (GeV/c^{2})");
-    hnseg->SetYTitle("Count");
+   char haxis[200];
+    sprintf(haxis, "Count within bin of %d MeV/c^{2}", 1000*(MaxInvMass-MinInvMass)/NbinsDimuInvMass);
+        hnseg = new TH1F("hnseg",
+                         "Invariant mass of dimuon",
+                         NbinsDimuInvMass,MinInvMass,MaxInvMass);
+        hnseg->SetXTitle("Mass of dimuon (GeV/c^{2})");
+        hnseg->SetYTitle(haxis);
     hDPhi = new TH1F("hDPhi",
-                     "DeltaPhi of Tracklet",
+                     "#Delta#Phi of Tracklet",
                      10000,-TMath::Pi(),TMath::Pi());
-    hDPhi->SetXTitle("DPhi tracklet");
+    hDPhi->SetXTitle("Tracklet #Delta#Phi (rad)");
     hDPhi->SetYTitle("Count");
     InvMass_Central = new TH1F("InvMass_Central",
                      "Invariant mass of dimuon - Central",
-                     250,MinInvMass,MaxInvMass);
+                     NbinsDimuInvMass,MinInvMass,MaxInvMass);
     InvMass_Central->SetXTitle("Mass of dimuon (GeV/c^{2})");
-    InvMass_Central->SetYTitle("Count");
+    InvMass_Central->SetYTitle(haxis);
     InvMass_Periph = new TH1F("InvMass_Periph",
                      "Invariant mass of dimuon - Periph",
-                     250,MinInvMass,MaxInvMass);
+                     NbinsDimuInvMass,MinInvMass,MaxInvMass);
     InvMass_Periph->SetXTitle("Mass of dimuon (GeV/c^{2})");
-    InvMass_Periph->SetYTitle("Count");
+    InvMass_Periph->SetYTitle(haxis);
     hnseg2 = new TH1F("hnseg2",
-                     "Pt of dimuon",
+                     "p_{T} of dimuon",
                      100,0,10);
-    hnseg2->SetXTitle("Dimuon p_{t} (GeV/c)");
+    hnseg2->SetXTitle("Dimuon p_{T} (GeV/c)");
     hnseg2->SetYTitle("Count");
     hnseg3 = new TH1F("hnseg3",
-                     "Eta of dimuon",
+                     "#eta of dimuon",
                      1000,-10,0);
-    hnseg3->SetXTitle("Dimuon Eta");
+    hnseg3->SetXTitle("Dimuon #eta");
     hnseg3->SetYTitle("Count");
     hnseg4 = new TH1F("hnseg4",
-                      "Y of dimuon",
+                      "y of dimuon",
                       1000,-2.4,-4.2);
-    hnseg4->SetXTitle("Dimuon Y");
+    hnseg4->SetXTitle("Dimuon y");
     hnseg4->SetYTitle("Count");
     hnseg5 = new TH1F("hnseg5",
-                      "Phi of dimuon",
+                      "#phi of dimuon",
                       1000,0, 2*TMath::Pi());
-    hnseg5->SetXTitle("Dimuon Phi (rad)");
+    hnseg5->SetXTitle("Dimuon #phi (rad)");
     hnseg5->SetYTitle("Count");
     hnseg6 = new TH1F("hnseg6",
-                      "Correlation delta phi",
+                      "Correlation #Delta#phi",
                       1000,MinDeltaPhi,MaxDeltaPhi);
-    hnseg6->SetXTitle("Correlation DeltaPhi (rad)");
+    hnseg6->SetXTitle("Correlation #Delta#phi (rad)");
     hnseg6->SetYTitle("Count");
     hnseg7 = new TH1F("hnseg7",
-                      "Correlation delta eta",
+                      "Correlation #Delta#eta",
                       1000,MinDeltaEta,MaxDeltaEta);
-    hnseg7->SetXTitle("Correlation DeltaEta");
+    hnseg7->SetXTitle("Correlation #Delta#eta");
     hnseg7->SetYTitle("Count");
     hnsegSigma = new TH2F("hnsegSigma",
-                      "Zvtx resolution wrt NContributors",
+                      "Z_{vtx} resolution wrt NContributors",
                       60,0,60,1000,0,10);
     hnsegSigma->SetXTitle("NContributors");
-    hnsegSigma->SetYTitle("Zvtx Resolution (SPD)");
+    hnsegSigma->SetYTitle("Z_{vtx} Resolution (SPD)");
     hnseg8 = new TH2F("hnseg8",
-                      "Correlation delta eta wrt delta phi",
+                      "Correlation #Delta#eta wrt #Delta#phi",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    hnseg8->SetXTitle("Correlation DeltaPhi (rad)");
-    hnseg8->SetYTitle("Correlation DeltaEta");
+    hnseg8->SetXTitle("Correlation #Delta#phi (rad)");
+    hnseg8->SetYTitle("Correlation #Delta#eta");
     hnseg8ME = new TH2F("hnseg8ME",
-                      "MixedEvent Correlation delta eta wrt delta phi",
+                      "MixedEvent Correlation #Delta#eta wrt #Delta#phi",
                       NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    hnseg8ME->SetXTitle("Correlation DeltaPhi (rad)");
-    hnseg8ME->SetYTitle("Correlation DeltaEta");
-    hnseg8_proj = new TH1F("hnseg8_proj", "Correlation wrt delta eta, projection",NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    hnseg8_proj->SetXTitle("Correlation DeltaEta");
+    hnseg8ME->SetXTitle("Correlation #Delta#phi (rad)");
+    hnseg8ME->SetYTitle("Correlation #Delta#eta");
+    hnseg8_proj = new TH1F("hnseg8_proj", "Correlation wrt #Delta#eta, projection",NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+    hnseg8_proj->SetXTitle("Correlation #Delta#eta");
     hnseg8_proj->SetYTitle("Correlation mean");
-    hnseg8Tkl_proj = new TH1F("hnseg8Tkl_proj", "Correlation Tkl wrt delta eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    hnseg8Tkl_proj->SetXTitle("Correlation DeltaEta");
+    hnseg8Tkl_proj = new TH1F("hnseg8Tkl_proj", "Correlation tkl-tkl wrt #Delta#eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8Tkl_proj->SetXTitle("Correlation #Delta#eta");
     hnseg8Tkl_proj->SetYTitle("Correlation mean");
-    hnseg8ME_proj = new TH1D("hnseg8ME_proj", "MixedEvent Correlation wrt delta eta, projection",NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-    hnseg8ME_proj->SetXTitle("Correlation DeltaEta");
+    hnseg8ME_proj = new TH1D("hnseg8ME_proj", "MixedEvent Correlation wrt #Delta#eta, projection",NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
+    hnseg8ME_proj->SetXTitle("Correlation #Delta#eta");
     hnseg8ME_proj->SetYTitle("Correlation mean");
-    hnseg8TklME_proj = new TH1D("hnseg8TklME_proj", "MixedEvent Correlation Tkl wrt delta eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
-    hnseg8TklME_proj->SetXTitle("Correlation DeltaEta");
+    hnseg8TklME_proj = new TH1D("hnseg8TklME_proj", "MixedEvent Correlation tkl-tkl wrt #Delta#eta, projection",NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+    hnseg8TklME_proj->SetXTitle("Correlation #Delta#eta");
     hnseg8TklME_proj->SetYTitle("Correlation mean");
  
     Sijk = new TH1F("Sijk",
                                    "Sijk",
                                    NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Sijk->SetXTitle("Correlation DeltaPhi (rad)");
+    Sijk->SetXTitle("Correlation #Delta#phi (rad)");
     Mijk = new TH1F("Mijk",
                                    "Mijk",
                                    NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    Mijk->SetXTitle("Correlation DeltaPhi (rad)");
+    Mijk->SetXTitle("Correlation #Delta#phi (rad)");
     SoverMijk = new TH1F("SoverMijk",
                                    "SoverMijk",
                                    NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    SoverMijk->SetXTitle("Correlation DeltaPhi (rad)");
+    SoverMijk->SetXTitle("Correlation #Delta#phi (rad)");
     SoverMik = new TH1F("SoverMik",
                                    "SoverMik",
                                    NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-    SoverMik->SetXTitle("Correlation DeltaPhi (rad)");
+    SoverMik->SetXTitle("Correlation #Delta#phi (rad)");
     
     Sij = new TH1F("Sij",
                                    "Sij",
                                    NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    Sij->SetXTitle("Correlation DeltaPhi (rad)");
+    Sij->SetXTitle("Correlation #Delta#phi (rad)");
     Mij = new TH1F("Mij",
                                    "Mij",
                                    NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    Mij->SetXTitle("Correlation DeltaPhi (rad)");
+    Mij->SetXTitle("Correlation #Delta#phi (rad)");
     SoverMij = new TH1F("SoverMij",
                                    "SoverMij",
                                    NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    SoverMij->SetXTitle("Correlation DeltaPhi (rad)");
+    SoverMij->SetXTitle("Correlation #Delta#phi (rad)");
     SoverMi = new TH1F("SoverMi",
                                    "SoverMi",
                                    NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
-    SoverMi->SetXTitle("Correlation DeltaPhi (rad)");
+    SoverMi->SetXTitle("Correlation #Delta#phi (rad)");
 
     hnseg9 = new TH2F("hnseg9",
-                      "Tracklet eta wrt z_vertex",
+                      "Tracklet #eta wrt z_{vtx}",
                       100,-15,15,100,-2.5,2.5);
-    hnseg9->SetXTitle("Z_{vertex} (cm)");
-    hnseg9->SetYTitle("Tracklet Eta");
+    hnseg9->SetXTitle("Z_{vtx} (cm)");
+    hnseg9->SetYTitle("Tracklet #eta");
     hnseg10 = new TH2F("hnseg10",
                       "Number of tracklets wrt V0M percentile",
                       100,0,100,100,0,400);
     hnseg10->SetXTitle("V0M Percentile");
     hnseg10->SetYTitle("Tracklet count");
-  //  Double_t binsPt[7] = {0,2,3,4,6,8,12};
+   // Double_t binsPt[7] = {0,2,3,4,6,8,12};
     hPtWrtMassInv[0] = new TH2F("hPtWrtMassInv_0",
-                      "Pt wrt Mass Inv - All centralities",
-                      250,MinInvMass,MaxInvMass,NbPtBins,PtBins);
-    hPtWrtMassInv[0]->SetXTitle("Mass Inv");
-    hPtWrtMassInv[0]->SetYTitle("Pt");
+                      "p_{T} wrt dimuon inv mass - All centralities",
+                      NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
+    hPtWrtMassInv[0]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
+    hPtWrtMassInv[0]->SetYTitle("p_{T} (GeV/c)");
     hPtWrtMassInv[1] = new TH2F("hPtWrtMassInv_1",
-                      "Pt wrt Mass Inv - Central",
-                      250,MinInvMass,MaxInvMass,NbPtBins,PtBins);
-    hPtWrtMassInv[1]->SetXTitle("Mass Inv");
-    hPtWrtMassInv[1]->SetYTitle("Pt");
+                      "p_{T} wrt dimuon inv mass - Central",
+                      NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
+    hPtWrtMassInv[1]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
+    hPtWrtMassInv[1]->SetYTitle("p_{T} (GeV/c)");
     hPtWrtMassInv[2] = new TH2F("hPtWrtMassInv_2",
-                      "Pt wrt Mass Inv - Periph",
-                      250,MinInvMass,MaxInvMass,NbPtBins,PtBins);
-    hPtWrtMassInv[2]->SetXTitle("Mass Inv");
-    hPtWrtMassInv[2]->SetYTitle("Pt");
+                      "p_{T} wrt dimuon inv mass - Periph",
+                      NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
+    hPtWrtMassInv[2]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
+    hPtWrtMassInv[2]->SetYTitle("p_{T} (GeV/c)");
     
     
     CentV0M = new TH1F("CentV0M",
@@ -1201,163 +1225,169 @@ void PlotFromTreePtBinned(){
     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
         for(int i=0; i<NbBinsCent; i++){
                for(int k=0; k<NbinsInvMass; k++){
-                   char hname[100];
+                   char hname[200];
                    sprintf(hname,"Yields %d %d %d ",i,k,ptbin);
                    YieldsPtBinned[i][k][ptbin] = new TH1F(hname,
-                                     "YieldsPtBinned Correlation wrt delta phi",
+                                     "YieldsPtBinned Correlation wrt #Delta#phi",
                                      NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-                   YieldsPtBinned[i][k][ptbin]->SetXTitle("Correlation DeltaPhi (rad)");
+                   YieldsPtBinned[i][k][ptbin]->SetXTitle("Correlation #Delta#phi (rad)");
                    for(int j=0; j<NbBinsZvtx; j++){
                        sprintf(hname,"CorrelationsPtBinned %d %d %d %d ",i,j,k,ptbin);
                        CorrelationsPtBinned[i][j][k][ptbin] = new TH2F(hname,
-                                         "CorrelationPtBinned delta eta wrt delta phi",
+                                         "CorrelationPtBinned #Delta#eta wrt #Delta#phi",
                                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-                       CorrelationsPtBinned[i][j][k][ptbin]->SetXTitle("Correlation DeltaPhi (rad)");
-                       CorrelationsPtBinned[i][j][k][ptbin]->SetYTitle("Correlation DeltaEta");
+                       CorrelationsPtBinned[i][j][k][ptbin]->SetXTitle("Correlation #Delta#phi (rad)");
+                       CorrelationsPtBinned[i][j][k][ptbin]->SetYTitle("Correlation #Delta#eta");
                        sprintf(hname,"CorrelationsMEPtBinned %d %d %d %d ",i,j,k,ptbin);
                        CorrelationsMEPtBinned[i][j][k][ptbin] = new TH2I(hname,
-                                         "MixedEvent CorrelationPtBinned delta eta wrt delta phi",
+                                         "MixedEvent CorrelationPtBinned #Delta#eta wrt #Delta#phi",
                                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-                       CorrelationsMEPtBinned[i][j][k][ptbin]->SetXTitle("Correlation DeltaPhi (rad)");
-                       CorrelationsMEPtBinned[i][j][k][ptbin]->SetYTitle("Correlation DeltaEta");
+                       CorrelationsMEPtBinned[i][j][k][ptbin]->SetXTitle("Correlation #Delta#phi (rad)");
+                       CorrelationsMEPtBinned[i][j][k][ptbin]->SetYTitle("Correlation #Delta#eta");
                        
                        sprintf(hname,"CorrelationsMEScaledPtBinned %d %d %d %d ",i,j,k,ptbin);
                        CorrelationsMEScaledPtBinned[i][j][k][ptbin] = new TH2F(hname,
-                                         "MixedEvent CorrelationPtBinned delta eta wrt delta phi - Scaled",
+                                         "MixedEvent CorrelationPtBinned #Delta#eta wrt #Delta#phi - Scaled",
                                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEta,MinDeltaEta,MaxDeltaEta);
-                       CorrelationsMEScaledPtBinned[i][j][k][ptbin]->SetXTitle("Correlation DeltaPhi (rad)");
-                       CorrelationsMEScaledPtBinned[i][j][k][ptbin]->SetYTitle("Correlation DeltaEta");
+                       CorrelationsMEScaledPtBinned[i][j][k][ptbin]->SetXTitle("Correlation #Delta#phi (rad)");
+                       CorrelationsMEScaledPtBinned[i][j][k][ptbin]->SetYTitle("Correlation #Delta#eta");
                    }
                }
                
            }
         
         for (int j=0; j <NbinsInvMass; j++){
-        char hname[100];
-        sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Central - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
-        Yield_Central_MassBinPtBinned[j][ptbin] = new TH1F(hname, hname,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+        char hname1[200];
+        char hname2[200];
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Central - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Central - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),PtBins[ptbin], PtBins[ptbin+1]);
+        Yield_Central_MassBinPtBinned[j][ptbin] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         }
         
         for (int j=0; j <NbinsInvMass; j++){
-        char hname[100];
-        sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Periph - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
-        Yield_Periph_MassBinPtBinned[j][ptbin] = new TH1F(hname, hname,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+        char hname1[200];
+        char hname2[200];
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Periph - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Periph - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),PtBins[ptbin], PtBins[ptbin+1]);
+        Yield_Periph_MassBinPtBinned[j][ptbin] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         }
         
         for (int j=0; j <NbinsInvMass; j++){
-        char hname[100];
-        sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Difference - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
-        Yield_Difference_MassBinPtBinned[j][ptbin] = new TH1F(hname, hname,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
+        char hname1[200];
+        char hname2[200];
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Difference - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Difference - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),PtBins[ptbin], PtBins[ptbin+1]);
+        Yield_Difference_MassBinPtBinned[j][ptbin] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         }
         
         for(int i=0; i<NbBinsCent; i++){
                   for(int p=0; p<NbinsDeltaPhi; p++){
-                      char hname[100];
-                      sprintf(hname,"Yields PhiBinPtBinned %d %d %d",i,p,ptbin);
-                      Yields_PhiBinPtBinned[i][p][ptbin] = new TH1F(hname,
-                                        "Yields CorrelationPtBinned wrt mass",
-                                        NbinsInvMass,MinInvMass,MaxInvMass);
-                      Yields_PhiBinPtBinned[i][p][ptbin]->SetXTitle("Correlation Inv Mass (GeV)");
-              }
+                          char hname[200];
+                          sprintf(hname,"Yields PhiBinPtBinned %d %d %d",i,p,ptbin);
+                          Yields_PhiBinPtBinned[i][p][ptbin] = new TH1F(hname,
+                                            "Yields CorrelationPtBinned wrt mass",
+                                            NbinsInvMass,MinInvMass,MaxInvMass);
+                          Yields_PhiBinPtBinned[i][p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
+                  }
            }
         
         for(int p=0; p<NbinsDeltaPhi; p++){
-                   char hname[100];
-                   char hname2[100];
-                   sprintf(hname,"Yields PhiBinPtBinned %d All C %d",p,ptbin);
-                   YieldWrtMass_allCPtBinned[p][ptbin] = new TH1F(hname,
-                                     "Yields CorrelationPtBinned wrt mass, all C",
-                                     NbinsInvMass,MinInvMass,MaxInvMass);
-                   YieldWrtMass_allCPtBinned[p][ptbin]->SetXTitle("Correlation Inv Mass (GeV)");
-               
-               sprintf(hname,"Yields PhiBinPtBinned %d Periph %d",p,ptbin);
-               sprintf(hname2,"Yields CorrelationPtBinned wrt mass, Periph, Phi: %d pi/6 to %d pi/6",p-3, p-2);
-               YieldWrtMass_PeriphPtBinned[p][ptbin] = new TH1F(hname,
-                                 hname2,
-                                 NbinsInvMass,MinInvMass,MaxInvMass);
-               YieldWrtMass_PeriphPtBinned[p][ptbin]->SetXTitle("Correlation Inv Mass (GeV)");
-               
-               sprintf(hname,"Yields PhiBinPtBinned %d Central %d",p,ptbin);
-               sprintf(hname2,"Yields CorrelationPtBinned wrt mass, Central, Phi: %d pi/6 to %d pi/6",p-3, p-2);
-               YieldWrtMass_CentralPtBinned[p][ptbin] = new TH1F(hname,
-                                 hname2,
-                                 NbinsInvMass,MinInvMass,MaxInvMass);
-               YieldWrtMass_CentralPtBinned[p][ptbin]->SetXTitle("Correlation Inv Mass (GeV)");
-           }
+                char hname[200];
+                char hname2[200];
+                sprintf(hname,"Yields PhiBinPtBinned %d All C %d",p,ptbin);
+                YieldWrtMass_allCPtBinned[p][ptbin] = new TH1F(hname,
+                                  "Yields CorrelationPtBinned wrt dimuon mass, all C",
+                                  NbinsInvMass,MinInvMass,MaxInvMass);
+                YieldWrtMass_allCPtBinned[p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
+            
+            sprintf(hname,"Yields PhiBinPtBinned %d Periph %d",p,ptbin);
+            sprintf(hname2,"Yields CorrelationPtBinned wrt dimuon mass, Periph, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
+            YieldWrtMass_PeriphPtBinned[p][ptbin] = new TH1F(hname,
+                              hname2,
+                              NbinsInvMass,MinInvMass,MaxInvMass);
+            YieldWrtMass_PeriphPtBinned[p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
+            
+            sprintf(hname,"Yields PhiBinPtBinned %d Central %d",p,ptbin);
+            sprintf(hname2,"Yields CorrelationPtBinned wrt dimuon mass, Central, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
+            YieldWrtMass_CentralPtBinned[p][ptbin] = new TH1F(hname,
+                              hname2,
+                              NbinsInvMass,MinInvMass,MaxInvMass);
+            YieldWrtMass_CentralPtBinned[p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
+        }
         
-        char hname[100];
-        char hname2[100];
+        char hname[200];
+        char hname2[200];
         sprintf(hname,"Yields_Central_1PtBinned %d",ptbin);
-        sprintf(hname2,"Yield of JPsi-tkl in Central collisions wrt Phi - PtBinned %d",ptbin);
+        sprintf(hname2,"Yield of J/#psi-tkl in Central collisions wrt #Delta#phi - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         Yields_Central_1PtBinned[ptbin] = new TH1F(hname,
                          hname2,
                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-        Yields_Central_1PtBinned[ptbin]->SetXTitle("Phi of the correlation (rad)");
-        Yields_Central_1PtBinned[ptbin]->SetYTitle("Yield");
+        Yields_Central_1PtBinned[ptbin]->SetXTitle("#Delta#phi (rad)");
+        Yields_Central_1PtBinned[ptbin]->SetYTitle("Yield_{Central}");
         
         sprintf(hname,"Yields_Periph_1PtBinned %d",ptbin);
-        sprintf(hname2,"Yield of JPsi-tkl in Periph collisions wrt Phi - PtBinned %d",ptbin);
+        sprintf(hname2,"Yield of J/#psi-tkl in Periph collisions wrt #Delta#phi - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         Yields_Periph_1PtBinned[ptbin] = new TH1F(hname,
                          hname2,
                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-        Yields_Periph_1PtBinned[ptbin]->SetXTitle("Phi of the correlation (rad)");
-        Yields_Periph_1PtBinned[ptbin]->SetYTitle("Yield");
+        Yields_Periph_1PtBinned[ptbin]->SetXTitle("#Delta#phi (rad)");
+        Yields_Periph_1PtBinned[ptbin]->SetYTitle("Yield_{Periph}");
         
         sprintf(hname,"Yields_Difference_1PtBinned %d",ptbin);
-        sprintf(hname2,"Yield of JPsi-tkl in (Central-Periph) collisions wrt Phi - PtBinned %d",ptbin);
+        sprintf(hname2,"Subtracted Yield of J/#psi-tkl wrt #Delta#phi - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         Yields_Difference_1PtBinned[ptbin] = new TH1F(hname,
                          hname2,
                          NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
-        Yields_Difference_1PtBinned[ptbin]->SetXTitle("Phi of the correlation (rad)");
-        Yields_Difference_1PtBinned[ptbin]->SetYTitle("Yield");
+        Yields_Difference_1PtBinned[ptbin]->SetXTitle("#Delta#phi (rad)");
+        Yields_Difference_1PtBinned[ptbin]->SetYTitle("Yield_{Subtracted}");
         
         sprintf(hname,"coefficients0PtBinned %d",ptbin);
-        sprintf(hname2,"Coefficient Fourrier 0 - PtBinned %d",ptbin);
+        sprintf(hname2,"0^{th} Fourier coefficient - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         coefficients0PtBinned[ptbin] = new TH1F(hname,
                             hname2,
                             NbinsInvMass,MinInvMass,MaxInvMass);
            coefficients0PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
-           coefficients0PtBinned[ptbin]->SetYTitle("Coefficient 0 (Fourier)");
+           coefficients0PtBinned[ptbin]->SetYTitle("0^{th} Fourier coefficient");
         
         sprintf(hname,"coefficients1PtBinned %d",ptbin);
-        sprintf(hname2,"Coefficient Fourrier 1 - PtBinned %d",ptbin);
+        sprintf(hname2,"1^{st} Fourier coefficient - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         coefficients1PtBinned[ptbin] = new TH1F(hname,
                             hname2,
                             NbinsInvMass,MinInvMass,MaxInvMass);
            coefficients1PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
-           coefficients1PtBinned[ptbin]->SetYTitle("Coefficient 1 (Fourier)");
+           coefficients1PtBinned[ptbin]->SetYTitle("1^{st} Fourier coefficient");
         
         sprintf(hname,"coefficients2PtBinned %d",ptbin);
-        sprintf(hname2,"Coefficient Fourrier 2 - PtBinned %d",ptbin);
+        sprintf(hname2,"2^{nd} Fourier coefficient - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         coefficients2PtBinned[ptbin] = new TH1F(hname,
                             hname2,
                             NbinsInvMass,MinInvMass,MaxInvMass);
            coefficients2PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
-           coefficients2PtBinned[ptbin]->SetYTitle("Coefficient 2 (Fourier)");
+           coefficients2PtBinned[ptbin]->SetYTitle("2^{nd} Fourier coefficient");
         
         sprintf(hname,"baselines0PtBinned %d",ptbin);
-        sprintf(hname2,"Baseline 0 - PtBinned %d",ptbin);
+        sprintf(hname2,"Baseline_{Periph} - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         baselines0PtBinned[ptbin] = new TH1F(hname,
                          hname2,
                          NbinsInvMass,MinInvMass,MaxInvMass);
         baselines0PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
-        baselines0PtBinned[ptbin]->SetYTitle("Baseline 0 (YieldPeriph deltaPhi=0)");
+        baselines0PtBinned[ptbin]->SetYTitle("Baseline_{Periph}");
         
         sprintf(hname,"c2b0PtBinned %d",ptbin);
-        sprintf(hname2,"Coefficient 2 + Baseline 0 - PtBinned %d",ptbin);
+        sprintf(hname2,"2^{nd} Fourier coefficient + Baseline_{Periph} - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         c2b0PtBinned[ptbin] = new TH1F(hname,
                          hname2,
                          NbinsInvMass,MinInvMass,MaxInvMass);
         c2b0PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
-        c2b0PtBinned[ptbin]->SetYTitle("Coefficient 2 + Baseline 0");
+        c2b0PtBinned[ptbin]->SetYTitle("2^{nd} Fourier coefficient + Baseline_{Periph}");
         
         sprintf(hname,"V2JPsiTklPtBinned %d",ptbin);
-        sprintf(hname2,"V2JPsiTkl wrt Mass - PtBinned %d",ptbin);
+        sprintf(hname2,"V_{2,J/#psi-tkl} wrt dimuon mass - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         V2JPsiTklPtBinned[ptbin] = new TH1F(hname,
                                hname2,
                                NbinsInvMass,MinInvMass,MaxInvMass);
               V2JPsiTklPtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
-              V2JPsiTklPtBinned[ptbin]->SetYTitle("V2JPsiTkl");
+              V2JPsiTklPtBinned[ptbin]->SetYTitle("V_{2,J/#psi-tkl}");
     }
     
     
@@ -1595,7 +1625,8 @@ void PlotFromTreePtBinned(){
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+ //       sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
     TFile fileIn(fileInLoc);
         
         char str [50];
@@ -1640,6 +1671,9 @@ void PlotFromTreePtBinned(){
     fDimuons = fEvent->fDimuons;
         int DimuMEcounter =0;
         int TklMEcounter =0;
+        
+        ofstream myfiletxt;
+        myfiletxt.open("/tmp/memorycheckbin.txt");
     
         for (int i=0;i<nevent;i++) {
             if(i%100000 == 0){
@@ -1655,7 +1689,7 @@ void PlotFromTreePtBinned(){
                     std::cout.flush();
                 std::cout << std::endl;
             }
-            if(doTracklets && (i%10!=0)){
+            if(doTracklets && (i%4!=0)){
                 continue;
             }
                 theTree->GetEvent(i);
@@ -1752,7 +1786,7 @@ void PlotFromTreePtBinned(){
                         }
                         
                 //      int centint = GetCent(cent);
-                        centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                        centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
                         DimuonCounter[centint][zvint][massint]++;
                         if(PtBinned){
                             ptint = GetPtBin(dimu->fPt);
@@ -1763,7 +1797,7 @@ void PlotFromTreePtBinned(){
                             DimuC++;
                         }
                       //  else if(cent > CentSPDTrackletsPeriph){
-                        else if(isPeripheral(centint)){
+                        if(isPeripheral(centint)){
                            DimuP++;
                         }
                     }
@@ -1790,7 +1824,7 @@ void PlotFromTreePtBinned(){
                      //   int centintME = GetCent(centME);
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
-                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -1824,6 +1858,11 @@ void PlotFromTreePtBinned(){
                                 PoolsEventTracker[centintME][zvintME].erase(PoolsEventTracker[centintME][zvintME].begin(),PoolsEventTracker[centintME][zvintME].begin()+2);
                                 Pools[centintME][zvintME].erase(Pools[centintME][zvintME].begin(),Pools[centintME][zvintME].begin()+2);
                             }
+                            
+                            PoolsSize[centintME][zvintME] -= 1;
+                            
+                            bool hasBeenFilled = kFALSE;
+                            
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME ok
@@ -1834,11 +1873,15 @@ void PlotFromTreePtBinned(){
                                    Pools[centintME][zvintME].push_back(trackletMEEta);
                                    PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
                                    PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
+                                   hasBeenFilled = kTRUE;
                                }
-
                            }
+                            if(hasBeenFilled){
+                                PoolsSize[centintME][zvintME] += 1;
+                            }
                         }
                         else if(PoolsSize[centintME][zvintME] < 100){
+                            bool hasBeenFilled = kFALSE;
                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                    trackletME = (TrackletLight*)fTracklets->At(j);
                                    //FIXME ok
@@ -1849,10 +1892,13 @@ void PlotFromTreePtBinned(){
                                        Pools[centintME][zvintME].push_back(trackletMEEta);
                                        PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
                                        PoolsEventTracker[centintME][zvintME].push_back(DimuMEcounter);
+                                       hasBeenFilled = kTRUE;
                                    }
 
                                }
-                               PoolsSize[centintME][zvintME] += 1;
+                               if(hasBeenFilled){
+                                   PoolsSize[centintME][zvintME] += 1;
+                               }
                            }
                             
                             
@@ -1873,7 +1919,7 @@ void PlotFromTreePtBinned(){
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
                             int ptintME = GetPtBin(dimu->fPt);
-                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -1907,6 +1953,11 @@ void PlotFromTreePtBinned(){
                                 PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].erase(PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].begin(),PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].begin()+2);
                                 PoolsPtBinned[centintME][zvintME][ptintME].erase(PoolsPtBinned[centintME][zvintME][ptintME].begin(),PoolsPtBinned[centintME][zvintME][ptintME].begin()+2);
                             }
+                            
+                            PoolsSizePtBinned[centintME][zvintME][ptintME] -= 1;
+                            
+                            bool hasBeenFilled = kFALSE;
+                            
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME ok
@@ -1917,11 +1968,16 @@ void PlotFromTreePtBinned(){
                                    PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEEta);
                                    PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].push_back(DimuMEcounter);
                                    PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].push_back(DimuMEcounter);
+                                   hasBeenFilled = kTRUE;
                                }
 
                            }
+                            if(hasBeenFilled){
+                                PoolsSizePtBinned[centintME][zvintME][ptintME] += 1;
+                            }
                         }
                         else if(PoolsSizePtBinned[centintME][zvintME][ptintME] < 100){
+                            bool hasBeenFilled = kFALSE;
                                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                    trackletME = (TrackletLight*)fTracklets->At(j);
                                    //FIXME ok
@@ -1932,10 +1988,13 @@ void PlotFromTreePtBinned(){
                                        PoolsPtBinned[centintME][zvintME][ptintME].push_back(trackletMEEta);
                                        PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].push_back(DimuMEcounter);
                                        PoolsEventTrackerPtBinned[centintME][zvintME][ptintME].push_back(DimuMEcounter);
+                                       hasBeenFilled = kTRUE;
                                    }
 
                                }
-                               PoolsSizePtBinned[centintME][zvintME][ptintME] += 1;
+                               if(hasBeenFilled){
+                                   PoolsSizePtBinned[centintME][zvintME][ptintME] += 1;
+                               }
                            }
                             
                             
@@ -1976,7 +2035,7 @@ void PlotFromTreePtBinned(){
                   //  int centint = GetCent(cent);
                     double zv = fEvent->fVertexZ;
                     int zvint = floor(zv) + ZvtxCut;
-                    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
                         if(PtBinned){
@@ -1989,7 +2048,7 @@ void PlotFromTreePtBinned(){
                             YCentral->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                       //  else if(cent > CentSPDTrackletsPeriph){
-                        else if(isPeripheral(centint)){
+                        if(isPeripheral(centint)){
                             YPeriph->Fill(DeltaPhi,correl->fDeltaEta);
                         }
                     }
@@ -2013,19 +2072,21 @@ void PlotFromTreePtBinned(){
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
               //  cout << NumberOfTrackletsPassingEtaCut << " " << zvint << " " <<GroupNum<<endl;
-                  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
-                   RefTklCounter[centint][zvint] += NumberCloseEtaTracklets; //fEvent->fNTracklets
+                  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                    if(NumberCloseEtaTracklets>=2){
+                   RefTklCounter[centint][zvint] += NumberCloseEtaTracklets-1; //fEvent->fNTracklets //FIXME ok
+                    fTracklets->Randomize(); //Moved here to avoid randomising everytime
+                    }
               //  if(cent <= CentSPDTrackletsCentral){
                 if(isCentral(centint)){
                     TklC++;
                 }
                // else if(cent > CentSPDTrackletsPeriph){
-                else if(isPeripheral(centint)){
+                if(isPeripheral(centint)){
                     TklP++;
                 }
                 }
             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
-                fTracklets->Randomize();
                 tracklet1 = (TrackletLight*)fTracklets->At(j);
                 for (Int_t k=j+1; k<fEvent->fNTracklets; k++){
                     tracklet2 = (TrackletLight*)fTracklets->At(k);
@@ -2040,7 +2101,7 @@ void PlotFromTreePtBinned(){
                             Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
                         double zv = fEvent->fVertexZ;
                         int zvint = floor(zv) + ZvtxCut;
-                         int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, zvint, GroupNum);
+                         int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
                         
                         if(isCMSMethod){
                             if(TMath::Abs(DeltaEta)<DeltaEtaShortCMS){
@@ -2053,7 +2114,7 @@ void PlotFromTreePtBinned(){
                         if(isCentral(centint)){
                               Nassoc_Central_TKL++;
                           }
-                          else if(isPeripheral(centint)){
+                          if(isPeripheral(centint)){
                               Nassoc_Periph_TKL++;
                           }
                         
@@ -2068,7 +2129,7 @@ void PlotFromTreePtBinned(){
                                     YTklCentral->Fill(DeltaPhi,DeltaEta);
                                 }
                               //  else if(cent > CentSPDTrackletsPeriph){
-                                else if(isPeripheral(centint)){
+                                if(isPeripheral(centint)){
                                     YTklPeriph->Fill(DeltaPhi,DeltaEta);
                                 }
                    }
@@ -2083,7 +2144,7 @@ void PlotFromTreePtBinned(){
                         //  int centintME = GetCent(centME);
                           double zvME = fEvent->fVertexZ;
                           int zvintME = floor(zvME) + ZvtxCut;
-                            int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, zvintME, GroupNum);
+                            int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
                         TklMEcounter++;
                         
                         if(PoolsSizeTkl[centintME][zvintME]>=10){
@@ -2102,6 +2163,8 @@ void PlotFromTreePtBinned(){
                                       double correlTklMEEta = tracklet1->fEta - PoolsTkl[centintME][zvintME].at(k+1); //DeltaEtaAbs
                                           if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut && TMath::Abs(correlTklMEEta)<MaxDeltaEtaTKL){
                                                CorrelationsTklME[centintME][zvintME]->Fill(correlTklMEPhi,correlTklMEEta);
+//                                              myfiletxt << "CorrelationsTklME[" <<centintME<<"]["<<zvintME<<"] has entries " << CorrelationsTklME[centintME][zvintME]->GetEntries()<<endl;
+//                                              myfiletxt << "Updated bin has entries" << CorrelationsTklME[centintME][zvintME]->GetBinContent(CorrelationsTklME[centintME][zvintME]->GetXaxis()->FindBin(correlTklMEPhi),CorrelationsTklME[centintME][zvintME]->GetYaxis()->FindBin(correlTklMEEta))<<endl;
                                            }
                                       
                                       if(isCMSMethod){
@@ -2128,7 +2191,7 @@ void PlotFromTreePtBinned(){
                                               }
                                           }
                                  //         else if(cent > CentSPDTrackletsPeriph){
-                                      else if(isPeripheral(centintME)){
+                                      if(isPeripheral(centintME)){
                                              if(TMath::Abs(correlTklMEEta)>DeltaEtaTKLCut && TMath::Abs(correlTklMEEta)<MaxDeltaEtaTKL){
                                                   YTklPeriphME->Fill(correlTklMEPhi,correlTklMEEta);
                                               }
@@ -2143,7 +2206,7 @@ void PlotFromTreePtBinned(){
                         }
                         
                         if(PoolsSizeTkl[centintME][zvintME] == 100){
-                          //   cout << "The Tkl pool is full" <<endl;
+                         //    cout << "The Tkl pool is full" <<endl;
                             int valueDiscarded = PoolsTklEventTracker[centintME][zvintME].front();
                            //  cout << "Discarding events with index " << valueDiscarded<<endl;
                             while(PoolsTklEventTracker[centintME][zvintME].front()==valueDiscarded){
@@ -2155,6 +2218,10 @@ void PlotFromTreePtBinned(){
                                 PoolsTkl[centintME][zvintME].erase(PoolsTkl[centintME][zvintME].begin(),PoolsTkl[centintME][zvintME].begin()+2);
                               //  cout << "Two first discarded - New Four first elements in PoolsTkl: " << PoolsTkl[centintME].at(0) << " " << PoolsTkl[centintME].at(1) << " " << PoolsTkl[centintME].at(2) << " " << PoolsTkl[centintME].at(3) << endl;
                             }
+                            
+                            PoolsSizeTkl[centintME][zvintME] -= 1;
+                            
+                            bool hasBeenFilled = kFALSE;
                            //  cout << "Will now add new event"<<endl;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                trackletME = (TrackletLight*)fTracklets->At(j);
@@ -2166,15 +2233,22 @@ void PlotFromTreePtBinned(){
                                    PoolsTkl[centintME][zvintME].push_back(trackletMEEta);
                                    PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
                                    PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
+                                   hasBeenFilled = kTRUE;
                                }
 
                            }
+                            
+                            if(hasBeenFilled){
+                                PoolsSizeTkl[centintME][zvintME] += 1;
+                            }
+                            
                           //   cout << "New event added"<<endl;
                              
                         }
                         
                         else if(PoolsSizeTkl[centintME][zvintME] < 100){
                            //   cout << "Pool is not full - Will add event"<<endl;
+                            bool hasBeenFilled = kFALSE;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                                 trackletME = (TrackletLight*)fTracklets->At(j);
                                 //FIXME ok
@@ -2185,10 +2259,13 @@ void PlotFromTreePtBinned(){
                                     PoolsTkl[centintME][zvintME].push_back(trackletMEEta);
                                     PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
                                     PoolsTklEventTracker[centintME][zvintME].push_back(TklMEcounter);
+                                    hasBeenFilled = kTRUE;
                                 }
 
                             }
-                            PoolsSizeTkl[centintME][zvintME] += 1;
+                            if(hasBeenFilled){
+                                PoolsSizeTkl[centintME][zvintME] += 1;
+                            }
                             //  cout << "Event added"<<endl;
                         }
                         
@@ -2204,8 +2281,8 @@ void PlotFromTreePtBinned(){
             
             
     }
+        myfiletxt.close();
     }
-    
     cout << "Reading of events finished" <<endl;
   //  cout << "CorrelationsME, CorrelationsTklME are being set to 1" <<endl;
     
@@ -2231,7 +2308,7 @@ void PlotFromTreePtBinned(){
     
     TCanvas* cCorrMEDimuTkl=new TCanvas();
     cCorrMEDimuTkl->Divide(2,2);
-    cCorrMEDimuTkl->SetTitle("Correlations Dimu-Tkl [0:Central][10: z_vtz = 0][3: m de 3.0 à 3.3 GeV]");
+    cCorrMEDimuTkl->SetTitle("Correlations Dimu-Tkl [0:Central][10: z_vtx = 0][3: m de 3.0 à 3.3 GeV]");
     cCorrMEDimuTkl->cd(1);
     Correlations[preciseCentFocus][preciseZbinFocus][3]->DrawCopy("colz");
     cCorrMEDimuTkl->cd(2);
@@ -2248,7 +2325,7 @@ void PlotFromTreePtBinned(){
     if(PtBinned){
         TCanvas* cCorrMEDimuTklPtBinned=new TCanvas();
         cCorrMEDimuTklPtBinned->Divide(2,2);
-        cCorrMEDimuTklPtBinned->SetTitle("Correlations Dimu-Tkl [0:Central][10: z_vtz = 0][3: m de 3.0 à 3.3 GeV][Pt bin 1]");
+        cCorrMEDimuTklPtBinned->SetTitle("Correlations Dimu-Tkl [0:Central][10: z_vtx = 0][3: m de 3.0 à 3.3 GeV][Pt bin 1]");
         cCorrMEDimuTklPtBinned->cd(1);
         CorrelationsPtBinned[preciseCentFocus][preciseZbinFocus][3][1]->DrawCopy("colz");
         cCorrMEDimuTklPtBinned->cd(2);
@@ -2263,7 +2340,7 @@ void PlotFromTreePtBinned(){
     
     TCanvas* cCorrMETKL=new TCanvas();
     cCorrMETKL->Divide(2,2);
-    cCorrMETKL->SetTitle("Correlations Tkl-Tkl [0:Central][10: z_vtz = 0]");
+    cCorrMETKL->SetTitle("Correlations Tkl-Tkl [0:Central][10: z_vtx = 0]");
     cCorrMETKL->cd(1);
     CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
     cCorrMETKL->cd(2);
@@ -3141,7 +3218,7 @@ void PlotFromTreePtBinned(){
                           if(doMixedEvents){
                               ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaled[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
                           }
-                          SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
+                          SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
                           
                           ProjCopyTkl->Add(SE_proj_Tkl_tampon);
                           //   ProjCopy->Sumw2();
@@ -3270,7 +3347,7 @@ void PlotFromTreePtBinned(){
                              if(doMixedEvents){
                                  ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaledShortCMS[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
                              }
-                             SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTklShortCMS[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
+                             SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTklShortCMS[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
 
                              ProjCopyTkl->Add(SE_proj_Tkl_tampon);
                              //   ProjCopy->Sumw2();
@@ -3351,7 +3428,7 @@ void PlotFromTreePtBinned(){
                           if(doMixedEvents){
                               ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaledLongCMS[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
                           }
-                          SE_proj_Tkl_tampon = (TH1F*)(CorrelationsTklLongCMS[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
+                          SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTklLongCMS[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
 
                           ProjCopyTkl->Add(SE_proj_Tkl_tampon);
                           //   ProjCopy->Sumw2();
@@ -3645,6 +3722,11 @@ void PlotFromTreePtBinned(){
        fitFcnV2_2->SetParName(2,"a2");
        
       TFitResultPtr res = histo->Fit("fitFcnV2_2","SBMERI+","ep");
+        gStyle->SetOptStat("n");
+        gStyle->SetOptFit(1011);
+        TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+        st->SetX1NDC(0.75); //new x start position
+        st->SetY1NDC(0.75); //new x end position
       // improve the pictu
     //   std::cout << "integral error: " << integralerror << std::endl;
         Double_t par[3];
@@ -3659,21 +3741,23 @@ void PlotFromTreePtBinned(){
         cout << "STATUS COV : " << res->CovMatrixStatus() <<endl;
       // draw the legend
       TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
-      legend->SetTextFont(61);
+      legend->SetFillColorAlpha(kWhite, 0.);
+      legend->SetBorderSize(0);
+        legend->SetTextFont(42);
       legend->SetTextSize(0.03);
         Char_t message[80];
-        sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+        sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
         legend->AddEntry(fitFcnV2_2,message);
         if(res->CovMatrixStatus() == 3){
-            sprintf(message,"The fit is a success");
+          //  sprintf(message,"The fit is a success");
         }
         else{
             sprintf(message,"The fit is a failure");
+            legend->AddEntry(fitFcnV2_2,message);
         }
-        legend->AddEntry(fitFcnV2_2,message);
       legend->AddEntry(histo,"Data","lpe");
       legend->Draw();
-    
+    //FIXME Ajouter d'autres méthodes
     }
     
     if(PtBinned){
@@ -3703,6 +3787,11 @@ void PlotFromTreePtBinned(){
                fitFcnV2_2PtBinned->SetParName(2,"a2");
                
               TFitResultPtr res = histo->Fit("fitFcnV2_2PtBinned","SBMERI+","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
               // improve the pictu
             //   std::cout << "integral error: " << integralerror << std::endl;
                 Double_t par[3];
@@ -3731,7 +3820,7 @@ void PlotFromTreePtBinned(){
 //                legend->AddEntry(fitFcnV2_2,message);
 //              legend->AddEntry(histo,"Data","lpe");
 //              legend->Draw();
-            
+            //FIXME Ajouter d'autres méthodes
             }
         }
     }
@@ -3889,33 +3978,38 @@ void PlotFromTreePtBinned(){
             fitV2_2->FixParameter(i,par[i]);
         }
        
-       fitV2_2->SetParName(0,"Norm_{JPsi}");
-       fitV2_2->SetParName(1,"M_{JPsi}");
-       fitV2_2->SetParName(2,"Sigma_{JPsi}");
-       fitV2_2->SetParName(3,"a_{1}");
-       fitV2_2->SetParName(4,"n_{1}");
-       fitV2_2->SetParName(5,"a_{2}");
-       fitV2_2->SetParName(6,"n_{2}");
-       fitV2_2->SetParName(7,"Norm_{Psi2S}");
-       fitV2_2->SetParName(8,"Norm_{TailLowM}");
-       fitV2_2->SetParName(9,"Exp_{TailLowM}");
-       fitV2_2->SetParName(10,"Norm_{TailHighM}");
-       fitV2_2->SetParName(11,"Exp_{TailHighM}");
-        fitV2_2->SetParName(12,"V2_2 JPsi");
-        fitV2_2->SetParName(13,"V2_2 Bkg M2");
-    fitV2_2->SetParName(14,"V2_2 Bkg M1");
-    fitV2_2->SetParName(15,"V2_2 Nkg M0");
+       fitV2_2->SetParName(0,"Norm_{J/#psi}");
+          fitV2_2->SetParName(1,"M_{J/#psi}");
+          fitV2_2->SetParName(2,"Sigma_{J/#psi}");
+          fitV2_2->SetParName(3,"a_{1}");
+          fitV2_2->SetParName(4,"n_{1}");
+          fitV2_2->SetParName(5,"a_{2}");
+          fitV2_2->SetParName(6,"n_{2}");
+          fitV2_2->SetParName(7,"Norm_{#Psi(2S)}");
+          fitV2_2->SetParName(8,"Norm_{TailLowM}");
+          fitV2_2->SetParName(9,"Exp_{TailLowM}");
+          fitV2_2->SetParName(10,"Norm_{TailHighM}");
+          fitV2_2->SetParName(11,"Exp_{TailHighM}");
+           fitV2_2->SetParName(12,"V2_2 J/#psi-tkl");
+           fitV2_2->SetParName(13,"V2_2 Bkg M2");
+       fitV2_2->SetParName(14,"V2_2 Bkg M1");
+       fitV2_2->SetParName(15,"V2_2 Bkg M0");
     
-    fitJustV2_2->SetParName(0,"V2_2 JPsi");
+    fitJustV2_2->SetParName(0,"V2_2 J/#psi-tkl");
         fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
     fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
-    fitJustV2_2->SetParName(3,"V2_2 Nkg M0");
+    fitJustV2_2->SetParName(3,"V2_2 Bkg M0");
     
        double minParams[16];
        double parErrors[16];
     
     //Fit of V2
         res = V2JPsiTkl->Fit("fitV2_2","SBMERI+","ep");
+    gStyle->SetOptFit(1011);
+           gStyle->SetOptStat("n");
+    TPaveStats *st = (TPaveStats*)V2JPsiTkl->FindObject("stats");
+           st->SetX1NDC(0.75); //new x start position
+           st->SetY1NDC(0.75); //new x end position
         Double_t para[16];
         fitV2_2->GetParameters(para);
         backFcnV2_2->SetParameters(para);
@@ -3927,21 +4021,22 @@ void PlotFromTreePtBinned(){
     backFcnV2_2->Draw("same");
       // draw the legend
       TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
-      legend->SetTextFont(61);
-      legend->SetTextSize(0.03);
+      legend->SetFillColorAlpha(kWhite, 0.);
+      legend->SetBorderSize(0);
+        legend->SetTextFont(42);
+        legend->SetTextSize(0.03);
     Char_t message[80];
-    sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
+    sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
      legend->AddEntry(fitV2_2,message);
 
         if(res->CovMatrixStatus() == 3){
-               sprintf(message,"The fit is a success");
-        }
-        else{
-               sprintf(message,"The fit is a failure");
-        }
-    
-           legend->AddEntry(fitV2_2,message);
-   // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+                   // sprintf(message,"The fit is a success");
+             }
+             else{
+                    sprintf(message,"The fit is a failure");
+                 legend->AddEntry(fitV2_2,message);
+             }
+        // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
     legend->AddEntry(backFcnV2_2,"Background");
       legend->AddEntry(V2JPsiTkl,"Data","lpe");
       legend->Draw();
@@ -3993,22 +4088,22 @@ void PlotFromTreePtBinned(){
                 fitV2_2PtBinned->FixParameter(i,par[i]);
             }
            
-           fitV2_2PtBinned->SetParName(0,"Norm_{JPsi}");
-           fitV2_2PtBinned->SetParName(1,"M_{JPsi}");
-           fitV2_2PtBinned->SetParName(2,"Sigma_{JPsi}");
-           fitV2_2PtBinned->SetParName(3,"a_{1}");
-           fitV2_2PtBinned->SetParName(4,"n_{1}");
-           fitV2_2PtBinned->SetParName(5,"a_{2}");
-           fitV2_2PtBinned->SetParName(6,"n_{2}");
-           fitV2_2PtBinned->SetParName(7,"Norm_{Psi2S}");
-           fitV2_2PtBinned->SetParName(8,"Norm_{TailLowM}");
-           fitV2_2PtBinned->SetParName(9,"Exp_{TailLowM}");
-           fitV2_2PtBinned->SetParName(10,"Norm_{TailHighM}");
-           fitV2_2PtBinned->SetParName(11,"Exp_{TailHighM}");
-            fitV2_2PtBinned->SetParName(12,"V2_2 JPsi");
-            fitV2_2PtBinned->SetParName(13,"V2_2 Bkg M2");
-        fitV2_2PtBinned->SetParName(14,"V2_2 Bkg M1");
-        fitV2_2PtBinned->SetParName(15,"V2_2 Nkg M0");
+           fitV2_2PtBinned->SetParName(0,"Norm_{J/#psi}");
+              fitV2_2PtBinned->SetParName(1,"M_{J/#psi}");
+              fitV2_2PtBinned->SetParName(2,"Sigma_{J/#psi}");
+              fitV2_2PtBinned->SetParName(3,"a_{1}");
+              fitV2_2PtBinned->SetParName(4,"n_{1}");
+              fitV2_2PtBinned->SetParName(5,"a_{2}");
+              fitV2_2PtBinned->SetParName(6,"n_{2}");
+              fitV2_2PtBinned->SetParName(7,"Norm_{#Psi(2S)}");
+              fitV2_2PtBinned->SetParName(8,"Norm_{TailLowM}");
+              fitV2_2PtBinned->SetParName(9,"Exp_{TailLowM}");
+              fitV2_2PtBinned->SetParName(10,"Norm_{TailHighM}");
+              fitV2_2PtBinned->SetParName(11,"Exp_{TailHighM}");
+               fitV2_2PtBinned->SetParName(12,"V2_2 J/#psi");
+               fitV2_2PtBinned->SetParName(13,"V2_2 Bkg M2");
+           fitV2_2PtBinned->SetParName(14,"V2_2 Bkg M1");
+           fitV2_2PtBinned->SetParName(15,"V2_2 Bkg M0");
 
         
            double minParams[16];
@@ -4016,6 +4111,11 @@ void PlotFromTreePtBinned(){
         
         //Fit of V2
             res = V2JPsiTklPtBinned[ptbin]->Fit("fitV2_2PtBinned","SBMERI+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            TPaveStats *st = (TPaveStats*)V2JPsiTklPtBinned[ptbin]->FindObject("stats");
+            st->SetX1NDC(0.75); //new x start position
+            st->SetY1NDC(0.75); //new x end position
             Double_t para[16];
             fitV2_2PtBinned->GetParameters(para);
             backFcnV2_2->SetParameters(para);
@@ -4027,21 +4127,22 @@ void PlotFromTreePtBinned(){
         backFcnV2_2->Draw("same");
           // draw the legend
           TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
-          legend->SetTextFont(61);
+          legend->SetFillColorAlpha(kWhite, 0.);
+          legend->SetBorderSize(0);
+            legend->SetTextFont(42);
           legend->SetTextSize(0.03);
         Char_t message[80];
-        sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitV2_2PtBinned->GetChisquare(),fitV2_2PtBinned->GetNDF());
-         legend->AddEntry(fitV2_2,message);
+        sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitV2_2PtBinned->GetChisquare(),fitV2_2PtBinned->GetNDF());
+          legend->AddEntry(fitV2_2PtBinned,message);
 
-            if(res->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
-            }
-            else{
-                   sprintf(message,"The fit is a failure");
-            }
-        
-               legend->AddEntry(fitV2_2PtBinned,message);
-       // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+             if(res->CovMatrixStatus() == 3){
+                   // sprintf(message,"The fit is a success");
+             }
+             else{
+                    sprintf(message,"The fit is a failure");
+                 legend->AddEntry(fitV2_2PtBinned,message);
+             }
+        // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
         legend->AddEntry(backFcnV2_2,"Background");
           legend->AddEntry(V2JPsiTklPtBinned[ptbin],"Data","lpe");
           legend->Draw();
@@ -4112,24 +4213,29 @@ void PlotFromTreePtBinned(){
         }
             fitY_1Central->SetParLimits(12,0,10000);
 
-           fitY_1Central->SetParName(0,"Norm_{JPsi}");
-           fitY_1Central->SetParName(1,"M_{JPsi}");
-           fitY_1Central->SetParName(2,"Sigma_{JPsi}");
-           fitY_1Central->SetParName(3,"a_{1}");
-           fitY_1Central->SetParName(4,"n_{1}");
-           fitY_1Central->SetParName(5,"a_{2}");
-           fitY_1Central->SetParName(6,"n_{2}");
-           fitY_1Central->SetParName(7,"Norm_{Psi2S}");
-           fitY_1Central->SetParName(8,"Norm_{TailLowM}");
-           fitY_1Central->SetParName(9,"Exp_{TailLowM}");
-           fitY_1Central->SetParName(10,"Norm_{TailHighM}");
-           fitY_1Central->SetParName(11,"Exp_{TailHighM}");
-            fitY_1Central->SetParName(12,"Y_1 JPsi");
-            fitY_1Central->SetParName(13,"Y_1 Bkg M2");
-        fitY_1Central->SetParName(14,"Y_1 Bkg M1");
-        fitY_1Central->SetParName(15,"Y_1 Nkg M0");
+           fitY_1Central->SetParName(0,"Norm_{J/#psi}");
+              fitY_1Central->SetParName(1,"M_{J/#psi}");
+              fitY_1Central->SetParName(2,"Sigma_{J/#psi}");
+              fitY_1Central->SetParName(3,"a_{1}");
+              fitY_1Central->SetParName(4,"n_{1}");
+              fitY_1Central->SetParName(5,"a_{2}");
+              fitY_1Central->SetParName(6,"n_{2}");
+              fitY_1Central->SetParName(7,"Norm_{#Psi(2S)}");
+              fitY_1Central->SetParName(8,"Norm_{TailLowM}");
+              fitY_1Central->SetParName(9,"Exp_{TailLowM}");
+              fitY_1Central->SetParName(10,"Norm_{TailHighM}");
+              fitY_1Central->SetParName(11,"Exp_{TailHighM}");
+               fitY_1Central->SetParName(12,"Y_1 J/#psi");
+               fitY_1Central->SetParName(13,"Y_1 Bkg M2");
+           fitY_1Central->SetParName(14,"Y_1 Bkg M1");
+           fitY_1Central->SetParName(15,"Y_1 Bkg M0");
 
           rescent = YieldWrtMass_Central[i]->Fit("fitY_1Central","SBMERIQ+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            TPaveStats *st = (TPaveStats*)YieldWrtMass_Central[i]->FindObject("stats");
+            st->SetX1NDC(0.75); //new x start position
+            st->SetY1NDC(0.75); //new x end position
           Double_t param[16];
             Double_t paramerrs[16];
           fitY_1Central->GetParameters(param);
@@ -4170,24 +4276,26 @@ void PlotFromTreePtBinned(){
           // writes the fit results into the par array
            gStyle->SetOptFit(1011);
           // draw the legend
-          TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
-          legend->SetTextFont(61);
+          TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+          legend->SetFillColorAlpha(kWhite, 0.);
+          legend->SetBorderSize(0);
+            legend->SetTextFont(42);
           legend->SetTextSize(0.03);
         Char_t message[80];
-        sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitY_1Central->GetChisquare(),fitY_1Central->GetNDF());
-         legend->AddEntry(fitY_1Central,message);
-        if(rescent->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
-               }
-               else{
-                   sprintf(message,"The fit is a failure");
-               }
-               legend->AddEntry(fitY_1Central,message);
-     //   legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
-        legend->AddEntry(backFcnY_1Central,"Background");
-          legend->AddEntry(YieldWrtMass_Central[i],"Data","lpe");
-          legend->Draw();
-        }
+        sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitY_1Central->GetChisquare(),fitY_1Central->GetNDF());
+           legend->AddEntry(fitY_1Central,message);
+          if(rescent->CovMatrixStatus() == 3){
+                    // sprintf(message,"The fit is a success");
+                 }
+                 else{
+                     sprintf(message,"The fit is a failure");
+                     legend->AddEntry(fitY_1Central,message);
+                 }
+        //  legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
+          legend->AddEntry(backFcnY_1Central,"Background");
+            legend->AddEntry(YieldWrtMass_Central[i],"Data","lpe");
+            legend->Draw();
+          }
         
     }
     
@@ -4231,24 +4339,29 @@ void PlotFromTreePtBinned(){
             
               fitY_1Periph->SetParLimits(12,0,10000);
               
-              fitY_1Periph->SetParName(0,"Norm_{JPsi}");
-              fitY_1Periph->SetParName(1,"M_{JPsi}");
-              fitY_1Periph->SetParName(2,"Sigma_{JPsi}");
-              fitY_1Periph->SetParName(3,"a_{1}");
-              fitY_1Periph->SetParName(4,"n_{1}");
-              fitY_1Periph->SetParName(5,"a_{2}");
-              fitY_1Periph->SetParName(6,"n_{2}");
-              fitY_1Periph->SetParName(7,"Norm_{Psi2S}");
-              fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
-              fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
-              fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
-              fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
-               fitY_1Periph->SetParName(12,"Y_1 JPsi");
-               fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
-           fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
-           fitY_1Periph->SetParName(15,"Y_1 Nkg M0");
+              fitY_1Periph->SetParName(0,"Norm_{J/#psi}");
+                 fitY_1Periph->SetParName(1,"M_{J/#psi}");
+                 fitY_1Periph->SetParName(2,"Sigma_{J/#psi}");
+                 fitY_1Periph->SetParName(3,"a_{1}");
+                 fitY_1Periph->SetParName(4,"n_{1}");
+                 fitY_1Periph->SetParName(5,"a_{2}");
+                 fitY_1Periph->SetParName(6,"n_{2}");
+                 fitY_1Periph->SetParName(7,"Norm_{#Psi(2S)}");
+                 fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
+                 fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
+                 fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
+                 fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
+                  fitY_1Periph->SetParName(12,"Y_1 J/#psi");
+                  fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
+              fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
+              fitY_1Periph->SetParName(15,"Y_1 Bkg M0");
               
              resperiph = YieldWrtMass_Periph[i]->Fit("fitY_1Periph","SBMERIQ+","ep");
+               gStyle->SetOptStat("n");
+               gStyle->SetOptFit(1011);
+               TPaveStats *st = (TPaveStats*)YieldWrtMass_Periph[i]->FindObject("stats");
+               st->SetX1NDC(0.75); //new x start position
+               st->SetY1NDC(0.75); //new x end position
                Double_t param[16];
                Double_t paramerrs[16];
              fitY_1Periph->GetParameters(param);
@@ -4301,24 +4414,26 @@ void PlotFromTreePtBinned(){
              // writes the fit results into the par array
               gStyle->SetOptFit(1011);
              // draw the legend
-             TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
-             legend->SetTextFont(61);
-             legend->SetTextSize(0.03);
+             TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+             legend->SetFillColorAlpha(kWhite, 0.);
+             legend->SetBorderSize(0);
+               legend->SetTextFont(42);
+             legend->SetTextSize(0.04);
            Char_t message[80];
-           sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitY_1Periph->GetChisquare(),fitY_1Periph->GetNDF());
-            legend->AddEntry(fitY_1Periph,message);
-           if(resperiph->CovMatrixStatus() == 3){
-                      sprintf(message,"The fit is a success");
-                  }
-                  else{
-                      sprintf(message,"The fit is a failure");
-                  }
-                  legend->AddEntry(fitY_1Periph,message);
-      //     legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
-           legend->AddEntry(backFcnY_1Periph,"Background");
-             legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
-             legend->Draw();
-           }
+               sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitY_1Periph->GetChisquare(),fitY_1Periph->GetNDF());
+                legend->AddEntry(fitY_1Periph,message);
+               if(resperiph->CovMatrixStatus() == 3){
+                         // sprintf(message,"The fit is a success");
+                      }
+                      else{
+                          sprintf(message,"The fit is a failure");
+                          legend->AddEntry(fitY_1Periph,message);
+                      }
+           //    legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
+               legend->AddEntry(backFcnY_1Periph,"Background");
+                 legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
+                 legend->Draw();
+               }
            
        }
     
@@ -4358,27 +4473,36 @@ void PlotFromTreePtBinned(){
               fitFcnV2_2->SetParName(2,"a2");
               
              TFitResultPtr res = Yields_Difference_1->Fit("fitFcnV2_2","SBMERI+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            TPaveStats *st = (TPaveStats*)Yields_Difference_1->FindObject("stats");
+            st->SetX1NDC(0.75); //new x start position
+            st->SetY1NDC(0.75); //new x end position
             Double_t par[3];
             fitFcnV2_2->GetParameters(par);
              // improve the pictu
            //   std::cout << "integral error: " << integralerror << std::endl;
              fitFcnV2_2->Draw("same");
              // draw the legend
-             TLegend *legend=new TLegend(0.15,0.70,0.4,0.90);
-             legend->SetTextFont(61);
+             TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+             legend->SetFillColorAlpha(kWhite, 0.);
+             legend->SetBorderSize(0);
+               legend->SetTextFont(42);
              legend->SetTextSize(0.03);
                Char_t message[80];
-               sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+               sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
                legend->AddEntry(fitFcnV2_2,message);
-        sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
+        sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+               legend->AddEntry(fitFcnV2_2,message);
+        sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
         legend->AddEntry(fitFcnV2_2,message);
         if(res->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
+                 //  sprintf(message,"The fit is a success");
                }
                else{
                    sprintf(message,"The fit is a failure");
+                   legend->AddEntry(fitFcnV2_2,message);
                }
-               legend->AddEntry(fitFcnV2_2,message);
              legend->AddEntry(Yields_Difference_1,"Data","lpe");
              legend->Draw();
            
@@ -4439,24 +4563,29 @@ void PlotFromTreePtBinned(){
             }
                 fitY_1Central->SetParLimits(12,0,10000);
 
-               fitY_1Central->SetParName(0,"Norm_{JPsi}");
-               fitY_1Central->SetParName(1,"M_{JPsi}");
-               fitY_1Central->SetParName(2,"Sigma_{JPsi}");
-               fitY_1Central->SetParName(3,"a_{1}");
-               fitY_1Central->SetParName(4,"n_{1}");
-               fitY_1Central->SetParName(5,"a_{2}");
-               fitY_1Central->SetParName(6,"n_{2}");
-               fitY_1Central->SetParName(7,"Norm_{Psi2S}");
-               fitY_1Central->SetParName(8,"Norm_{TailLowM}");
-               fitY_1Central->SetParName(9,"Exp_{TailLowM}");
-               fitY_1Central->SetParName(10,"Norm_{TailHighM}");
-               fitY_1Central->SetParName(11,"Exp_{TailHighM}");
-                fitY_1Central->SetParName(12,"Y_1 JPsi");
-                fitY_1Central->SetParName(13,"Y_1 Bkg M2");
-            fitY_1Central->SetParName(14,"Y_1 Bkg M1");
-            fitY_1Central->SetParName(15,"Y_1 Nkg M0");
+               fitY_1Central->SetParName(0,"Norm_{J/#psi}");
+                  fitY_1Central->SetParName(1,"M_{J/#psi}");
+                  fitY_1Central->SetParName(2,"Sigma_{J/#psi}");
+                  fitY_1Central->SetParName(3,"a_{1}");
+                  fitY_1Central->SetParName(4,"n_{1}");
+                  fitY_1Central->SetParName(5,"a_{2}");
+                  fitY_1Central->SetParName(6,"n_{2}");
+                  fitY_1Central->SetParName(7,"Norm_{#Psi(2S)}");
+                  fitY_1Central->SetParName(8,"Norm_{TailLowM}");
+                  fitY_1Central->SetParName(9,"Exp_{TailLowM}");
+                  fitY_1Central->SetParName(10,"Norm_{TailHighM}");
+                  fitY_1Central->SetParName(11,"Exp_{TailHighM}");
+                   fitY_1Central->SetParName(12,"Y_1 J/#psi");
+                   fitY_1Central->SetParName(13,"Y_1 Bkg M2");
+               fitY_1Central->SetParName(14,"Y_1 Bkg M1");
+               fitY_1Central->SetParName(15,"Y_1 Bkg M0");
 
               rescent = YieldWrtMass_CentralPtBinned[i][ptbin]->Fit("fitY_1Central","SBMERIQ+","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                TPaveStats *st = (TPaveStats*)YieldWrtMass_CentralPtBinned[i][ptbin]->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
               Double_t param[16];
                 Double_t paramerrs[16];
               fitY_1Central->GetParameters(param);
@@ -4500,22 +4629,23 @@ void PlotFromTreePtBinned(){
                gStyle->SetOptFit(1011);
               // draw the legend
               TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
+                legend->SetBorderSize(0);
               legend->SetTextFont(61);
               legend->SetTextSize(0.03);
             Char_t message[80];
-            sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitY_1Central->GetChisquare(),fitY_1Central->GetNDF());
-             legend->AddEntry(fitY_1Central,message);
-            if(rescent->CovMatrixStatus() == 3){
-                       sprintf(message,"The fit is a success");
-                   }
-                   else{
-                       sprintf(message,"The fit is a failure");
-                   }
-                   legend->AddEntry(fitY_1Central,message);
-         //   legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
-            legend->AddEntry(backFcnY_1Central,"Background");
-              legend->AddEntry(YieldWrtMass_CentralPtBinned[i][ptbin],"Data","lpe");
-              legend->Draw();
+            sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitY_1Central->GetChisquare(),fitY_1Central->GetNDF());
+                legend->AddEntry(fitY_1Central,message);
+               if(rescent->CovMatrixStatus() == 3){
+                        //  sprintf(message,"The fit is a success");
+                      }
+                      else{
+                          sprintf(message,"The fit is a failure");
+                          legend->AddEntry(fitY_1Central,message);
+                      }
+            //   legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
+               legend->AddEntry(backFcnY_1Central,"Background");
+                 legend->AddEntry(YieldWrtMass_CentralPtBinned[i][ptbin],"Data","lpe");
+                 legend->Draw();
             }
             
         }
@@ -4559,24 +4689,29 @@ void PlotFromTreePtBinned(){
                 }
                   fitY_1Periph->SetParLimits(12,0,10000);
                   
-                  fitY_1Periph->SetParName(0,"Norm_{JPsi}");
-                  fitY_1Periph->SetParName(1,"M_{JPsi}");
-                  fitY_1Periph->SetParName(2,"Sigma_{JPsi}");
-                  fitY_1Periph->SetParName(3,"a_{1}");
-                  fitY_1Periph->SetParName(4,"n_{1}");
-                  fitY_1Periph->SetParName(5,"a_{2}");
-                  fitY_1Periph->SetParName(6,"n_{2}");
-                  fitY_1Periph->SetParName(7,"Norm_{Psi2S}");
-                  fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
-                  fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
-                  fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
-                  fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
-                   fitY_1Periph->SetParName(12,"Y_1 JPsi");
-                   fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
-               fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
-               fitY_1Periph->SetParName(15,"Y_1 Nkg M0");
+                  fitY_1Periph->SetParName(0,"Norm_{J/#psi}");
+                     fitY_1Periph->SetParName(1,"M_{J/#psi}");
+                     fitY_1Periph->SetParName(2,"Sigma_{J/#psi}");
+                     fitY_1Periph->SetParName(3,"a_{1}");
+                     fitY_1Periph->SetParName(4,"n_{1}");
+                     fitY_1Periph->SetParName(5,"a_{2}");
+                     fitY_1Periph->SetParName(6,"n_{2}");
+                     fitY_1Periph->SetParName(7,"Norm_{#Psi(2S)}");
+                     fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
+                     fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
+                     fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
+                     fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
+                      fitY_1Periph->SetParName(12,"Y_1 J/#psi");
+                      fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
+                  fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
+                  fitY_1Periph->SetParName(15,"Y_1 Bkg M0");
                   
                  resperiph = YieldWrtMass_PeriphPtBinned[i][ptbin]->Fit("fitY_1Periph","SBMERIQ+","ep");
+                   gStyle->SetOptStat("n");
+                   gStyle->SetOptFit(1011);
+                   TPaveStats *st = (TPaveStats*)YieldWrtMass_PeriphPtBinned[i][ptbin]->FindObject("stats");
+                   st->SetX1NDC(0.8); //new x start position
+                   st->SetY1NDC(0.8); //new x end position
                    Double_t param[16];
                    Double_t paramerrs[16];
                  fitY_1Periph->GetParameters(param);
@@ -4629,7 +4764,9 @@ void PlotFromTreePtBinned(){
                   gStyle->SetOptFit(1011);
                  // draw the legend
                  TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
-                 legend->SetTextFont(61);
+                 legend->SetFillColorAlpha(kWhite, 0.);
+                 legend->SetBorderSize(0);
+                   legend->SetTextFont(42);
                  legend->SetTextSize(0.03);
                Char_t message[80];
                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitY_1Periph->GetChisquare(),fitY_1Periph->GetNDF());
@@ -4684,6 +4821,11 @@ void PlotFromTreePtBinned(){
                       fitFcnV2_2->SetParName(2,"a2");
                       
                      TFitResultPtr res = Yields_Difference_1PtBinned[ptbin]->Fit("fitFcnV2_2","SBMERI+","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                TPaveStats *st = (TPaveStats*)Yields_Difference_1PtBinned[ptbin]->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
                     Double_t par[3];
                     fitFcnV2_2->GetParameters(par);
                      // improve the pictu
@@ -4691,20 +4833,23 @@ void PlotFromTreePtBinned(){
                      fitFcnV2_2->Draw("same");
                      // draw the legend
                      TLegend *legend=new TLegend(0.15,0.70,0.4,0.90);
-                     legend->SetTextFont(61);
+                     legend->SetFillColorAlpha(kWhite, 0.);
+                     legend->SetBorderSize(0);
+                       legend->SetTextFont(42);
                      legend->SetTextSize(0.03);
                        Char_t message[80];
-                       sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+                       sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
                        legend->AddEntry(fitFcnV2_2,message);
-                sprintf(message,"V2_1 JPsi-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
+                sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline/baseline,2))));
                 legend->AddEntry(fitFcnV2_2,message);
                 if(res->CovMatrixStatus() == 3){
-                           sprintf(message,"The fit is a success");
+                          // sprintf(message,"The fit is a success");
                        }
                        else{
                            sprintf(message,"The fit is a failure");
+                           legend->AddEntry(fitFcnV2_2,message);
                        }
-                       legend->AddEntry(fitFcnV2_2,message);
+                       
                      legend->AddEntry(Yields_Difference_1,"Data","lpe");
                      legend->Draw();
                 
@@ -4736,26 +4881,32 @@ void PlotFromTreePtBinned(){
     
     TGraphErrors *grV2_wrt_Pt1 = new TGraphErrors(NbPtBins,PtMiddle,V2_Ext1,PtErrorSize,errV2_Ext1);
              // TGraph *gr3 = new TGraph (n, K3, chi);
-              grV2_wrt_Pt1->SetTitle("V2 JPsi-Tracklet wrt Pt for different extraction methods");
-              grV2_wrt_Pt1->GetXaxis()->SetTitle("Pt (GeV/c)");
-              grV2_wrt_Pt1->GetYaxis()->SetTitle("V2 (JPsi-tracklet)");
-            grV2_wrt_Pt1->SetMarkerColor(4);
-            grV2_wrt_Pt1->SetLineColor(4);
-            grV2_wrt_Pt1->SetMarkerStyle(5);
+              grV2_wrt_Pt1->SetTitle("V_{2,J/#psi-tkl} wrt p_{T} for different extraction methods");
+              grV2_wrt_Pt1->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+              grV2_wrt_Pt1->GetYaxis()->SetTitle("V_{2,J/#psi-tkl}");
+            grV2_wrt_Pt1->SetMarkerColor(kAzure-3);
+            grV2_wrt_Pt1->SetLineColor(kAzure-3);
+            grV2_wrt_Pt1->SetLineStyle(9);
+            grV2_wrt_Pt1->SetMarkerStyle(4);
+            grV2_wrt_Pt1->GetYaxis()->SetRangeUser(-0.004,0.014);
+            grV2_wrt_Pt1->GetXaxis()->SetRangeUser(PtBins[0],PtBins[NbPtBins]);
               grV2_wrt_Pt1->Draw("AP");
     
     TGraphErrors *grV2_wrt_Pt2 = new TGraphErrors(NbPtBins,PtMiddle,V2_Ext2,PtErrorSize,errV2_Ext2);
      // TGraph *gr3 = new TGraph (n, K3, chi);
-    grV2_wrt_Pt2->SetMarkerColor(3);
-    grV2_wrt_Pt2->SetLineColor(3);
-    grV2_wrt_Pt2->SetMarkerStyle(4);
+    grV2_wrt_Pt2->SetMarkerColor(kGreen-7);
+    grV2_wrt_Pt2->SetLineColor(kGreen-7);
+    grV2_wrt_Pt2->SetLineStyle(9);
+    grV2_wrt_Pt2->SetMarkerStyle(32);
       grV2_wrt_Pt2->Draw("P");
     
     TLegend *legendo=new TLegend(0.12,0.80,0.40,0.90);
-             legendo->SetTextFont(61);
-             legendo->SetTextSize(0.03);
-           legendo->AddEntry(grV2_wrt_Pt1,"V2_Ext1");
-            legendo->AddEntry(grV2_wrt_Pt2,"V2_Ext2");
+             legendo->SetFillColorAlpha(kWhite, 0.);
+             legendo->SetBorderSize(0);
+              legendo->SetTextFont(42);
+              legendo->SetTextSize(0.02);
+           legendo->AddEntry(grV2_wrt_Pt1,"V2_Ext1 (pPb-like)");
+            legendo->AddEntry(grV2_wrt_Pt2,"V2_Ext2 (pPb-like)");
              legendo->Draw();
     
     cV2Pt->Update();
@@ -4808,6 +4959,7 @@ void PlotFromTreePtBinned(){
         c6TKL->SaveAs(CanvasName);
         
         TFile *f = new TFile(FitFileName,"UPDATE");
+        YieldTkl_allC->Write();
         YieldTkl_Periph->Write();
         YieldTkl_Central->Write();
         YieldTkl_Difference->Write();
@@ -4853,6 +5005,11 @@ void PlotFromTreePtBinned(){
 //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
            
           TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+        gStyle->SetOptStat("n");
+        gStyle->SetOptFit(1011);
+        TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+        st->SetX1NDC(0.8); //new x start position
+        st->SetY1NDC(0.8); //new x end position
           // improve the pictu
         //   std::cout << "integral error: " << integralerror << std::endl;
             Double_t par[3];
@@ -4860,20 +5017,22 @@ void PlotFromTreePtBinned(){
           fitFcnV2TKL->Draw("same");
           // draw the legend
           TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
-          legend->SetTextFont(61);
+          legend->SetFillColorAlpha(kWhite, 0.);
+          legend->SetBorderSize(0);
+            legend->SetTextFont(42);
           legend->SetTextSize(0.03);
             Char_t message[80];
-            sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+            sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
             legend->AddEntry(fitFcnV2TKL,message);
-        sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f + %.4f) = %.4f +- %.4f",par[2],par[0], baselineTKL,par[2]/(par[0] + baselineTKL),(par[2]/(par[0] + baselineTKL)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL/baselineTKL,2))));
+        sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baselineTKL,par[2]/(par[0] + baselineTKL),(par[2]/(par[0] + baselineTKL)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL/baselineTKL,2))));
         legend->AddEntry(fitFcnV2TKL,message);
         if(res->CovMatrixStatus() == 3){
-                   sprintf(message,"The fit is a success");
+                 //  sprintf(message,"The fit is a success");
                }
                else{
                    sprintf(message,"The fit is a failure");
+                   legend->AddEntry(fitFcnV2TKL,message);
                }
-               legend->AddEntry(fitFcnV2TKL,message);
           legend->AddEntry(histo,"Data","lpe");
           legend->Draw();
         
@@ -4926,6 +5085,11 @@ void PlotFromTreePtBinned(){
     //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
                
               TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+        gStyle->SetOptStat("n");
+        gStyle->SetOptFit(1011);
+        TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+        st->SetX1NDC(0.8); //new x start position
+        st->SetY1NDC(0.8); //new x end position
               // improve the pictu
             //   std::cout << "integral error: " << integralerror << std::endl;
                 fitFcnV2TKL->GetParameters(Acoef_Periph);
@@ -4935,20 +5099,22 @@ void PlotFromTreePtBinned(){
               fitFcnV2TKL->Draw("same");
               // draw the legend
               TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
-              legend->SetTextFont(61);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
               legend->SetTextSize(0.03);
                 Char_t message[80];
-                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
                 legend->AddEntry(fitFcnV2TKL,message);
-            sprintf(message,"V2 Tkl-Tkl Periph: %.4f / %.4f = %.4f +- %.4f",Acoef_Periph[2],Acoef_Periph[0],Acoef_Periph[2]/(Acoef_Periph[0]),(Acoef_Periph[2]/(Acoef_Periph[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Periph[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Periph[0],2))));
+            sprintf(message,"V_{2,tkl-tkl} Periph: #frac {%.4f}{%.4f} = %.4f +- %.4f",Acoef_Periph[2],Acoef_Periph[0],Acoef_Periph[2]/(Acoef_Periph[0]),(Acoef_Periph[2]/(Acoef_Periph[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Periph[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Periph[0],2))));
             legend->AddEntry(fitFcnV2TKL,message);
             if(res->CovMatrixStatus() == 3){
-                       sprintf(message,"The fit is a success");
+                       //sprintf(message,"The fit is a success");
                    }
                    else{
                        sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2TKL,message);
                    }
-                   legend->AddEntry(fitFcnV2TKL,message);
               legend->AddEntry(histo,"Data","lpe");
               legend->Draw();
         
@@ -4993,6 +5159,11 @@ void PlotFromTreePtBinned(){
     //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
                
               TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+            st->SetX1NDC(0.8); //new x start position
+            st->SetY1NDC(0.8); //new x end position
               // improve the pictu
             //   std::cout << "integral error: " << integralerror << std::endl;
                 fitFcnV2TKL->GetParameters(Acoef_Central);
@@ -5002,20 +5173,22 @@ void PlotFromTreePtBinned(){
               fitFcnV2TKL->Draw("same");
               // draw the legend
               TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
-              legend->SetTextFont(61);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
               legend->SetTextSize(0.03);
                 Char_t message[80];
-                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                sprintf(message,"Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
                 legend->AddEntry(fitFcnV2TKL,message);
-            sprintf(message,"V2 Tkl-Tkl Periph: %.4f / %.4f = %.4f +- %.4f",Acoef_Central[2],Acoef_Central[0],Acoef_Central[2]/(Acoef_Central[0]),(Acoef_Central[2]/(Acoef_Central[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Central[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Central[0],2))));
+            sprintf(message,"V_{2,tkl-tkl} Central: #frac{%.4f}{%.4f} = %.4f +- %.4f",Acoef_Central[2],Acoef_Central[0],Acoef_Central[2]/(Acoef_Central[0]),(Acoef_Central[2]/(Acoef_Central[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Central[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Central[0],2))));
             legend->AddEntry(fitFcnV2TKL,message);
             if(res->CovMatrixStatus() == 3){
-                       sprintf(message,"The fit is a success");
+                     //  sprintf(message,"The fit is a success");
                    }
                    else{
                        sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2TKL,message);
                    }
-                   legend->AddEntry(fitFcnV2TKL,message);
               legend->AddEntry(histo,"Data","lpe");
               legend->Draw();
         
@@ -5318,14 +5491,14 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->SetParameter(11,10);
 
     
-    fitFcn->SetParName(0,"Norm_{JPsi}");
-    fitFcn->SetParName(1,"M_{JPsi}");
-    fitFcn->SetParName(2,"Sigma_{JPsi}");
+    fitFcn->SetParName(0,"Norm_{J/#psi}");
+    fitFcn->SetParName(1,"M_{J/#psi}");
+    fitFcn->SetParName(2,"Sigma_{J/#psi}");
     fitFcn->SetParName(3,"a_{1}");
     fitFcn->SetParName(4,"n_{1}");
     fitFcn->SetParName(5,"a_{2}");
     fitFcn->SetParName(6,"n_{2}");
-    fitFcn->SetParName(7,"Norm_{Psi2S}");
+    fitFcn->SetParName(7,"Norm_{#Psi(2S)}");
     fitFcn->SetParName(8,"Norm_{TailLowM}");
     fitFcn->SetParName(9,"Exp_{TailLowM}");
     fitFcn->SetParName(10,"Norm_{TailHighM}");
@@ -5340,6 +5513,11 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->ReleaseParameter(7);
    res = histo->Fit("fitFcn","SBMERQ","ep");
    res = histo->Fit("fitFcn","SBMER","ep");
+    gStyle->SetOptStat("ne");
+    gStyle->SetOptFit(1012);
+    TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+    st->SetX1NDC(0.8); //new x start position
+    st->SetY1NDC(0.3); //new x end position
 //    fitFcn->ReleaseParameter(3);
 //    fitFcn->ReleaseParameter(4);
 //   res = histo->Fit("fitFcn","SBMER","ep");
@@ -5355,21 +5533,20 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    backFcn->SetLineColor(kRed);
    TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,2.1,5.1,8);
    TF1 *signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,2.1,5.1,8);
-   TPaveText *pave = new TPaveText(0.15,0.5,0.3,0.65,"brNDC");
+   TPaveText *pave = new TPaveText(0.5,0.5,0.7,0.6,"brNDC");
    signalFcnJPsi->SetLineColor(kBlue);
    signalFcnJPsi->SetNpx(500);
     signalFcnPsi2S->SetLineColor(kGreen);
     signalFcnPsi2S->SetNpx(500);
    Double_t par[12];
    // writes the fit results into the par array
-    gStyle->SetOptFit(1011);
    fitFcn->GetParameters(par);
    signalFcnJPsi->SetParameters(par);
     signalFcnPsi2S->SetParameters(par);
 //   auto covMatrix = res->GetCovarianceMatrix();
 //   std::cout << "Covariance matrix from the fit ";
 //   covMatrix.Print();
-   Double_t integral = (signalFcnJPsi->Integral(2.1,5.1))/0.012;
+   Double_t integral = (signalFcnJPsi->Integral(2.1,5.1))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     auto covtot = res->GetCovarianceMatrix();
     auto covsgn = covtot.GetSub(0,8,0,8);
     std::cout << "Matrice totale" <<endl;
@@ -5377,7 +5554,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     std::cout << "Matrice réduite" <<endl;
     covsgn.Print();
     std::cout << "STATUS COV " << res->CovMatrixStatus() <<endl;
-   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,5.1,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.012;
+   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,5.1,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     std::cout << "Erreur integrale " << integralerror <<endl;
     
     std::cout << "Fitted " << histoname << std::endl;
@@ -5389,29 +5566,35 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    backFcn->Draw("same");
    // draw the legend
     char str[50];
-    sprintf(str, "N_{JPsi} %f +/- %f", integral, integralerror);
+    sprintf(str, "N_{J/#psi} %i +/- %i", int(integral), int(integralerror));
    pave->AddText(str);
-    sprintf(str, "M_{Psi2S} = %f, Sig_{Psi2S} = %f", mPsip, ratSigma*par[2]);
-    pave->AddText(str);
+    sprintf(str, "M_{#Psi(2S)} = %f, Sig_{#Psi(2S)} = %f", mPsip, ratSigma*par[2]);
+   // pave->AddText(str);
+    pave->SetTextFont(42);
+    pave->SetTextSize(0.04);
+    pave->SetBorderSize(0);
+    pave->SetFillStyle(0);
    pave->Draw();
-   TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
-   legend->SetTextFont(61);
+   TLegend *legend=new TLegend(0.4,0.6,0.6,0.8);
+   legend->SetTextFont(42);
    legend->SetTextSize(0.03);
+    legend->SetFillColorAlpha(kWhite, 0.);
+    legend->SetBorderSize(0);
     Char_t message[80];
-    sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcn->GetChisquare(),fitFcn->GetNDF());
-     legend->AddEntry(fitFcn,message);
+    sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcn->GetChisquare(),fitFcn->GetNDF());
+    legend->AddEntry(fitFcn,message);
     if(res->CovMatrixStatus() == 3){
-               sprintf(message,"The fit is a success");
-           }
-           else{
-               sprintf(message,"The fit is a failure");
-           }
-           legend->AddEntry(fitFcn,message);
-   legend->AddEntry(histo,"Data","lpe");
-   legend->AddEntry(backFcn,"Background fit","l");
-   legend->AddEntry(signalFcnJPsi,"JPsi Signal fit","l");
-    legend->AddEntry(signalFcnPsi2S,"Psi2S Signal fit","l");
-   legend->Draw();
+               // sprintf(message,"The fit is a success");
+            }
+            else{
+                sprintf(message,"The fit is a failure");
+                legend->AddEntry(fitFcn,message);
+            }
+    legend->AddEntry(histo,"Data","lpe");
+    legend->AddEntry(backFcn,"Background fit","l");
+    legend->AddEntry(signalFcnJPsi,"J/#psi Signal fit","l");
+     legend->AddEntry(signalFcnPsi2S,"#Psi(2S) Signal fit","l");
+    legend->Draw();
     
 //    cout << "Histogramme: " << histoname << endl;
 //    for(int j=0; j<10; j++){
@@ -5452,59 +5635,80 @@ void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, 
   fval = chi2;
 }
 
-int GetCent(double cent){
+int GetCent(float cent){
     if(cent <= 1){
         return 0;
     }
-    else if(cent <= 10){
+    else if(cent <= 3){
         return 1;
     }
-    else if(cent <= 20){
+    else if(cent <= 5){
         return 2;
     }
-    else if(cent <= 40){
+    else if(cent <= 10){
         return 3;
     }
-    else if(cent <= 100){
+    else if(cent <= 15){
         return 4;
     }
-//    else if(cent <= 30){
-//        return 6;
-//    }
-//    else if(cent <= 40){
-//        return 7;
-//    }
-//    else if(cent <= 50){
-//        return 8;
-//    }
-//    else if(cent <= 60){
-//        return 9;
-//    }
-//    else if(cent <= 70){
-//        return 10;
-//    }
-//    else if(cent <= 80){
-//        return 11;
-//    }
-//    else if(cent <= 90){
-//        return 12;
-//    }
-//    else{
-//        return 13;
-//    }
-}
-
-int GetCentPM(int Ntkl, int zvtx_idx, int groupnumber){
-
-    if(Ntkl==0){
+    else if(cent <= 20){
+        return 5;
+    }
+    else if(cent <= 30){
+        return 6;
+    }
+    else if(cent <= 40){
+        return 7;
+    }
+    else if(cent <= 50){
+        return 8;
+    }
+    else if(cent <= 60){
+        return 9;
+    }
+    else if(cent <= 70){
+        return 10;
+    }
+    else if(cent <= 80){
+        return 11;
+    }
+    else if(cent <= 90){
+        return 12;
+    }
+    else{
         return 13;
     }
+}
 
-    for(int cent_index=0;cent_index<14;cent_index++){
-        if(LimitsPM[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
-            return cent_index;
+int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPer, int zvtx_idx, int groupnumber){
+    
+    float estimator = 0;
+
+    if(centralityMethod == "PercentileMethodSPDTracklets"){
+        if(Ntkl==0){
+            return 13;
+        }
+
+        for(int cent_index=0;cent_index<14;cent_index++){
+            if(LimitsPM_SPDTracklets_Uncal_DataDriven[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
+                return cent_index;
+            }
         }
     }
+    else if(centralityMethod == "SPDTrackletsPercentile"){
+        estimator = SPDTrackletsPer;
+    }
+    else if(centralityMethod == "SPDClustersPercentile"){
+        estimator = SPDClustersPer;
+    }
+    else if(centralityMethod == "V0MPercentile"){
+        estimator = V0MPer;
+    }
+    else{
+        return -1;
+    }
+    return GetCent(estimator);
+    
 }
 
 int GetPtBin(double pt){
