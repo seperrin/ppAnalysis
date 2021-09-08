@@ -174,7 +174,9 @@ void FitTrainingPtBinned(){
     
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_QGPFrance_0-5_40-100_pt0-2-4-6-8-12.root"); //BEST
+   // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_QGPFrance_0-5_40-100_pt0-2-4-6-8-12.root"); //BEST
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-4-6-8-12.root");
+   // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_16h_QGPFrance_0-5_40-100_pt0-4-12_Test.root");
     //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/FinAvril2021-PUfixedMUTCutsfixedButBadEtaCutsNoPhiSPDCorr/FitFile_GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Gr1_0-5_40-100_pt8-12.root");
     
@@ -393,12 +395,12 @@ void FitTrainingPtBinned(){
         YTklDifference->SetXTitle("Correlation #Delta#phi (rad)");
         YTklDifference->SetYTitle("Correlation #Delta#eta");
         YTklCentralME = new TH2F("YTklCentralME",
-                          "Yield #Delta#eta wrt #Delta#phi - Tkl Central",
+                          "Yield #Delta#eta wrt #Delta#phi - Tkl Central ME",
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
         YTklCentralME->SetXTitle("Correlation #Delta#phi (rad)");
         YTklCentralME->SetYTitle("Correlation #Delta#eta");
         YTklPeriphME = new TH2F("YTklPeriphME",
-                          "Yield #Delta#eta wrt #Delta#phi - Tkl Periph",
+                          "Yield #Delta#eta wrt #Delta#phi - Tkl Periph ME",
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
         YTklPeriphME->SetXTitle("Correlation #Delta#phi (rad)");
         YTklPeriphME->SetYTitle("Correlation #Delta#eta");
@@ -651,19 +653,19 @@ void FitTrainingPtBinned(){
                 char hname2[200];
                 sprintf(hname,"Yields PhiBin %d All C",p);
                 YieldWrtMass_allC[p] = new TH1F(hname,
-                                  "Yields J/#psi-tkl wrt dimuon mass, all C",
+                                  "Yields dimuon-tkl wrt dimuon mass, all C",
                                   NbinsInvMass,MinInvMass,MaxInvMass);
                 YieldWrtMass_allC[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
             
             sprintf(hname,"Yields PhiBin %d Periph",p);
-            sprintf(hname2,"Yields J/#psi-tkl wrt wrt dimuon mass, Periph, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
+            sprintf(hname2,"Yields dimuon-tkl wrt wrt dimuon mass, Periph, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
             YieldWrtMass_Periph[p] = new TH1F(hname,
                               hname2,
                               NbinsInvMass,MinInvMass,MaxInvMass);
             YieldWrtMass_Periph[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
             
             sprintf(hname,"Yields PhiBin %d Central",p);
-            sprintf(hname2,"Yields J/#psi-tkl wrt wrt dimuon mass, Central, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
+            sprintf(hname2,"Yields dimuon-tkl wrt wrt dimuon mass, Central, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
             YieldWrtMass_Central[p] = new TH1F(hname,
                               hname2,
                               NbinsInvMass,MinInvMass,MaxInvMass);
@@ -672,32 +674,32 @@ void FitTrainingPtBinned(){
             
         
         Yield_allC = new TH1F("Yield_allC",
-                             "Yields J/#psi-tkl wrt #Delta#phi, all C, all mass",
+                             "Yields dimuon-tkl wrt #Delta#phi, all C, all mass",
                              NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
            Yield_allC->SetXTitle("#Delta#phi (rad)");
             Yield_allC->SetYTitle("Yields");
         Yield_Central = new TH1F("Yield_Central",
-                          "Yields J/#psi-tkl wrt #Delta#phi, Central, 3.0-3.25 GeV",
+                          "Yields dimuon-tkl wrt #Delta#phi, Central, 3.0-3.25 GeV",
                           NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         Yield_Central->SetXTitle("#Delta#phi (rad)");
         Yield_Central->SetYTitle("Yields_{Central}");
         Yield_Periph = new TH1F("Yield_Periph",
-                          "Yields J/#psi-tkl wrt #Delta#phi, Periph, 3.0-3.25 GeV",
+                          "Yields dimuon-tkl wrt #Delta#phi, Periph, 3.0-3.25 GeV",
                           NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         Yield_Periph->SetXTitle("#Delta#phi (rad)");
         Yield_Periph->SetYTitle("Yields_{Periph}");
         Yield_Difference = new TH1F("Yield_Difference",
-                          "Yields J/#psi-tkl wrt #Delta#phi, Central-Periph, all mass",
+                          "Yields dimuon-tkl wrt #Delta#phi, Central-Periph, all mass",
                           NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         Yield_Difference->SetXTitle("#Delta#phi (rad)");
         Yield_Difference->SetXTitle("Yields_{Subtracted}");
            Yield_tampon = new TH1F("Yield_tampon",
-                             "Yields J/#psi-tkl wrt #Delta#phi, all C, all mass",
+                             "Yields dimuon-tkl wrt #Delta#phi, all C, all mass",
                              NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
            Yield_tampon->SetXTitle("#Delta#phi (rad)");
             Yield_tampon->SetYTitle("Yields");
         YieldWrtMass_tampon = new TH1F("YieldWrtMass_tampon",
-                          "Yields J/#psi-tkl wrt dimuon mass",
+                          "Yields dimuon-tkl wrt dimuon mass",
                           NbinsInvMass,MinInvMass,MaxInvMass);
         YieldWrtMass_tampon->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
         YieldWrtMass_tampon->SetYTitle("Yields");
@@ -1249,9 +1251,6 @@ void FitTrainingPtBinned(){
     
     TFile *filerec = new TFile(FitFileName);
     hnseg = (TH1F*)filerec->Get("hnseg");
-        hnseg->SetTitle("Invariant mass of dimuooooooooon");
-        hnseg->SetXTitle("Mass of dimuon (GeV/c^{2})");
-        hnseg->SetYTitle(haxis);
     InvMass_Central = (TH1F*)filerec->Get("InvMass_Central");
     InvMass_Periph = (TH1F*)filerec->Get("InvMass_Periph");
     V2JPsiTkl = (TH1F*)filerec->Get("V2JPsiTkl");
@@ -1415,7 +1414,7 @@ void FitTrainingPtBinned(){
     
     {
         ofstream myfiletxt;
-        myfiletxt.open("/tmp/pulls.txt");
+        myfiletxt.open("/tmp/pullstot.txt");
         double params[12];
         for(int i=0; i<12; i++){
             params[i] = par[i];
@@ -1430,14 +1429,22 @@ void FitTrainingPtBinned(){
             //Trouver la valeur du centre du bin pour le fit et pour les données
             //Calculer le pool
             // Ajouter le point à un histo
-
+        
+        myfiletxt << "POUET" <<endl;
+         myfiletxt << "POUET " << hnseg->GetNbinsX() <<endl;
         for(int bin=0; bin<hnseg->GetNbinsX(); bin++){
             double fit_prediction = fitFcn->Eval(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass);
             double data = hnseg->GetBinContent(bin+1);
             double error = hnseg->GetBinError(bin+1);
-            double pool = (data-fit_prediction)/error;
+            if(error>0){
+                double pool = (data-fit_prediction)/error;
 
-            hpool->SetBinContent(bin+1,pool);
+                hpool->SetBinContent(bin+1,pool);
+                
+                if(bin < 10){
+                myfiletxt << "Bin " << bin << " : Fit - " << fit_prediction << " Data - " << data << " Error - " << error << " Pool value - " << pool <<endl;
+                }
+               }
         }
         myfiletxt.close();
 
@@ -1521,12 +1528,12 @@ void FitTrainingPtBinned(){
             fitV2_2->SetParName(12,"V2_2 J/#psi-tkl");
             fitV2_2->SetParName(13,"V2_2 Bkg M2");
         fitV2_2->SetParName(14,"V2_2 Bkg M1");
-        fitV2_2->SetParName(15,"V2_2 Nkg M0");
+        fitV2_2->SetParName(15,"V2_2 Bkg M0");
         
-        fitJustV2_2->SetParName(0,"V_{2}_2 J/#psi-tkl");
+        fitJustV2_2->SetParName(0,"V2_2 J/#psi-tkl");
             fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
         fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
-        fitJustV2_2->SetParName(3,"V2_2 Nkg M0");
+        fitJustV2_2->SetParName(3,"V2_2 Bkg M0");
         
            double minParams[16];
            double parErrors[16];
@@ -2097,7 +2104,7 @@ void FitTrainingPtBinned(){
             fitV2_2PtBinned->SetParName(12,"V2_2 J/#psi");
             fitV2_2PtBinned->SetParName(13,"V2_2 Bkg M2");
         fitV2_2PtBinned->SetParName(14,"V2_2 Bkg M1");
-        fitV2_2PtBinned->SetParName(15,"V2_2 Nkg M0");
+        fitV2_2PtBinned->SetParName(15,"V2_2 Bkg M0");
 
         
            double minParams[16];
@@ -2203,7 +2210,7 @@ void FitTrainingPtBinned(){
             fitV2_2PtBinned->SetParName(12,"V2_2 J/#psi");
             fitV2_2PtBinned->SetParName(13,"V2_2 Bkg M2");
         fitV2_2PtBinned->SetParName(14,"V2_2 Bkg M1");
-        fitV2_2PtBinned->SetParName(15,"V2_2 Nkg M0");
+        fitV2_2PtBinned->SetParName(15,"V2_2 Bkg M0");
 
         
            double minParams[16];
@@ -3528,7 +3535,7 @@ void FitTrainingPtBinned(){
                 fitY_1Central->SetParName(12,"Y_1 J/#psi");
                 fitY_1Central->SetParName(13,"Y_1 Bkg M2");
             fitY_1Central->SetParName(14,"Y_1 Bkg M1");
-            fitY_1Central->SetParName(15,"Y_1 Nkg M0");
+            fitY_1Central->SetParName(15,"Y_1 Bkg M0");
 
               rescent = YieldWrtMass_CentralPtBinned[i][ptbin]->Fit("fitY_1Central","SBMERIQ+","ep");
                 gStyle->SetOptStat("n");
@@ -4686,14 +4693,14 @@ void FitTrainingPtBinned(){
     double errv2_PRL[NbPtBins] = {0};
     double errv2_PRLPeriphZYAM[NbPtBins] = {0};
     
-    double v2_PbPb[NbPtBins-1] = {0.01,0.06,0.075,0.05};
-    double v2_pPb[NbPtBins] = {0,-0.015,0.035,0.08,0.04};
-    double errv2_PbPb[NbPtBins-1] = {0.015,0.015,0.02,0.03};
-    double errv2_pPb[NbPtBins] = {0.015,0.02,0.02,0.015,0.04};
-    double PbPbMiddle[NbPtBins-1] = {1,3,5,7};
-    double PbPbPtErrorSize[NbPtBins-1] = {1,1,1,1};
-    double pPbMiddle[NbPtBins] = {1,2.5,3.5,5,7};
-    double pPbPtErrorSize[NbPtBins] = {1,0.5,0.5,1,1};
+//    double v2_PbPb[NbPtBins-1] = {0.01,0.06,0.075,0.05};
+//    double v2_pPb[NbPtBins] = {0,-0.015,0.035,0.08,0.04};
+//    double errv2_PbPb[NbPtBins-1] = {0.015,0.015,0.02,0.03};
+//    double errv2_pPb[NbPtBins] = {0.015,0.02,0.02,0.015,0.04};
+//    double PbPbMiddle[NbPtBins-1] = {1,3,5,7};
+//    double PbPbPtErrorSize[NbPtBins-1] = {1,1,1,1};
+//    double pPbMiddle[NbPtBins] = {1,2.5,3.5,5,7};
+//    double pPbPtErrorSize[NbPtBins] = {1,0.5,0.5,1,1};
     
     for(int pt_idx=0; pt_idx < NbPtBins; pt_idx++){
         v2_Ext1[pt_idx] = V2_Ext1[pt_idx]/v2ClassiqueTKL;
@@ -5686,7 +5693,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     pave->SetTextSize(0.04);
     pave->SetBorderSize(0);
     pave->SetFillStyle(0);
-    sprintf(str, "M_{#Psi(2S)} = %f, Sig_{Psi2S} = %f", int(mPsip*1000)/1000., int(ratSigma*par[2]*1000)/1000.);
+    sprintf(str, "M_{#Psi(2S)} = %f, Sig_{#Psi(2S)} = %f", int(mPsip*1000)/1000., int(ratSigma*par[2]*1000)/1000.);
   //  pave->AddText(str);
    pave->Draw();
    TLegend *legend=new TLegend(0.4,0.6,0.6,0.8);
