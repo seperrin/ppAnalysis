@@ -33,6 +33,8 @@
  # include "TMinuit.h"
  # include "TRandom.h"
  # include <iostream>
+ # include <fstream>
+# include <sstream>
  # include <string>
  # include "TH1F.h"
  # include "TH1D.h"
@@ -43,7 +45,9 @@
 
  // FUNCTIONS
 
- void FitTrainingTKL();
+inline bool exists_test0 (const std::string& name);
+void GenerateCSV();
+ void FitTrainingTKL(Char_t radical[200]);
  
 Double_t CvetanFTKL(Double_t *x,Double_t *par);
 void ChisquareCvetanFTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
@@ -122,13 +126,163 @@ double fourierCentral[3] = {0,0,0};
 double fourierPeriph[3] = {0,0,0};
 
 Char_t FitFileName[200];
+Char_t SystematicsFileName[200];
 
-void FitTrainingTKL(){
+inline bool exists_test0 (const std::string& name) {
+    ifstream f(name.c_str());
+    return f.good();
+}
+
+void GenerateCSV(){
+    cout << "=== CSV generation ===" <<endl;
+    
+    FitTrainingTKL("NewAnalysisAllEst_TKL_16h25_SPDClustersPercentile_0-5_40-100_pt0-12_DPhiCutNo");
+    return;
+}
+
+void FitTrainingTKL(Char_t radical[200]){
+    
+    cout << "Preparing the analysis of " << radical<<endl;
     
     Char_t FolderName[200];
     Char_t CanvasName[200];
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_TKL_16h_PercentileMethodSPDTracklets_0-5_40-100_pt0-12_Eta1.6.root");
-        sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 mai/NewAnalysis_16h10_TKL_QGPFrance_0-5_40-100_pt0-12/FitTrainingTKLa");
+   // Char_t RadicalName[200];
+    //sprintf(RadicalName,"NewAnalysisAllEst_TKL_16h25_SPDTrackletsPercentile_0-5_40-100_pt0-12");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_%s.root", radical);
+        sprintf(FolderName,"/Users/sperrin/Desktop/Images JavierAnalysis/2021 septembre/%s", radical);
+    sprintf(SystematicsFileName,"%s/SystematicsFile.csv", FolderName);
+    
+//    if(exists_test0(SystematicsFileName)){
+//        cout << "The file of systematics for " << radical << " exists already. Will not run again the analysis" <<endl;
+//        return;
+//    }
+    
+    
+    
+    Char_t DPhiCutText[20] = "10mrad";
+    Char_t CentEstText[50] = "PercentileMethodSPDTracklets";
+    Char_t CentralClassText[20] = "0-5";
+    Char_t PeriphClassText[20] = "40-100";
+    Char_t DeltaEtaGapText[20] = "1.2";
+    Char_t ZvtxCutText[20] = "10";
+    Char_t EMNormText[20] = "Method1";
+    Char_t EMPoolMaxText[20] = "100";
+    Char_t EMPoolThresholdText[20] = "10";
+    Char_t ScalingPeriphText[20] = "1";
+    Char_t SummationText[20] = "Method2";
+    
+    Char_t dataUsed[50];
+    Char_t estimator[50];
+    Char_t rest[50];
+    Char_t lessCentral[5];
+    Char_t mostCentral[5];
+    Char_t lessPeriph[5];
+    Char_t mostPeriph[5];
+    int lessCentralNum;
+    int mostCentralNum;
+    int lessPeriphNum;
+    int mostPeriphNum;
+    Char_t minpt[5];
+    Char_t maxpt[5];
+    Char_t specificity[100];
+    double DPhiCutNum;
+    double DeltaEtaGapNum;
+    double ZvtxCutNum;
+    
+    sscanf(radical, "NewAnalysisAllEst_TKL_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
+    
+    bool hasClassifiedSpecificity = kFALSE;
+    bool isSpecificityZvtx = kFALSE;
+    bool isSpecificityEtaGap = kFALSE;
+    bool isSpecificityDPhi = kFALSE;
+    bool hasSpecificity = kFALSE;
+    
+    string srest;
+    stringstream ss;
+    ss << rest;
+    ss >> srest;
+
+    if (srest.find("_") != std::string::npos) {
+        std::cout << "Underscore found: There is a specificity" << endl;
+        sscanf(rest,"%[^_]_%s", maxpt, specificity);
+        hasSpecificity = kTRUE;
+    }
+    else{
+        cout << "No underscore found: No specificity"<<endl;
+        sprintf(maxpt, "%s", rest);
+        hasSpecificity = kFALSE;
+    }
+    
+    stringstream intValue1(lessCentral);
+    intValue1 >> lessCentralNum;
+    stringstream intValue2(mostCentral);
+    intValue2 >> mostCentralNum;
+    stringstream intValue3(lessPeriph);
+    intValue3 >> lessPeriphNum;
+    stringstream intValue4(mostPeriph);
+    intValue4 >> mostPeriphNum;
+    
+    sprintf(CentEstText, estimator);
+    cout << "CentEstText " << CentEstText<<endl;
+    sprintf(CentralClassText, "%i-%i", mostCentralNum, lessCentralNum);
+    cout << "CentralClassText " << CentralClassText<<endl;
+    sprintf(PeriphClassText, "%i-%i", lessPeriphNum, mostPeriphNum);
+    cout << "PeriphClassText " << PeriphClassText<<endl;
+    sprintf(PeriphClassText, "%i-%i", lessPeriphNum, mostPeriphNum);
+    cout << "min pt " << minpt << " max pt " << maxpt<<endl;
+    if(!hasSpecificity){
+        cout << "Specificity is empty"<<endl;
+    }
+    else{
+        cout << "Specificity: " << specificity <<endl;
+        string sspecificity;
+        stringstream ss2;
+        ss2 << specificity;
+        ss2 >> sspecificity;
+        
+        if (sspecificity.find("DPhiCut") != std::string::npos) {
+            std::cout << "Precisions on DPhiCut" << endl;
+            if (sspecificity.find("DPhiCutNo") != std::string::npos) {
+                cout << "There is no DPhi cut"<<endl;
+                sprintf(DPhiCutText,"None");
+                hasClassifiedSpecificity = kTRUE;
+                DPhiCutNum = 9999.;
+                isSpecificityDPhi = kTRUE;
+            }
+            else{
+                sscanf(specificity, "DPhiCut%[^mrad]", DPhiCutText);
+                cout << "DPhiCutText set to " << DPhiCutText<< " mrad"<<endl;
+                hasClassifiedSpecificity = kTRUE;
+                DPhiCutNum = stod(DPhiCutText);
+                sprintf(DPhiCutText, "%smrad",DPhiCutText);
+                isSpecificityDPhi = kTRUE;
+            }
+        }
+        
+        if (sspecificity.find("Eta") != std::string::npos) {
+            std::cout << "Precisions on Eta" << endl;
+           sscanf(specificity, "Eta%s", DeltaEtaGapText);
+           cout << "DeltaEtaGapText set to " << DeltaEtaGapText<<endl;
+            hasClassifiedSpecificity = kTRUE;
+            DeltaEtaGapNum = stod(DeltaEtaGapText);
+            isSpecificityEtaGap = kTRUE;
+        }
+        
+        if (sspecificity.find("Zvtx") != std::string::npos) {
+            std::cout << "Precisions on Zvtx" << endl;
+           sscanf(specificity, "Zvtx%s", ZvtxCutText);
+           cout << "ZvtxCutText set to " << ZvtxCutText<<endl;
+            hasClassifiedSpecificity = kTRUE;
+            ZvtxCutNum = stod(ZvtxCutText);
+            isSpecificityZvtx = kTRUE;
+        }
+        
+        if(!hasClassifiedSpecificity){
+            cout << "The specificity has not been classified. Abort"<<endl;
+            return;
+        }
+    }
+    
     
     TH1::SetDefaultSumw2();
         bool doTracklets = kTRUE;
@@ -180,9 +334,28 @@ void FitTrainingTKL(){
         const int NbinsDeltaPhiTKL = 48;
         double SizeBinDeltaPhiTKL = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhiTKL;
         int BinZeroLeftTKL = floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
+    
+    if(hasClassifiedSpecificity){
+        if(isSpecificityDPhi){
+            DPhiCut = DPhiCutNum;
+        }
+        if(isSpecificityZvtx){
+            ZvtxCut = ZvtxCutNum;
+        }
+        if(isSpecificityEtaGap){
+            MinDeltaEtaTKL = DeltaEtaGapNum;
+            SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
+        }
+    }
         
         const int NbBinsCent = 14;
-        const int NbBinsZvtx = 20;
+        int NbBinsZvtx = int(ZvtxCut*2);
+    
+    cout << "Zvtx cut: " << ZvtxCut<<endl;
+    cout << "Zvtx bins: " << NbBinsZvtx<<endl;
+    cout << "DPhi cut: " << DPhiCut<<endl;
+    cout << "MinDeltaEtaTKL cut: " << MinDeltaEtaTKL<<endl;
+        
     
     // *************************
     // Initialiser les graphes *
@@ -274,12 +447,16 @@ void FitTrainingTKL(){
         int RefTrackletsPeriph = 0;
         int cmul = 0;
         int barWidth = 50;
-        int DimuonCounter[NbBinsCent][NbBinsZvtx][NbinsInvMass] = {0};
+        int DimuonCounter[NbBinsCent][NbBinsZvtx][NbinsInvMass];
+    memset( DimuonCounter, 0, NbBinsCent*NbBinsZvtx*NbinsInvMass*sizeof(int));
         int DimuonCounterZint[NbBinsCent][NbinsInvMass] = {0};
-        int RefTklCounter[NbBinsCent][NbBinsZvtx] = {0};
+        int RefTklCounter[NbBinsCent][NbBinsZvtx];
+    memset( RefTklCounter, 0, NbBinsCent*NbBinsZvtx*sizeof(int));
         int RefTklCounterZint[NbBinsCent] = {0};
-        double NormME[NbBinsCent][NbBinsZvtx][NbinsInvMass] = {0};
-        double NormMETkl[NbBinsCent][NbBinsZvtx] = {0};
+        double NormME[NbBinsCent][NbBinsZvtx][NbinsInvMass];
+    memset( NormME, 0, NbBinsCent*NbBinsZvtx*NbinsInvMass*sizeof(double));
+        double NormMETkl[NbBinsCent][NbBinsZvtx];
+    memset( NormMETkl, 0, NbBinsCent*NbBinsZvtx*sizeof(double));
         
     
         int DimuC = 0;
@@ -592,15 +769,27 @@ void FitTrainingTKL(){
             V2ClassiqueTKL = par[2]/(par[0] + baselineTKL_periph);
             errV2ClassiqueTKL = (par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2)));
             
+            if(V2ClassiqueTKL>0){
             v2ClassiqueTKL = sqrt(V2ClassiqueTKL);
             errv2ClassiqueTKL = 0.5*(errV2ClassiqueTKL/V2ClassiqueTKL)*v2ClassiqueTKL;
+            }
+            else{
+                v2ClassiqueTKL=0;
+                errv2ClassiqueTKL=99.;
+            }
             
             
             V2ClassiqueTKL_noZYAM = par[2]/(par[0]);
             errV2ClassiqueTKL_noZYAM = (par[2]/(par[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)));
             
+            if(V2ClassiqueTKL_noZYAM>0){
             v2ClassiqueTKL_noZYAM = sqrt(V2ClassiqueTKL_noZYAM);
             errv2ClassiqueTKL_noZYAM = 0.5*(errV2ClassiqueTKL_noZYAM/V2ClassiqueTKL_noZYAM)*v2ClassiqueTKL_noZYAM;
+            }
+            else{
+                v2ClassiqueTKL_noZYAM=0;
+                errv2ClassiqueTKL_noZYAM=99.;
+            }
             
             cout << "===== Méthode Classique =====" <<endl;
             cout << "V2 TKL +/- err V2 TKL: " << V2ClassiqueTKL << " +/- " << errV2ClassiqueTKL <<endl;
@@ -707,8 +896,14 @@ void FitTrainingTKL(){
             FCvetanTKL = par[3];
             errFCvetanTKL = fitFcnV2_Cvetan->GetParError(3);
             
+            if(V2CvetanTKL>0){
             v2CvetanTKL = sqrt(V2CvetanTKL);
             errv2CvetanTKL = 0.5*(errV2CvetanTKL/V2CvetanTKL)*v2CvetanTKL;
+            }
+            else{
+                v2CvetanTKL=0;
+                errv2CvetanTKL=99.;
+            }
             
             cout << "===== Cvetan Fit =====" <<endl;
             cout << "V2 TKL +/- err V2 TKL: " << V2CvetanTKL << " +/- " << errV2CvetanTKL <<endl;
@@ -811,9 +1006,14 @@ void FitTrainingTKL(){
             V2CvetanMeTKL = par[2]/par[0];
             errV2CvetanMeTKL = V2CvetanMeTKL*sqrt(pow(fitFcnV2_CvetanMe->GetParError(2)/par[2],2)+pow(fitFcnV2_CvetanMe->GetParError(0)/par[0],2));
             
+            if(V2CvetanMeTKL>0){
             v2CvetanMeTKL = sqrt(V2CvetanMeTKL);
             errv2CvetanMeTKL = 0.5*(errV2CvetanMeTKL/V2CvetanMeTKL)*v2CvetanMeTKL;
-            
+            }
+           else{
+               v2CvetanMeTKL=0;
+               errv2CvetanMeTKL=99.;
+           }
             
             cout << "===== CvetanMe Fit =====" <<endl;
             cout << "V2 TKL +/- err V2 TKL: " << V2CvetanMeTKL << " +/- " << errV2CvetanMeTKL <<endl;
@@ -906,8 +1106,15 @@ void FitTrainingTKL(){
            V2ZYAMTKL = par[2]/(par[0]+baselineTKL_central);
            errV2ZYAMTKL = (par[2]/(par[0] + baselineTKL_central)*sqrt(pow(fitFcnV2_ZYAM->GetParError(2)/par[2],2)+pow(fitFcnV2_ZYAM->GetParError(0)/par[0],2)+pow(errbaselineTKL_central/baselineTKL_central,2)));
            
-           v2ZYAMTKL = sqrt(V2ZYAMTKL);
-           errv2ZYAMTKL = 0.5*(errV2ZYAMTKL/V2ZYAMTKL)*v2ZYAMTKL;
+           
+           if(V2ZYAMTKL>0){
+            v2ZYAMTKL = sqrt(V2ZYAMTKL);
+            errv2ZYAMTKL = 0.5*(errV2ZYAMTKL/V2ZYAMTKL)*v2ZYAMTKL;
+           }
+           else{
+             v2ZYAMTKL=0;
+             errv2ZYAMTKL=99.;
+            }
            
            
            cout << "===== ZYAM Fit =====" <<endl;
@@ -1016,9 +1223,14 @@ void FitTrainingTKL(){
                FPRLTKL = par[1];
                errFPRLTKL = fitFcnV2_PRLTemplate->GetParError(1);
                
+        if(V2PRLTKL>0){
                v2PRLTKL = sqrt(V2PRLTKL);
                errv2PRLTKL = 0.5*(errV2PRLTKL/V2PRLTKL)*v2PRLTKL;
-            
+            }
+            else{
+              v2ZYAMTKL=0;
+              errv2ZYAMTKL=99.;
+             }
 //
 //            x = V2PRLTKL;
 //               y = FPRLTKL;
@@ -1175,8 +1387,14 @@ void FitTrainingTKL(){
                   FPRL_PeriphZYAMTKL = par[1];
                   errFPRL_PeriphZYAMTKL = fitFcnV2_PRLTemplate_PeriphZYAM->GetParError(1);
                   
+                  if(V2PRL_PeriphZYAMTKL>0){
                   v2PRL_PeriphZYAMTKL = sqrt(V2PRL_PeriphZYAMTKL);
                   errv2PRL_PeriphZYAMTKL = 0.5*(errV2PRL_PeriphZYAMTKL/V2PRL_PeriphZYAMTKL)*v2PRL_PeriphZYAMTKL;
+                  }
+                  else{
+                    v2PRL_PeriphZYAMTKL=0;
+                    errv2PRL_PeriphZYAMTKL=99.;
+                   }
                   
                   
                   cout << "===== PRL ZYAM Fit =====" <<endl;
@@ -1341,6 +1559,20 @@ void FitTrainingTKL(){
     std::cout << "EventNC: " << EventNC <<std::endl;
     std::cout << "cmul  " << cmul <<std::endl;
     std::cout <<"countsigma :" << countsigma <<std::endl;
+    
+    
+    std::ofstream myfiletx(SystematicsFileName, std::ofstream::out);
+    
+    if(!myfiletx)
+       {
+           cout << "Couldn't open syst file" << endl;
+       }
+    
+    myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << v2ClassiqueTKL << "," << errv2ClassiqueTKL << "," << v2ClassiqueTKL_noZYAM << "," << errv2ClassiqueTKL_noZYAM << "," << v2CvetanTKL << "," << errv2CvetanTKL << "," << v2ZYAMTKL << "," << errv2ZYAMTKL << "," << v2PRLTKL << "," << errv2PRLTKL << "," << v2PRL_PeriphZYAMTKL << "," << errv2PRL_PeriphZYAMTKL << endl;
+    
+    myfiletx.close();
+
+
 }
     
 
