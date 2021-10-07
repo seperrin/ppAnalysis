@@ -56,6 +56,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *canvas, int i
 void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *p, Int_t /*iflag */  );
 int GetCent(int cent);
 int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPer, int zvtx_idx, int groupnumber);
+int GetCentCvetan(float V0MPer);
 bool isCentral(int centint);
 bool isPeripheral(int centint);
 int GetPtBin(double pt);
@@ -79,21 +80,28 @@ Double_t myEtaHigh(double x);
 //13: 90-100%
 
 int CentralLowBound = 0;
-int CentralHighBound = 2;
+int CentralHighBound = 5;
 int PeripheralLowBound = 8;
 int PeripheralHighBound = 13;
 
-string centralityMethod = "PercentileMethodSPDTracklets";
+string centralityMethod = "V0MPercentile";
 
-double PtBins[] = {0,12};
-const int NbPtBins = 1;
+bool isMultiplicityStudy = kFALSE;
+
+int NtklCentralLowBound = 6;
+int NtklCentralHighBound = 12;
+int NtklPeripheralLowBound = 0;
+int NtklPeripheralHighBound = 6;
+
+double PtBins[] = {0,2,3,4,6,8};
+const int NbPtBins = 5;
 double LowDimuPtCut = 0;
-double HighDimuPtCut = 12;
+double HighDimuPtCut = 8;
 
 double MinInvMass = 2.1;
 double MaxInvMass = 5.1;
 
-const int NbinsDimuInvMass = 250;
+const int NbinsDimuInvMass = 300;
 
 bool isCentral(int centint){
     if((centint>=CentralLowBound)&&(centint<=CentralHighBound))
@@ -373,7 +381,7 @@ double errV2_Ext2[NbPtBins] = {0};
 void PlotFromTreePtBinned(){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
-    bool doTracklets = kTRUE;
+    bool doTracklets = kFALSE;
     bool isCMSMethod = kFALSE;
     bool doMixedEvents = kTRUE;
     bool KeepOnlyOne = kFALSE;
@@ -382,7 +390,7 @@ void PlotFromTreePtBinned(){
     int valueAdditionalCutNtkl = 3; //<=
     int preciseZbinFocus = 10;
     int preciseCentFocus = 10;
-    bool PtBinned = kFALSE;
+    bool PtBinned = kTRUE;
     
     
 // ************************************
@@ -391,7 +399,7 @@ void PlotFromTreePtBinned(){
 
     double ZvtxCut = 10;
     double SigmaZvtxCut = 0.25;
-    double DPhiCut = 0.01;
+    double DPhiCut = 0.01; //0.01
     double TklEtaCut  = 1;
     double LowDimuYCut = -4;
     double HighDimuYCut = -2.5;
@@ -443,7 +451,8 @@ void PlotFromTreePtBinned(){
   //  Char_t Group_Period[50] = "Group1";
   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Cvetan_LHC16r"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j"};
   // Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU_OnlyMuonTrackCutsApplied"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
@@ -453,10 +462,13 @@ void PlotFromTreePtBinned(){
     Char_t FolderName[200];
     Char_t CanvasName[200];
     Char_t FitFileName[200];
+ //   Char_t AssociateFileName[200];
 
-  //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Run2_0-5_60-100_pt0-2-4-6-8-12.root");
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_TKL_16h25_PercentileMethodSPDTracklets_0-5_40-100_pt0-12.root");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 septembre/NewAnalysisAllEst_TKL_16h25_PercentileMethodSPDTracklets_0-5_40-100_pt0-12");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_MasschangeVerbose10v2.root");
+//    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/Systematics/FitFile_TKL_DPhi10mrad_PercentileMethodSPDTracklets_EtaGap1.2_Zcut10.root");
+//    sprintf(AssociateFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/Systematics/AssociateFile_TKL_DPhi10mrad_PercentileMethodSPDTracklets_EtaGap1.2_Zcut10.txt");
+    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 septembre/NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_8_MasschangeVerbose10v2");
+    
     
     
 
@@ -1625,8 +1637,9 @@ void PlotFromTreePtBinned(){
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
-        sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
- //       sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+   //     sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+    //    sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
     TFile fileIn(fileInLoc);
         
         char str [50];
@@ -1786,7 +1799,8 @@ void PlotFromTreePtBinned(){
                         }
                         
                 //      int centint = GetCent(cent);
-                        centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                       // centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                        centint = GetCentCvetan(fEvent->fCentralityV0M);
                         DimuonCounter[centint][zvint][massint]++;
                         if(PtBinned){
                             ptint = GetPtBin(dimu->fPt);
@@ -1824,7 +1838,8 @@ void PlotFromTreePtBinned(){
                      //   int centintME = GetCent(centME);
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
-                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                       // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                            int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -1919,7 +1934,8 @@ void PlotFromTreePtBinned(){
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
                             int ptintME = GetPtBin(dimu->fPt);
-                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                       // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                            int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -2035,7 +2051,8 @@ void PlotFromTreePtBinned(){
                   //  int centint = GetCent(cent);
                     double zv = fEvent->fVertexZ;
                     int zvint = floor(zv) + ZvtxCut;
-                    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                    //int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                        int centint = GetCentCvetan(fEvent->fCentralityV0M);
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
                         if(PtBinned){
@@ -2072,7 +2089,8 @@ void PlotFromTreePtBinned(){
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
               //  cout << NumberOfTrackletsPassingEtaCut << " " << zvint << " " <<GroupNum<<endl;
-                  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                 // int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                    int centint = GetCentCvetan(fEvent->fCentralityV0M);
                     if(NumberCloseEtaTracklets>=2){
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets-1; //fEvent->fNTracklets //FIXME ok
                     fTracklets->Randomize(); //Moved here to avoid randomising everytime
@@ -2101,7 +2119,8 @@ void PlotFromTreePtBinned(){
                             Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
                         double zv = fEvent->fVertexZ;
                         int zvint = floor(zv) + ZvtxCut;
-                         int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                         //int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                        int centint = GetCentCvetan(fEvent->fCentralityV0M);
                         
                         if(isCMSMethod){
                             if(TMath::Abs(DeltaEta)<DeltaEtaShortCMS){
@@ -2144,7 +2163,8 @@ void PlotFromTreePtBinned(){
                         //  int centintME = GetCent(centME);
                           double zvME = fEvent->fVertexZ;
                           int zvintME = floor(zvME) + ZvtxCut;
-                            int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                           // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                        int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                         TklMEcounter++;
                         
                         if(PoolsSizeTkl[centintME][zvintME]>=10){
@@ -2492,7 +2512,7 @@ void PlotFromTreePtBinned(){
     //        int maxindex = 0;
             for(int i=0; i<NbBinsCent; i++){
                 for(int j=0; j<NbBinsZvtx; j++){
-                    for(int k=0; k<10; k++){
+                    for(int k=0; k<NbinsInvMass; k++){
                         float maxME = 0;
                         int maxindexME = 0;
                         hnseg8ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionY("hnseg8ME_proj",1,-1,"e")); //Change underflow
@@ -2525,7 +2545,7 @@ void PlotFromTreePtBinned(){
             
             for(int i=0; i<NbBinsCent; i++){
                    for(int j=0; j<NbBinsZvtx; j++){
-                       for(int k=0; k<10; k++){
+                       for(int k=0; k<NbinsInvMass; k++){
                           // CorrelationsME[i][j][k]->Scale(NormME[i][j][k]);
                            if(NormME[i][j][k]>0){
                                for(int binx=1; binx<(1+CorrelationsME[i][j][k]->GetNbinsX()); binx++){
@@ -2639,7 +2659,7 @@ void PlotFromTreePtBinned(){
             cout << "Normalisation of CorrelationsME based on max of Eta projected applied" <<endl;
                 for(int i=0; i<NbBinsCent; i++){
                     for(int j=0; j<NbBinsZvtx; j++){
-                        for(int k=0; k<10; k++){
+                        for(int k=0; k<NbinsInvMass; k++){
                             float maxME = 0;
                             int maxindexME = 0;
                             hnseg8ME_proj_tampon = (TH1F*)(CorrelationsMEPtBinned[i][j][k][ptbin]->ProjectionY("hnseg8ME_proj",1,-1,"e")); //Change underflow
@@ -2663,7 +2683,7 @@ void PlotFromTreePtBinned(){
                 
                 for(int i=0; i<NbBinsCent; i++){
                        for(int j=0; j<NbBinsZvtx; j++){
-                           for(int k=0; k<10; k++){
+                           for(int k=0; k<NbinsInvMass; k++){
                                if(NormMEPtBinned[i][j][k][ptbin]>0){
                                    for(int binx=1; binx<(1+CorrelationsMEPtBinned[i][j][k][ptbin]->GetNbinsX()); binx++){
                                        for(int biny=1; biny<(1+CorrelationsMEPtBinned[i][j][k][ptbin]->GetNbinsY()); biny++){
@@ -2856,8 +2876,14 @@ void PlotFromTreePtBinned(){
                                   double oldError = Yields[i][k]->GetBinError(binx);
                                   Yields[i][k]->SetBinContent(binx, (Yields[i][k]->GetBinContent(binx))/DimuonCounterZint[i][k]);
                                   double newContent = Yields[i][k]->GetBinContent(binx);
+                                  double newError;
+                                  if(oldContent == 0 || newContent == 0){
+                                      double newError = 0;
+                                  }
+                                  else{
                                    double newError = newContent*sqrt(pow(oldError/oldContent,2)+(1./DimuonCounterZint[i][k]));
                                   Yields[i][k]->SetBinError(binx, newError);
+                                  }
                               
                           }
                       }
@@ -2925,6 +2951,9 @@ void PlotFromTreePtBinned(){
          
          for(int i=0; i<NbBinsCent; i++){
              for(int k=0; k<NbinsInvMass; k++){
+                 if(DimuonCounterZintPtBinned[i][k][ptbin] == 0){
+                     cout<< "ALERT DimuonCounterZintPtBinned is 0 for cent: " << i << " mass: " << k << " ptbin: " <<ptbin<<endl;
+                 }
                  if(DimuonCounterZintPtBinned[i][k][ptbin] >0){
                            
                            for(int binx=1; binx<(1+YieldsPtBinned[i][k][ptbin]->GetNbinsX()); binx++){
@@ -2932,8 +2961,14 @@ void PlotFromTreePtBinned(){
                                    double oldError = YieldsPtBinned[i][k][ptbin]->GetBinError(binx);
                                    YieldsPtBinned[i][k][ptbin]->SetBinContent(binx, (YieldsPtBinned[i][k][ptbin]->GetBinContent(binx))/DimuonCounterZintPtBinned[i][k][ptbin]);
                                    double newContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);
+                               double newError;
+                               if(oldContent == 0 || newContent == 0){
+                                   double newError = 0;
+                               }
+                               else{
                                     double newError = newContent*sqrt(pow(oldError/oldContent,2)+(1./DimuonCounterZintPtBinned[i][k][ptbin]));
                                    YieldsPtBinned[i][k][ptbin]->SetBinError(binx, newError);
+                               }
                                
                            }
                        }
@@ -2955,10 +2990,12 @@ void PlotFromTreePtBinned(){
     
     for(int i=0; i<NbBinsCent; i++){
         for(int k=0; k<NbinsInvMass; k++){
-            Yield_tampon->Reset();
-            Yield_tampon->Add(Yields[i][k]);
-            Yield_tampon->Scale(DimuonCounterZint[i][k]);
-            Yield_allC->Add(Yield_tampon);
+            if(DimuonCounterZint[i][k]>0){
+                Yield_tampon->Reset();
+                Yield_tampon->Add(Yields[i][k]);
+                Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                Yield_allC->Add(Yield_tampon);
+            }
         }
     }
     Yield_allC->Scale(1./DimuSeenMassCut);
@@ -3002,47 +3039,91 @@ void PlotFromTreePtBinned(){
     for(int k=0; k<NbinsInvMass; k++){
         DimuCnt=0;
         for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
-            Yield_tampon->Reset();
-            Yield_tampon->Add(Yields[i][k]);
-            Yield_tampon->Scale(DimuonCounterZint[i][k]);
-            Yield_Central_MassBin[k]->Add(Yield_tampon);
-            DimuCnt += DimuonCounterZint[i][k];
+            if(DimuonCounterZint[i][k]>0){
+                Yield_tampon->Reset();
+                Yield_tampon->Add(Yields[i][k]);
+                Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                Yield_Central_MassBin[k]->Add(Yield_tampon);
+                DimuCnt += DimuonCounterZint[i][k];
+            }
         }
+        cout << " Massbin: " << k << " DimuCnt Central: " <<DimuCnt<<endl;
+        if(DimuCnt>0){
          Yield_Central_MassBin[k]->Scale(1./DimuCnt);
+        }
         DimuCnt=0;
         for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
-            Yield_tampon->Reset();
-            Yield_tampon->Add(Yields[i][k]);
-            Yield_tampon->Scale(DimuonCounterZint[i][k]);
-            Yield_Periph_MassBin[k]->Add(Yield_tampon);
-            DimuCnt += DimuonCounterZint[i][k];
+            if(DimuonCounterZint[i][k]>0){
+                Yield_tampon->Reset();//FIXME LAST MASS BIN
+                Yield_tampon->Add(Yields[i][k]);
+                Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                Yield_Periph_MassBin[k]->Add(Yield_tampon);
+                DimuCnt += DimuonCounterZint[i][k];
+            }
         }
-        Yield_Periph_MassBin[k]->Scale(1./DimuCnt);
+        cout << " Massbin: " << k << " DimuCnt Periph: " <<DimuCnt<<endl;
+        if(DimuCnt>0){
+            Yield_Periph_MassBin[k]->Scale(1./DimuCnt);
+        }
         Yield_Difference_MassBin[k]->Add(Yield_Central_MassBin[k],Yield_Periph_MassBin[k],1,-1);
               
     }
     
     if(PtBinned){
         for(int ptbin=0; ptbin<NbPtBins; ptbin++){
-            for(int k=0; k<NbinsInvMass; k++){
+            for(int k=0; k<NbinsInvMass; k++){//FIXME MAYBE ADD DIMU>0
                    DimuCnt=0;
                    for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
-                       Yield_tampon->Reset();
-                       Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
-                       Yield_tampon->Scale(DimuonCounterZintPtBinned[i][k][ptbin]);
-                       Yield_Central_MassBinPtBinned[k][ptbin]->Add(Yield_tampon);
-                       DimuCnt += DimuonCounterZintPtBinned[i][k][ptbin];
+                       if(DimuonCounterZintPtBinned[i][k][ptbin]>0){
+                           Yield_tampon->Reset();
+                           Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
+                           Yield_tampon->Scale(DimuonCounterZintPtBinned[i][k][ptbin]);
+                           Yield_Central_MassBinPtBinned[k][ptbin]->Add(Yield_tampon);
+                           DimuCnt += DimuonCounterZintPtBinned[i][k][ptbin];
+                       }
                    }
+                cout << "ptbin: " << ptbin << " Massbin: " << k << " DimuCnt Central: " <<DimuCnt<<endl;
+                if(DimuCnt>0){
                     Yield_Central_MassBinPtBinned[k][ptbin]->Scale(1./DimuCnt);
+                }
                    DimuCnt=0;
                    for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
-                       Yield_tampon->Reset();
-                       Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
-                       Yield_tampon->Scale(DimuonCounterZintPtBinned[i][k][ptbin]);
-                       Yield_Periph_MassBinPtBinned[k][ptbin]->Add(Yield_tampon);
-                       DimuCnt += DimuonCounterZintPtBinned[i][k][ptbin];
+                       if(DimuonCounterZintPtBinned[i][k][ptbin]>0){
+                           Yield_tampon->Reset();
+                           Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
+                           Yield_tampon->Scale(DimuonCounterZintPtBinned[i][k][ptbin]);
+                           Yield_Periph_MassBinPtBinned[k][ptbin]->Add(Yield_tampon);
+                           DimuCnt += DimuonCounterZintPtBinned[i][k][ptbin];
+                           
+                           if(k == NbinsInvMass-1 && ptbin ==0){
+                               cout << "Looking at YieldsPtBinned ptbin 0 massbin last centralbin "<< i <<endl;
+                               for(int index = 0; index<Yield_tampon->GetNbinsX(); index++){
+                                   cout<< "Content bin " << index << " is " << Yield_tampon->GetBinContent(index+1)<<endl;
+                                   cout<< "Error bin " << index << " is " <<Yield_tampon->GetBinError(index+1)<<endl;
+                               }
+                           }
+                           
+                           if(k == NbinsInvMass-1 && ptbin ==0){
+                                              cout << "Looking at progressive Periph Yield ptbin 0 massbin last"<<endl;
+                                              for(int index = 0; index<Yield_Periph_MassBinPtBinned[k][ptbin]->GetNbinsX(); index++){
+                                                  cout<< "Content bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinContent(index+1)<<endl;
+                                                  cout<< "Error bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinError(index+1)<<endl;
+                                              }
+                                          }
+                           
+                       }
                    }
+                cout << "ptbin: " << ptbin << " Massbin: " << k << " DimuCnt Periph: " <<DimuCnt<<endl;
+                if(k == NbinsInvMass-1 && ptbin ==0){
+                    cout << "Looking at Periph Yield ptbin 0 massbin last"<<endl;
+                    for(int index = 0; index<Yield_Periph_MassBinPtBinned[k][ptbin]->GetNbinsX(); index++){
+                        cout<< "Content bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinContent(index+1)<<endl;
+                        cout<< "Error bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinError(index+1)<<endl;
+                    }
+                }
+                if(DimuCnt>0){
                    Yield_Periph_MassBinPtBinned[k][ptbin]->Scale(1./DimuCnt);
+                }
                    Yield_Difference_MassBinPtBinned[k][ptbin]->Add(Yield_Central_MassBinPtBinned[k][ptbin],Yield_Periph_MassBinPtBinned[k][ptbin],1,-1);
                          
                }
@@ -3054,15 +3135,16 @@ void PlotFromTreePtBinned(){
     cTestRebinning->cd(1);
     hnseg->DrawCopy();
     
+    int RebinningFactor = NbinsDimuInvMass/NbinsInvMass;
     
         cout << "Rebinning of InvMass plots to prepare for division" <<endl;
-    TH1F *InvMass_TotRebinned = dynamic_cast<TH1F*>(hnseg->Rebin(25,"InvMass_TotRebinned"));
-    TH1F *InvMass_CentralRebinned = dynamic_cast<TH1F*>(InvMass_Central->Rebin(25,"InvMass_CentralRebinned"));
-    TH1F *InvMass_PeriphRebinned = dynamic_cast<TH1F*>(InvMass_Periph->Rebin(25,"InvMass_PeriphRebinned"));
+    TH1F *InvMass_TotRebinned = dynamic_cast<TH1F*>(hnseg->Rebin(RebinningFactor,"InvMass_TotRebinned"));
+    TH1F *InvMass_CentralRebinned = dynamic_cast<TH1F*>(InvMass_Central->Rebin(RebinningFactor,"InvMass_CentralRebinned"));
+    TH1F *InvMass_PeriphRebinned = dynamic_cast<TH1F*>(InvMass_Periph->Rebin(RebinningFactor,"InvMass_PeriphRebinned"));
     
-    TH2F *InvMass_TotRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[0]->RebinX(25,"InvMass_TotRebinnedPt"));
-    TH2F *InvMass_CentralRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[1]->RebinX(25,"InvMass_CentralRebinnedPt"));
-    TH2F *InvMass_PeriphRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[2]->RebinX(25,"InvMass_PeriphRebinnedPt"));
+    TH2F *InvMass_TotRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[0]->RebinX(RebinningFactor,"InvMass_TotRebinnedPt"));
+    TH2F *InvMass_CentralRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[1]->RebinX(RebinningFactor,"InvMass_CentralRebinnedPt"));
+    TH2F *InvMass_PeriphRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[2]->RebinX(RebinningFactor,"InvMass_PeriphRebinnedPt"));
     
 //    for(int blop=0; blop<10; blop++){
 //        InvMass_TotRebinned->SetBinError(blop+1,0);
@@ -3287,6 +3369,15 @@ void PlotFromTreePtBinned(){
                 ctestefinTkl->cd();
                 YieldsTkl[i]->DrawCopy("colz");
             }
+            
+            TFile *f = new TFile(FitFileName,"UPDATE");
+            YieldsTkl[i]->Write();
+            f->Close();
+            
+//            ofstream myassociatetxt;
+//            myassociatetxt.open(AssociateFileName);
+//            myassociatetxt<< "RefTklCounterZint[" << i << "] = " << RefTklCounterZint[i] <<endl;
+//            myassociatetxt.close();
             
           }
         
@@ -3697,6 +3788,7 @@ void PlotFromTreePtBinned(){
     //Yield difference wrt Phi [Mass bins] fits
     c14->Divide(5,2);
     for(int i=1; i<=NbinsInvMass; i++){
+        cout << "Fit of the difference to extract Fourier wrt mass pt integrated. Mass bin: " << i <<endl;
         c14->cd(i);
     // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
         TH1F *histo = Yield_Difference_MassBin[i-1];
@@ -3724,9 +3816,11 @@ void PlotFromTreePtBinned(){
       TFitResultPtr res = histo->Fit("fitFcnV2_2","SBMERI+","ep");
         gStyle->SetOptStat("n");
         gStyle->SetOptFit(1011);
+        if(!doTracklets){
         TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
         st->SetX1NDC(0.75); //new x start position
         st->SetY1NDC(0.75); //new x end position
+        }
       // improve the pictu
     //   std::cout << "integral error: " << integralerror << std::endl;
         Double_t par[3];
@@ -3763,6 +3857,8 @@ void PlotFromTreePtBinned(){
     if(PtBinned){
         for(int ptbin=0;ptbin<NbPtBins;ptbin++){
             for(int i=1; i<=NbinsInvMass; i++){
+                
+                cout << "Fit of the difference to extract Fourier wrt mass. Mass bin: " << i <<" Pt bin: "<<ptbin <<endl;
             // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
                 TH1F *histo = Yield_Difference_MassBinPtBinned[i-1][ptbin];
               // create a TF1 with the range from 0 to 3 and 6 parameters
@@ -3789,9 +3885,11 @@ void PlotFromTreePtBinned(){
               TFitResultPtr res = histo->Fit("fitFcnV2_2PtBinned","SBMERI+","ep");
                 gStyle->SetOptStat("n");
                 gStyle->SetOptFit(1011);
+                if(!doTracklets){
                 TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
                 st->SetX1NDC(0.8); //new x start position
                 st->SetY1NDC(0.8); //new x end position
+                }
               // improve the pictu
             //   std::cout << "integral error: " << integralerror << std::endl;
                 Double_t par[3];
@@ -3897,7 +3995,7 @@ void PlotFromTreePtBinned(){
     f->Close();
     
     TFile *outputFile;
-     outputFile = new TFile("/Volumes/SEBUSB/InvMass4.root","RECREATE");
+     outputFile = new TFile("/Volumes/SEBUSB/InvMass10.root","RECREATE");
      hnseg->Write();
     InvMass_Central->Write();
     InvMass_Periph->Write();
@@ -4004,12 +4102,15 @@ void PlotFromTreePtBinned(){
        double parErrors[16];
     
     //Fit of V2
+    cout << "Fit of V2 wrt mass"<<endl;
         res = V2JPsiTkl->Fit("fitV2_2","SBMERI+","ep");
     gStyle->SetOptFit(1011);
            gStyle->SetOptStat("n");
+    if(!doTracklets){
     TPaveStats *st = (TPaveStats*)V2JPsiTkl->FindObject("stats");
            st->SetX1NDC(0.75); //new x start position
            st->SetY1NDC(0.75); //new x end position
+    }
         Double_t para[16];
         fitV2_2->GetParameters(para);
         backFcnV2_2->SetParameters(para);
@@ -4110,12 +4211,15 @@ void PlotFromTreePtBinned(){
            double parErrors[16];
         
         //Fit of V2
+            cout << "Fit of V2 wrt mass ptbinned, ptbin: "<<ptbin<<endl;
             res = V2JPsiTklPtBinned[ptbin]->Fit("fitV2_2PtBinned","SBMERI+","ep");
             gStyle->SetOptStat("n");
             gStyle->SetOptFit(1011);
+            if(!doTracklets){
             TPaveStats *st = (TPaveStats*)V2JPsiTklPtBinned[ptbin]->FindObject("stats");
             st->SetX1NDC(0.75); //new x start position
             st->SetY1NDC(0.75); //new x end position
+            }
             Double_t para[16];
             fitV2_2PtBinned->GetParameters(para);
             backFcnV2_2->SetParameters(para);
@@ -4229,13 +4333,17 @@ void PlotFromTreePtBinned(){
                fitY_1Central->SetParName(13,"Y_1 Bkg M2");
            fitY_1Central->SetParName(14,"Y_1 Bkg M1");
            fitY_1Central->SetParName(15,"Y_1 Bkg M0");
+            
+            cout << "YieldWrtMass_Central in phibins. PhiBin: "<<i<<endl;
 
           rescent = YieldWrtMass_Central[i]->Fit("fitY_1Central","SBMERIQ+","ep");
             gStyle->SetOptStat("n");
             gStyle->SetOptFit(1011);
+            if(!doTracklets){
             TPaveStats *st = (TPaveStats*)YieldWrtMass_Central[i]->FindObject("stats");
             st->SetX1NDC(0.75); //new x start position
             st->SetY1NDC(0.75); //new x end position
+            }
           Double_t param[16];
             Double_t paramerrs[16];
           fitY_1Central->GetParameters(param);
@@ -4356,12 +4464,15 @@ void PlotFromTreePtBinned(){
               fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
               fitY_1Periph->SetParName(15,"Y_1 Bkg M0");
               
+               cout << "YieldWrtMass_Periph in phibins. PhiBin: "<<i<<endl;
              resperiph = YieldWrtMass_Periph[i]->Fit("fitY_1Periph","SBMERIQ+","ep");
                gStyle->SetOptStat("n");
                gStyle->SetOptFit(1011);
+               if(!doTracklets){
                TPaveStats *st = (TPaveStats*)YieldWrtMass_Periph[i]->FindObject("stats");
                st->SetX1NDC(0.75); //new x start position
                st->SetY1NDC(0.75); //new x end position
+               }
                Double_t param[16];
                Double_t paramerrs[16];
              fitY_1Periph->GetParameters(param);
@@ -4471,13 +4582,17 @@ void PlotFromTreePtBinned(){
               fitFcnV2_2->SetParName(0,"a0");
               fitFcnV2_2->SetParName(1,"a1");
               fitFcnV2_2->SetParName(2,"a2");
+        
+        cout << "YieldWrtMass_Difference " <<endl;
               
              TFitResultPtr res = Yields_Difference_1->Fit("fitFcnV2_2","SBMERI+","ep");
             gStyle->SetOptStat("n");
             gStyle->SetOptFit(1011);
+        if(!doTracklets){
             TPaveStats *st = (TPaveStats*)Yields_Difference_1->FindObject("stats");
             st->SetX1NDC(0.75); //new x start position
             st->SetY1NDC(0.75); //new x end position
+        }
             Double_t par[3];
             fitFcnV2_2->GetParameters(par);
              // improve the pictu
@@ -4579,13 +4694,17 @@ void PlotFromTreePtBinned(){
                    fitY_1Central->SetParName(13,"Y_1 Bkg M2");
                fitY_1Central->SetParName(14,"Y_1 Bkg M1");
                fitY_1Central->SetParName(15,"Y_1 Bkg M0");
+                
+                cout << "YieldWrtMass_CentralPtBinned in phibins. PhiBin: "<<i<<" ptbin: "<<ptbin <<endl;
 
               rescent = YieldWrtMass_CentralPtBinned[i][ptbin]->Fit("fitY_1Central","SBMERIQ+","ep");
                 gStyle->SetOptStat("n");
                 gStyle->SetOptFit(1011);
+                if(!doTracklets){
                 TPaveStats *st = (TPaveStats*)YieldWrtMass_CentralPtBinned[i][ptbin]->FindObject("stats");
                 st->SetX1NDC(0.8); //new x start position
                 st->SetY1NDC(0.8); //new x end position
+                }
               Double_t param[16];
                 Double_t paramerrs[16];
               fitY_1Central->GetParameters(param);
@@ -4706,12 +4825,15 @@ void PlotFromTreePtBinned(){
                   fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
                   fitY_1Periph->SetParName(15,"Y_1 Bkg M0");
                   
+                   cout << "YieldWrtMass_PeriphPtBinned in phibins. PhiBin: "<<i<<" ptbin: "<<ptbin <<endl;
                  resperiph = YieldWrtMass_PeriphPtBinned[i][ptbin]->Fit("fitY_1Periph","SBMERIQ+","ep");
                    gStyle->SetOptStat("n");
                    gStyle->SetOptFit(1011);
+                   if(!doTracklets){
                    TPaveStats *st = (TPaveStats*)YieldWrtMass_PeriphPtBinned[i][ptbin]->FindObject("stats");
                    st->SetX1NDC(0.8); //new x start position
                    st->SetY1NDC(0.8); //new x end position
+                   }
                    Double_t param[16];
                    Double_t paramerrs[16];
                  fitY_1Periph->GetParameters(param);
@@ -4820,12 +4942,15 @@ void PlotFromTreePtBinned(){
                       fitFcnV2_2->SetParName(1,"a1");
                       fitFcnV2_2->SetParName(2,"a2");
                       
+                cout << "Yields_Difference_1PtBinned in ptbin: "<<ptbin <<endl;
                      TFitResultPtr res = Yields_Difference_1PtBinned[ptbin]->Fit("fitFcnV2_2","SBMERI+","ep");
                 gStyle->SetOptStat("n");
                 gStyle->SetOptFit(1011);
+                if(!doTracklets){
                 TPaveStats *st = (TPaveStats*)Yields_Difference_1PtBinned[ptbin]->FindObject("stats");
                 st->SetX1NDC(0.8); //new x start position
                 st->SetY1NDC(0.8); //new x end position
+                }
                     Double_t par[3];
                     fitFcnV2_2->GetParameters(par);
                      // improve the pictu
@@ -5007,9 +5132,11 @@ void PlotFromTreePtBinned(){
           TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
         gStyle->SetOptStat("n");
         gStyle->SetOptFit(1011);
+        if(!doTracklets){
         TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
         st->SetX1NDC(0.8); //new x start position
         st->SetY1NDC(0.8); //new x end position
+        }
           // improve the pictu
         //   std::cout << "integral error: " << integralerror << std::endl;
             Double_t par[3];
@@ -5087,9 +5214,11 @@ void PlotFromTreePtBinned(){
               TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
         gStyle->SetOptStat("n");
         gStyle->SetOptFit(1011);
+        if(!doTracklets){
         TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
         st->SetX1NDC(0.8); //new x start position
         st->SetY1NDC(0.8); //new x end position
+        }
               // improve the pictu
             //   std::cout << "integral error: " << integralerror << std::endl;
                 fitFcnV2TKL->GetParameters(Acoef_Periph);
@@ -5161,9 +5290,11 @@ void PlotFromTreePtBinned(){
               TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
             gStyle->SetOptStat("n");
             gStyle->SetOptFit(1011);
+        if(!doTracklets){
             TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
             st->SetX1NDC(0.8); //new x start position
             st->SetY1NDC(0.8); //new x end position
+        }
               // improve the pictu
             //   std::cout << "integral error: " << integralerror << std::endl;
                 fitFcnV2TKL->GetParameters(Acoef_Central);
@@ -5442,7 +5573,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
      10: Norlmalisation After
      11: Exponent After
      */
-    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass4.root");
+    TFile *file0 = new TFile("/Volumes/SEBUSB/InvMass10.root");
     
     cinvmass->cd(i+1);
    cinvmass->SetFillColor(33);
@@ -5504,6 +5635,8 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->SetParName(10,"Norm_{TailHighM}");
     fitFcn->SetParName(11,"Exp_{TailHighM}");
     
+    cout<< "Fit of "<<histoname<<endl;
+    
    TFitResultPtr res = histo->Fit("fitFcn","SBMER","ep");
    res = histo->Fit("fitFcn","SBMERQ","ep");
       fitFcn->ReleaseParameter(1);
@@ -5518,6 +5651,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
     st->SetX1NDC(0.8); //new x start position
     st->SetY1NDC(0.3); //new x end position
+
 //    fitFcn->ReleaseParameter(3);
 //    fitFcn->ReleaseParameter(4);
 //   res = histo->Fit("fitFcn","SBMER","ep");
@@ -5685,14 +5819,28 @@ int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPe
     float estimator = 0;
 
     if(centralityMethod == "PercentileMethodSPDTracklets"){
-        if(Ntkl==0){
-            return 13;
-        }
-
-        for(int cent_index=0;cent_index<14;cent_index++){
-            if(LimitsPM_SPDTracklets_Uncal_DataDriven[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
-                return cent_index;
+        if(!isMultiplicityStudy){
+            if(Ntkl==0){
+                return 13;
             }
+
+            for(int cent_index=0;cent_index<14;cent_index++){
+                if(LimitsPM_SPDTracklets_Uncal_DataDriven[groupnumber-1][zvtx_idx][cent_index] < Ntkl){
+                    return cent_index;
+                }
+            }
+        }
+        else if(isMultiplicityStudy){
+            if(Ntkl<=NtklPeripheralHighBound){
+                           return 13;
+                       }
+            else if(Ntkl>NtklCentralLowBound){
+                return 0;
+            }
+            else{
+                return int((PeripheralHighBound+CentralLowBound)*0.5);
+            }
+            
         }
     }
     else if(centralityMethod == "SPDTrackletsPercentile"){
@@ -5702,6 +5850,21 @@ int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPe
         estimator = SPDClustersPer;
     }
     else if(centralityMethod == "V0MPercentile"){
+        estimator = V0MPer;
+    }
+    else{
+        return -1;
+    }
+    return GetCent(estimator);
+    
+}
+
+int GetCentCvetan(float V0MPer){
+    
+    float estimator = 0;
+
+  
+    if(centralityMethod == "V0MPercentile"){
         estimator = V0MPer;
     }
     else{
