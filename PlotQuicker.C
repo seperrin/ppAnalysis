@@ -42,6 +42,7 @@
 
 void PlotQuicker();
 void PlotQuickest();
+void PlotComparison(); //V0M SPDtracklets
 Double_t myFunc(double x);
 Double_t myFunc2(double x);
 Double_t myEtaLow(double x);
@@ -588,7 +589,7 @@ void PlotQuickest(){
     
     Char_t Group_Period[50] = "Group1_LHC16h";
    // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h", "Group1_LHC16o"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -850,6 +851,927 @@ void PlotQuickest(){
     legend->Draw();
     cSPDTracklets_Dist_Groups_norm->cd();
     legend->Draw();
+
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
+}
+
+void PlotComparison(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+    Char_t Group_Period[50] = "Group1_LHC16h";
+   // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h", "Group1_LHC16o"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH2F* V0M_vs_SPD_All(NULL);
+    TH2F* Tracklets_All(NULL);
+    TH1F* Tracklets_Dist_All(NULL);
+    TH1F* Z_All(NULL);
+    TH2F* V0M_vs_SPD_BothCentral(NULL);
+    TH2F* Tracklets_BothCentral(NULL);
+    TH1F* Tracklets_Dist_BothCentral(NULL);
+    TH1F* Z_BothCentral(NULL);
+    TH2F* V0M_vs_SPD_BothPeripheral(NULL);
+    TH2F* Tracklets_BothPeripheral(NULL);
+    TH1F* Tracklets_Dist_BothPeripheral(NULL);
+    TH1F* Z_BothPeripheral(NULL);
+    TH2F* V0M_vs_SPD_OnlyV0MCentral(NULL);
+    TH2F* Tracklets_OnlyV0MCentral(NULL);
+    TH1F* Tracklets_Dist_OnlyV0MCentral(NULL);
+    TH1F* Z_OnlyV0MCentral(NULL);
+    TH2F* V0M_vs_SPD_OnlyV0MPeripheral(NULL);
+    TH2F* Tracklets_OnlyV0MPeripheral(NULL);
+    TH1F* Tracklets_Dist_OnlyV0MPeripheral(NULL);
+    TH1F* Z_OnlyV0MPeripheral(NULL);
+    TH2F* V0M_vs_SPD_OnlySPDCentral(NULL);
+    TH2F* Tracklets_OnlySPDCentral(NULL);
+    TH1F* Tracklets_Dist_OnlySPDCentral(NULL);
+    TH1F* Z_OnlySPDCentral(NULL);
+    TH2F* V0M_vs_SPD_OnlySPDPeripheral(NULL);
+    TH2F* Tracklets_OnlySPDPeripheral(NULL);
+    TH1F* Tracklets_Dist_OnlySPDPeripheral(NULL);
+    TH1F* Z_OnlySPDPeripheral(NULL);
+    
+    TH2F* V0M_vs_SPD_V0MCentral(NULL);
+    TH2F* Tracklets_V0MCentral(NULL);
+    TH1F* Tracklets_Dist_V0MCentral(NULL);
+    TH1F* Tracklets_Dist_V0MCentral_Dimu(NULL);
+    TH1F* Z_V0MCentral(NULL);
+    TH2F* V0M_vs_SPD_V0MPeripheral(NULL);
+    TH2F* Tracklets_V0MPeripheral(NULL);
+    TH1F* Tracklets_Dist_V0MPeripheral(NULL);
+    TH1F* Tracklets_Dist_V0MPeripheral_Dimu(NULL);
+    TH1F* Z_V0MPeripheral(NULL);
+    TH2F* V0M_vs_SPD_SPDCentral(NULL);
+    TH2F* Tracklets_SPDCentral(NULL);
+    TH1F* Tracklets_Dist_SPDCentral(NULL);
+    TH1F* Tracklets_Dist_SPDCentral_Dimu(NULL);
+    TH1F* Z_SPDCentral(NULL);
+    TH2F* V0M_vs_SPD_SPDPeripheral(NULL);
+    TH2F* Tracklets_SPDPeripheral(NULL);
+    TH1F* Tracklets_Dist_SPDPeripheral(NULL);
+    TH1F* Tracklets_Dist_SPDPeripheral_Dimu(NULL);
+    TH1F* Z_SPDPeripheral(NULL);
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+       // sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+        V0M_vs_SPD_All = new TH2F("V0M_vs_SPD_All",
+                            "V0M_vs_SPD_All",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_All->SetXTitle("V0M");
+           V0M_vs_SPD_All->SetYTitle("SPDTracklets");
+        
+        Z_All = new TH1F("Z_All",
+                         "Z_All",
+                         200,-10,10);
+        Z_All->SetXTitle("V0M");
+        Z_All->SetYTitle("SPDTracklets");
+        
+        Tracklets_All = new TH2F("Tracklets_All",
+                         "Tracklets_All",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_All->SetXTitle("Phi");
+        Tracklets_All->SetYTitle("Eta");
+        
+        Tracklets_Dist_All = new TH1F("Tracklets_Dist_All",
+                         "Tracklets_Dist_All",
+                         100,-0.5,99.5);
+        Tracklets_Dist_All->SetXTitle("Tkl");
+        
+        V0M_vs_SPD_BothCentral = new TH2F("V0M_vs_SPD_BothCentral",
+                            "V0M_vs_SPD_BothCentral",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_BothCentral->SetXTitle("V0M");
+           V0M_vs_SPD_BothCentral->SetYTitle("SPDTracklets");
+        
+        Z_BothCentral = new TH1F("Z_BothCentral",
+                         "Z_BothCentral",
+                         200,-10,10);
+        Z_BothCentral->SetXTitle("V0M");
+        Z_BothCentral->SetYTitle("SPDTracklets");
+        
+        Tracklets_BothCentral = new TH2F("Tracklets_BothCentral",
+                         "Tracklets_BothCentral",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_BothCentral->SetXTitle("Phi");
+        Tracklets_BothCentral->SetYTitle("Eta");
+        
+        Tracklets_Dist_BothCentral = new TH1F("Tracklets_Dist_BothCentral",
+                         "Tracklets_Dist_BothCentral",
+                         100,-0.5,99.5);
+        Tracklets_Dist_BothCentral->SetXTitle("Tkl");
+        
+        V0M_vs_SPD_BothPeripheral = new TH2F("V0M_vs_SPD_BothPeripheral",
+                            "V0M_vs_SPD_BothPeripheral",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_BothPeripheral->SetXTitle("V0M");
+           V0M_vs_SPD_BothPeripheral->SetYTitle("SPDTracklets");
+        
+        Z_BothPeripheral = new TH1F("Z_BothPeripheral",
+                         "Z_BothPeripheral",
+                         200,-10,10);
+        Z_BothPeripheral->SetXTitle("V0M");
+        Z_BothPeripheral->SetYTitle("SPDTracklets");
+        
+        Tracklets_BothPeripheral = new TH2F("Tracklets_BothPeripheral",
+                         "Tracklets_BothPeripheral",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_BothPeripheral->SetXTitle("Phi");
+        Tracklets_BothPeripheral->SetYTitle("Eta");
+        
+        Tracklets_Dist_BothPeripheral = new TH1F("Tracklets_Dist_BothPeripheral",
+                         "Tracklets_Dist_BothPeripheral",
+                         100,-0.5,99.5);
+        Tracklets_Dist_BothPeripheral->SetXTitle("Tkl");
+        
+        V0M_vs_SPD_OnlyV0MCentral = new TH2F("V0M_vs_SPD_OnlyV0MCentral",
+                            "V0M_vs_SPD_OnlyV0MCentral",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_OnlyV0MCentral->SetXTitle("V0M");
+           V0M_vs_SPD_OnlyV0MCentral->SetYTitle("SPDTracklets");
+        
+        Z_OnlyV0MCentral = new TH1F("Z_OnlyV0MCentral",
+                         "Z_OnlyV0MCentral",
+                         200,-10,10);
+        Z_OnlyV0MCentral->SetXTitle("V0M");
+        Z_OnlyV0MCentral->SetYTitle("SPDTracklets");
+        
+        Tracklets_OnlyV0MCentral = new TH2F("Tracklets_OnlyV0MCentral",
+                         "Tracklets_OnlyV0MCentral",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_OnlyV0MCentral->SetXTitle("Phi");
+        Tracklets_OnlyV0MCentral->SetYTitle("Eta");
+        
+        Tracklets_Dist_OnlyV0MCentral = new TH1F("Tracklets_Dist_OnlyV0MCentral",
+                         "Tracklets_Dist_OnlyV0MCentral",
+                         100,-0.5,99.5);
+        Tracklets_Dist_OnlyV0MCentral->SetXTitle("Tkl");
+        
+        V0M_vs_SPD_OnlyV0MPeripheral = new TH2F("V0M_vs_SPD_OnlyV0MPeripheral",
+                            "V0M_vs_SPD_OnlyV0MPeripheral",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_OnlyV0MPeripheral->SetXTitle("V0M");
+           V0M_vs_SPD_OnlyV0MPeripheral->SetYTitle("SPDTracklets");
+        
+        Z_OnlyV0MPeripheral = new TH1F("Z_OnlyV0MPeripheral",
+                         "Z_OnlyV0MPeripheral",
+                         200,-10,10);
+        Z_OnlyV0MPeripheral->SetXTitle("V0M");
+        Z_OnlyV0MPeripheral->SetYTitle("SPDTracklets");
+        
+        Tracklets_OnlyV0MPeripheral = new TH2F("Tracklets_OnlyV0MPeripheral",
+                         "Tracklets_OnlyV0MPeripheral",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_OnlyV0MPeripheral->SetXTitle("Phi");
+        Tracklets_OnlyV0MPeripheral->SetYTitle("Eta");
+        
+        Tracklets_Dist_OnlyV0MPeripheral = new TH1F("Tracklets_Dist_OnlyV0MPeripheral",
+                         "Tracklets_Dist_OnlyV0MPeripheral",
+                         100,-0.5,99.5);
+        Tracklets_Dist_OnlyV0MPeripheral->SetXTitle("Tkl");
+        
+        V0M_vs_SPD_OnlySPDCentral = new TH2F("V0M_vs_SPD_OnlySPDCentral",
+                            "V0M_vs_SPD_OnlySPDCentral",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_OnlySPDCentral->SetXTitle("V0M");
+           V0M_vs_SPD_OnlySPDCentral->SetYTitle("SPDTracklets");
+        
+        Z_OnlySPDCentral = new TH1F("Z_OnlySPDCentral",
+                         "Z_OnlySPDCentral",
+                         200,-10,10);
+        Z_OnlySPDCentral->SetXTitle("V0M");
+        Z_OnlySPDCentral->SetYTitle("SPDTracklets");
+        
+        Tracklets_OnlySPDCentral = new TH2F("Tracklets_OnlySPDCentral",
+                         "Tracklets_OnlySPDCentral",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_OnlySPDCentral->SetXTitle("Phi");
+        Tracklets_OnlySPDCentral->SetYTitle("Eta");
+        
+        Tracklets_Dist_OnlySPDCentral = new TH1F("Tracklets_Dist_OnlySPDCentral",
+                         "Tracklets_Dist_OnlySPDCentral",
+                         100,-0.5,99.5);
+        Tracklets_Dist_OnlySPDCentral->SetXTitle("Tkl");
+        
+        V0M_vs_SPD_OnlySPDPeripheral = new TH2F("V0M_vs_SPD_OnlySPDPeripheral",
+                            "V0M_vs_SPD_OnlySPDPeripheral",
+                            1000,-0.5,999.5,150,-0.5,149.5);
+           V0M_vs_SPD_OnlySPDPeripheral->SetXTitle("V0M");
+           V0M_vs_SPD_OnlySPDPeripheral->SetYTitle("SPDTracklets");
+        
+        Z_OnlySPDPeripheral = new TH1F("Z_OnlySPDPeripheral",
+                         "Z_OnlySPDPeripheral",
+                         200,-10,10);
+        Z_OnlySPDPeripheral->SetXTitle("V0M");
+        Z_OnlySPDPeripheral->SetYTitle("SPDTracklets");
+        
+        Tracklets_OnlySPDPeripheral = new TH2F("Tracklets_OnlySPDPeripheral",
+                         "Tracklets_OnlySPDPeripheral",
+                         120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+        Tracklets_OnlySPDPeripheral->SetXTitle("Phi");
+        Tracklets_OnlySPDPeripheral->SetYTitle("Eta");
+        
+        Tracklets_Dist_OnlySPDPeripheral = new TH1F("Tracklets_Dist_OnlySPDPeripheral",
+                         "Tracklets_Dist_OnlySPDPeripheral",
+                         100,-0.5,99.5);
+        Tracklets_Dist_OnlySPDPeripheral->SetXTitle("Tkl");
+        
+        
+        V0M_vs_SPD_V0MCentral = new TH2F("V0M_vs_SPD_V0MCentral",
+                                   "V0M_vs_SPD_V0MCentral",
+                                   1000,-0.5,999.5,150,-0.5,149.5);
+                  V0M_vs_SPD_V0MCentral->SetXTitle("V0M");
+                  V0M_vs_SPD_V0MCentral->SetYTitle("SPDTracklets");
+               
+               Z_V0MCentral = new TH1F("Z_V0MCentral",
+                                "Z_V0MCentral",
+                                200,-10,10);
+               Z_V0MCentral->SetXTitle("V0M");
+               Z_V0MCentral->SetYTitle("SPDTracklets");
+               
+               Tracklets_V0MCentral = new TH2F("Tracklets_V0MCentral",
+                                "Tracklets_V0MCentral",
+                                120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+               Tracklets_V0MCentral->SetXTitle("Phi");
+               Tracklets_V0MCentral->SetYTitle("Eta");
+               
+               Tracklets_Dist_V0MCentral = new TH1F("Tracklets_Dist_V0MCentral",
+                                "Tracklets_Dist_V0MCentral",
+                                100,-0.5,99.5);
+               Tracklets_Dist_V0MCentral->SetXTitle("Tkl");
+        
+        Tracklets_Dist_V0MCentral_Dimu = new TH1F("Tracklets_Dist_V0MCentral_Dimu",
+                         "Tracklets_Dist_V0MCentral_Dimu",
+                         100,-0.5,99.5);
+        Tracklets_Dist_V0MCentral_Dimu->SetXTitle("Tkl");
+               
+               V0M_vs_SPD_V0MPeripheral = new TH2F("V0M_vs_SPD_V0MPeripheral",
+                                   "V0M_vs_SPD_V0MPeripheral",
+                                   1000,-0.5,999.5,150,-0.5,149.5);
+                  V0M_vs_SPD_V0MPeripheral->SetXTitle("V0M");
+                  V0M_vs_SPD_V0MPeripheral->SetYTitle("SPDTracklets");
+               
+               Z_V0MPeripheral = new TH1F("Z_V0MPeripheral",
+                                "Z_V0MPeripheral",
+                                200,-10,10);
+               Z_V0MPeripheral->SetXTitle("V0M");
+               Z_V0MPeripheral->SetYTitle("SPDTracklets");
+               
+               Tracklets_V0MPeripheral = new TH2F("Tracklets_V0MPeripheral",
+                                "Tracklets_V0MPeripheral",
+                                120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+               Tracklets_V0MPeripheral->SetXTitle("Phi");
+               Tracklets_V0MPeripheral->SetYTitle("Eta");
+               
+               Tracklets_Dist_V0MPeripheral = new TH1F("Tracklets_Dist_V0MPeripheral",
+                                "Tracklets_Dist_V0MPeripheral",
+                                100,-0.5,99.5);
+               Tracklets_Dist_V0MPeripheral->SetXTitle("Tkl");
+        
+        Tracklets_Dist_V0MPeripheral_Dimu = new TH1F("Tracklets_Dist_V0MPeripheral_Dimu",
+                         "Tracklets_Dist_V0MPeripheral_Dimu",
+                         100,-0.5,99.5);
+        Tracklets_Dist_V0MPeripheral_Dimu->SetXTitle("Tkl");
+               
+               V0M_vs_SPD_SPDCentral = new TH2F("V0M_vs_SPD_SPDCentral",
+                                   "V0M_vs_SPD_SPDCentral",
+                                   1000,-0.5,999.5,150,-0.5,149.5);
+                  V0M_vs_SPD_SPDCentral->SetXTitle("V0M");
+                  V0M_vs_SPD_SPDCentral->SetYTitle("SPDTracklets");
+               
+               Z_SPDCentral = new TH1F("Z_SPDCentral",
+                                "Z_SPDCentral",
+                                200,-10,10);
+               Z_SPDCentral->SetXTitle("V0M");
+               Z_SPDCentral->SetYTitle("SPDTracklets");
+               
+               Tracklets_SPDCentral = new TH2F("Tracklets_SPDCentral",
+                                "Tracklets_SPDCentral",
+                                120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+               Tracklets_SPDCentral->SetXTitle("Phi");
+               Tracklets_SPDCentral->SetYTitle("Eta");
+               
+               Tracklets_Dist_SPDCentral = new TH1F("Tracklets_Dist_SPDCentral",
+                                "Tracklets_Dist_SPDCentral",
+                                100,-0.5,99.5);
+               Tracklets_Dist_SPDCentral->SetXTitle("Tkl");
+        
+        Tracklets_Dist_SPDCentral_Dimu = new TH1F("Tracklets_Dist_SPDCentral_Dimu",
+                         "Tracklets_Dist_SPDCentral_Dimu",
+                         100,-0.5,99.5);
+        Tracklets_Dist_SPDCentral_Dimu->SetXTitle("Tkl");
+               
+               V0M_vs_SPD_SPDPeripheral = new TH2F("V0M_vs_SPD_SPDPeripheral",
+                                   "V0M_vs_SPD_SPDPeripheral",
+                                   1000,-0.5,999.5,150,-0.5,149.5);
+                  V0M_vs_SPD_SPDPeripheral->SetXTitle("V0M");
+                  V0M_vs_SPD_SPDPeripheral->SetYTitle("SPDTracklets");
+               
+               Z_SPDPeripheral = new TH1F("Z_SPDPeripheral",
+                                "Z_SPDPeripheral",
+                                200,-10,10);
+               Z_SPDPeripheral->SetXTitle("V0M");
+               Z_SPDPeripheral->SetYTitle("SPDTracklets");
+               
+               Tracklets_SPDPeripheral = new TH2F("Tracklets_SPDPeripheral",
+                                "Tracklets_SPDPeripheral",
+                                120,MinDeltaPhi,MaxDeltaPhi,100,-6,6);
+               Tracklets_SPDPeripheral->SetXTitle("Phi");
+               Tracklets_SPDPeripheral->SetYTitle("Eta");
+               
+               Tracklets_Dist_SPDPeripheral = new TH1F("Tracklets_Dist_SPDPeripheral",
+                                "Tracklets_Dist_SPDPeripheral",
+                                100,-0.5,99.5);
+               Tracklets_Dist_SPDPeripheral->SetXTitle("Tkl");
+        
+        Tracklets_Dist_SPDPeripheral_Dimu = new TH1F("Tracklets_Dist_SPDPeripheral_Dimu",
+                         "Tracklets_Dist_SPDPeripheral_Dimu",
+                         100,-0.5,99.5);
+        Tracklets_Dist_SPDPeripheral_Dimu->SetXTitle("Tkl");
+        
+        
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            
+//            if(i%100 != 0){
+//                continue;
+//            }
+            theTree->GetEvent(i);
+            
+            bool isV0MPeripheral = kFALSE;
+            bool isSPDPeripheral = kFALSE;
+            bool isV0MCentral = kFALSE;
+            bool isSPDCentral = kFALSE;
+            
+            if(fEvent->fCentralityV0M > 40){
+                isV0MPeripheral = kTRUE;
+            }
+            if(fEvent->fCentralitySPDTracklets > 40){
+                isSPDPeripheral = kTRUE;
+            }
+            if(fEvent->fCentralityV0M < 5){
+                isV0MCentral = kTRUE;
+            }
+            if(fEvent->fCentralitySPDTracklets < 5){
+                isSPDCentral = kTRUE;
+            }
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+          //  cout << "Reading Event " << i <<endl;
+            // Apply a cut on the TrackletEta at +-1
+            int NumberCloseEtaTracklets = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                        NumberCloseEtaTracklets++;
+                }
+                
+            }
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+                
+                
+                // === ALL EVENTS ===
+                
+                V0M_vs_SPD_All->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                    trac = (TrackletLight*)fTracklets->At(j);
+                    if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                            Tracklets_All->Fill(trac->fPhi, trac->fEta);
+                    }
+                    
+                }
+                Tracklets_Dist_All->Fill(NumberCloseEtaTracklets);
+                Z_All->Fill(fEvent->fVertexZ);
+                
+                // === EVENTS BOTH CENTRAL ===
+                
+                if(isV0MCentral == kTRUE && isSPDCentral == kTRUE){
+                    V0M_vs_SPD_BothCentral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_BothCentral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_BothCentral->Fill(NumberCloseEtaTracklets);
+                    Z_BothCentral->Fill(fEvent->fVertexZ);
+                }
+                
+                // == EVENTS BOTH PERIPHERAL ===
+                
+                if(isV0MPeripheral == kTRUE && isSPDPeripheral == kTRUE){
+                    V0M_vs_SPD_BothPeripheral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_BothPeripheral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_BothPeripheral->Fill(NumberCloseEtaTracklets);
+                    Z_BothPeripheral->Fill(fEvent->fVertexZ);
+                }
+                
+                // === V0M CENTRAL not SPD ===
+                
+                if(isV0MCentral == kTRUE && isSPDCentral == kFALSE){
+                    V0M_vs_SPD_OnlyV0MCentral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_OnlyV0MCentral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_OnlyV0MCentral->Fill(NumberCloseEtaTracklets);
+                    Z_OnlyV0MCentral->Fill(fEvent->fVertexZ);
+                }
+                
+                if(isV0MCentral == kTRUE){
+                                   V0M_vs_SPD_V0MCentral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                                   for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                       trac = (TrackletLight*)fTracklets->At(j);
+                                       if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                               Tracklets_V0MCentral->Fill(trac->fPhi, trac->fEta);
+                                       }
+                                       
+                                   }
+                                   Tracklets_Dist_V0MCentral->Fill(NumberCloseEtaTracklets);
+                                   Z_V0MCentral->Fill(fEvent->fVertexZ);
+                                    if(fEvent->fNDimuons>0){
+                                        Tracklets_Dist_V0MCentral_Dimu->Fill(NumberCloseEtaTracklets);
+                                    }
+                               }
+                
+                // === V0M PERIPH not SPD ===
+                
+                if(isV0MPeripheral == kTRUE && isSPDPeripheral == kFALSE){
+                    V0M_vs_SPD_OnlyV0MPeripheral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_OnlyV0MPeripheral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_OnlyV0MPeripheral->Fill(NumberCloseEtaTracklets);
+                    Z_OnlyV0MPeripheral->Fill(fEvent->fVertexZ);
+                }
+                
+                if(isV0MPeripheral == kTRUE){
+                    V0M_vs_SPD_V0MPeripheral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_V0MPeripheral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_V0MPeripheral->Fill(NumberCloseEtaTracklets);
+                    Z_V0MPeripheral->Fill(fEvent->fVertexZ);
+                    if(fEvent->fNDimuons>0){
+                        Tracklets_Dist_V0MPeripheral_Dimu->Fill(NumberCloseEtaTracklets);
+                    }
+                }
+                
+                // === SPD CENTRAL not V0M ===
+                
+                if(isV0MCentral == kFALSE && isSPDCentral == kTRUE){
+                    V0M_vs_SPD_OnlySPDCentral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_OnlySPDCentral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_OnlySPDCentral->Fill(NumberCloseEtaTracklets);
+                    Z_OnlySPDCentral->Fill(fEvent->fVertexZ);
+                }
+                
+                if(isSPDCentral == kTRUE){
+                                   V0M_vs_SPD_SPDCentral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                                   for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                       trac = (TrackletLight*)fTracklets->At(j);
+                                       if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                               Tracklets_SPDCentral->Fill(trac->fPhi, trac->fEta);
+                                       }
+                                       
+                                   }
+                                   Tracklets_Dist_SPDCentral->Fill(NumberCloseEtaTracklets);
+                                   Z_SPDCentral->Fill(fEvent->fVertexZ);
+                                    if(fEvent->fNDimuons>0){
+                                        Tracklets_Dist_SPDCentral_Dimu->Fill(NumberCloseEtaTracklets);
+                                    }
+                               }
+                
+                // === SPD PERIPH not V0M ===
+                
+                if(isV0MPeripheral == kFALSE && isSPDPeripheral == kTRUE){
+                    V0M_vs_SPD_OnlySPDPeripheral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                    for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                        trac = (TrackletLight*)fTracklets->At(j);
+                        if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                Tracklets_OnlySPDPeripheral->Fill(trac->fPhi, trac->fEta);
+                        }
+                        
+                    }
+                    Tracklets_Dist_OnlySPDPeripheral->Fill(NumberCloseEtaTracklets);
+                    Z_OnlySPDPeripheral->Fill(fEvent->fVertexZ);
+                }
+                
+                if(isSPDPeripheral == kTRUE){
+                                   V0M_vs_SPD_SPDPeripheral->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
+                                   for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                                       trac = (TrackletLight*)fTracklets->At(j);
+                                       if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                                               Tracklets_SPDPeripheral->Fill(trac->fPhi, trac->fEta);
+                                       }
+                                       
+                                   }
+                                   Tracklets_Dist_SPDPeripheral->Fill(NumberCloseEtaTracklets);
+                                   Z_SPDPeripheral->Fill(fEvent->fVertexZ);
+                                    if(fEvent->fNDimuons>0){
+                                        Tracklets_Dist_SPDPeripheral_Dimu->Fill(NumberCloseEtaTracklets);
+                                    }
+                               }
+                
+                
+                
+                
+
+               }
+           
+        }
+        
+        char hname[100];
+       
+        sprintf(hname, "V0M_vs_SPD_All - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_All = new TCanvas(hname);
+        V0M_vs_SPD_All->SetTitle(hname);
+        V0M_vs_SPD_All->Draw("colz");
+        
+        sprintf(hname, "Tracklets_All - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_All = new TCanvas(hname);
+        Tracklets_All->SetTitle(hname);
+        Tracklets_All->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_All - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_All = new TCanvas(hname);
+        Tracklets_Dist_All->SetTitle(hname);
+        Tracklets_Dist_All->Draw("colz");
+        
+        sprintf(hname, "Z_All - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_All = new TCanvas(hname);
+        Z_All->SetTitle(hname);
+        Z_All->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_BothCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_BothCentral = new TCanvas(hname);
+        V0M_vs_SPD_BothCentral->SetTitle(hname);
+        V0M_vs_SPD_BothCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_BothCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_BothCentral = new TCanvas(hname);
+        Tracklets_BothCentral->SetTitle(hname);
+        Tracklets_BothCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_BothCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_BothCentral = new TCanvas(hname);
+        Tracklets_Dist_BothCentral->SetTitle(hname);
+        Tracklets_Dist_BothCentral->Draw("colz");
+        
+        sprintf(hname, "Z_BothCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_BothCentral = new TCanvas(hname);
+        Z_BothCentral->SetTitle(hname);
+        Z_BothCentral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_BothPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_BothPeripheral = new TCanvas(hname);
+        V0M_vs_SPD_BothPeripheral->SetTitle(hname);
+        V0M_vs_SPD_BothPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_BothPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_BothPeripheral = new TCanvas(hname);
+        Tracklets_BothPeripheral->SetTitle(hname);
+        Tracklets_BothPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_BothPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_BothPeripheral = new TCanvas(hname);
+        Tracklets_Dist_BothPeripheral->SetTitle(hname);
+        Tracklets_Dist_BothPeripheral->Draw("colz");
+        
+        sprintf(hname, "Z_BothPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_BothPeripheral = new TCanvas(hname);
+        Z_BothPeripheral->SetTitle(hname);
+        Z_BothPeripheral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_OnlyV0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_OnlyV0MCentral = new TCanvas(hname);
+        V0M_vs_SPD_OnlyV0MCentral->SetTitle(hname);
+        V0M_vs_SPD_OnlyV0MCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_OnlyV0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_OnlyV0MCentral = new TCanvas(hname);
+        Tracklets_OnlyV0MCentral->SetTitle(hname);
+        Tracklets_OnlyV0MCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_OnlyV0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_OnlyV0MCentral = new TCanvas(hname);
+        Tracklets_Dist_OnlyV0MCentral->SetTitle(hname);
+        Tracklets_Dist_OnlyV0MCentral->Draw("colz");
+        
+        sprintf(hname, "Z_OnlyV0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_OnlyV0MCentral = new TCanvas(hname);
+        Z_OnlyV0MCentral->SetTitle(hname);
+        Z_OnlyV0MCentral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_OnlyV0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_OnlyV0MPeripheral = new TCanvas(hname);
+        V0M_vs_SPD_OnlyV0MPeripheral->SetTitle(hname);
+        V0M_vs_SPD_OnlyV0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_OnlyV0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_OnlyV0MPeripheral = new TCanvas(hname);
+        Tracklets_OnlyV0MPeripheral->SetTitle(hname);
+        Tracklets_OnlyV0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_OnlyV0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_OnlyV0MPeripheral = new TCanvas(hname);
+        Tracklets_Dist_OnlyV0MPeripheral->SetTitle(hname);
+        Tracklets_Dist_OnlyV0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "Z_OnlyV0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_OnlyV0MPeripheral = new TCanvas(hname);
+        Z_OnlyV0MPeripheral->SetTitle(hname);
+        Z_OnlyV0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_OnlySPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_OnlySPDCentral = new TCanvas(hname);
+        V0M_vs_SPD_OnlySPDCentral->SetTitle(hname);
+        V0M_vs_SPD_OnlySPDCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_OnlySPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_OnlySPDCentral = new TCanvas(hname);
+        Tracklets_OnlySPDCentral->SetTitle(hname);
+        Tracklets_OnlySPDCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_OnlySPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_OnlySPDCentral = new TCanvas(hname);
+        Tracklets_Dist_OnlySPDCentral->SetTitle(hname);
+        Tracklets_Dist_OnlySPDCentral->Draw("colz");
+        
+        sprintf(hname, "Z_OnlySPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_OnlySPDCentral = new TCanvas(hname);
+        Z_OnlySPDCentral->SetTitle(hname);
+        Z_OnlySPDCentral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_OnlySPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_OnlySPDPeripheral = new TCanvas(hname);
+        V0M_vs_SPD_OnlySPDPeripheral->SetTitle(hname);
+        V0M_vs_SPD_OnlySPDPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_OnlySPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_OnlySPDPeripheral = new TCanvas(hname);
+        Tracklets_OnlySPDPeripheral->SetTitle(hname);
+        Tracklets_OnlySPDPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_OnlySPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_OnlySPDPeripheral = new TCanvas(hname);
+        Tracklets_Dist_OnlySPDPeripheral->SetTitle(hname);
+        Tracklets_Dist_OnlySPDPeripheral->Draw("colz");
+        
+        sprintf(hname, "Z_OnlySPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_OnlySPDPeripheral = new TCanvas(hname);
+        Z_OnlySPDPeripheral->SetTitle(hname);
+        Z_OnlySPDPeripheral->Draw("colz");
+        
+        
+        sprintf(hname, "V0M_vs_SPD_V0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_V0MCentral = new TCanvas(hname);
+        V0M_vs_SPD_V0MCentral->SetTitle(hname);
+        V0M_vs_SPD_V0MCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_V0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_V0MCentral = new TCanvas(hname);
+        Tracklets_V0MCentral->SetTitle(hname);
+        Tracklets_V0MCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_V0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_V0MCentral = new TCanvas(hname);
+        Tracklets_Dist_V0MCentral->SetTitle(hname);
+        Tracklets_Dist_V0MCentral->Scale(1./Tracklets_Dist_V0MCentral->GetEntries());
+        Tracklets_Dist_V0MCentral->Draw("colz");
+        Tracklets_Dist_V0MCentral_Dimu->SetLineColor(kRed);
+        Tracklets_Dist_V0MCentral_Dimu->Scale(1./Tracklets_Dist_V0MCentral_Dimu->GetEntries());
+        Tracklets_Dist_V0MCentral_Dimu->Draw("SAME");
+        
+        sprintf(hname, "Z_V0MCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_V0MCentral = new TCanvas(hname);
+        Z_V0MCentral->SetTitle(hname);
+        Z_V0MCentral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_V0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_V0MPeripheral = new TCanvas(hname);
+        V0M_vs_SPD_V0MPeripheral->SetTitle(hname);
+        V0M_vs_SPD_V0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_V0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_V0MPeripheral = new TCanvas(hname);
+        Tracklets_V0MPeripheral->SetTitle(hname);
+        Tracklets_V0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_V0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_V0MPeripheral = new TCanvas(hname);
+        Tracklets_Dist_V0MPeripheral->SetTitle(hname);
+        Tracklets_Dist_V0MPeripheral->Scale(1./Tracklets_Dist_V0MPeripheral->GetEntries());
+        Tracklets_Dist_V0MPeripheral->Draw("colz");
+        Tracklets_Dist_V0MPeripheral_Dimu->SetLineColor(kRed);
+        Tracklets_Dist_V0MPeripheral_Dimu->Scale(1./Tracklets_Dist_V0MPeripheral_Dimu->GetEntries());
+        Tracklets_Dist_V0MPeripheral_Dimu->Draw("SAME");
+        
+        sprintf(hname, "Z_V0MPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_V0MPeripheral = new TCanvas(hname);
+        Z_V0MPeripheral->SetTitle(hname);
+        Z_V0MPeripheral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_SPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_SPDCentral = new TCanvas(hname);
+        V0M_vs_SPD_SPDCentral->SetTitle(hname);
+        V0M_vs_SPD_SPDCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_SPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_SPDCentral = new TCanvas(hname);
+        Tracklets_SPDCentral->SetTitle(hname);
+        Tracklets_SPDCentral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_SPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_SPDCentral = new TCanvas(hname);
+        Tracklets_Dist_SPDCentral->SetTitle(hname);
+        Tracklets_Dist_SPDCentral->Scale(1./Tracklets_Dist_SPDCentral->GetEntries());
+        Tracklets_Dist_SPDCentral->Draw("colz");
+        Tracklets_Dist_SPDCentral_Dimu->SetLineColor(kRed);
+        Tracklets_Dist_SPDCentral_Dimu->Scale(1./Tracklets_Dist_SPDCentral_Dimu->GetEntries());
+        Tracklets_Dist_SPDCentral_Dimu->Draw("SAME");
+        
+        sprintf(hname, "Z_SPDCentral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_SPDCentral = new TCanvas(hname);
+        Z_SPDCentral->SetTitle(hname);
+        Z_SPDCentral->Draw("colz");
+        
+        sprintf(hname, "V0M_vs_SPD_SPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M_vs_SPD_SPDPeripheral = new TCanvas(hname);
+        V0M_vs_SPD_SPDPeripheral->SetTitle(hname);
+        V0M_vs_SPD_SPDPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_SPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_SPDPeripheral = new TCanvas(hname);
+        Tracklets_SPDPeripheral->SetTitle(hname);
+        Tracklets_SPDPeripheral->Draw("colz");
+        
+        sprintf(hname, "Tracklets_Dist_SPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cTracklets_Dist_SPDPeripheral = new TCanvas(hname);
+        Tracklets_Dist_SPDPeripheral->SetTitle(hname);
+        Tracklets_Dist_SPDPeripheral->Scale(1./Tracklets_Dist_SPDPeripheral->GetEntries());
+        Tracklets_Dist_SPDPeripheral->Draw("colz");
+        Tracklets_Dist_SPDPeripheral_Dimu->SetLineColor(kRed);
+        Tracklets_Dist_SPDPeripheral_Dimu->Scale(1./Tracklets_Dist_SPDPeripheral_Dimu->GetEntries());
+        Tracklets_Dist_SPDPeripheral_Dimu->Draw("SAME");
+        
+        sprintf(hname, "Z_SPDPeripheral - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cZ_SPDPeripheral = new TCanvas(hname);
+        Z_SPDPeripheral->SetTitle(hname);
+        Z_SPDPeripheral->Draw("colz");
+        
+        
+    }
 
     
     //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
