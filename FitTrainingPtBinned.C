@@ -89,7 +89,7 @@ Int_t npfits;
 double MinInvMass = 2.1;
 double MaxInvMass = 5.1;
 
-const int NbinsDimuInvMass = 250;
+const int NbinsDimuInvMass = 300;
 
 TH1F* hnseg(NULL);
 TH1F* hpool(NULL);
@@ -119,7 +119,7 @@ double errbaselineTKL_periph = 1;
 double baselineTKL_central = 9999;
 double errbaselineTKL_central = 1;
 
-double PtBins[] = {0,2,4,6,8,12};
+double PtBins[] = {0,2,3,4,6,8};
 const int NbPtBins = 5;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
@@ -175,7 +175,7 @@ void FitTrainingPtBinned(){
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_QGPFrance_0-5_40-100_pt0-2-4-6-8-12.root"); //BEST
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-4-6-8-12.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_MasschangeVerbose10v2.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_16h_QGPFrance_0-5_40-100_pt0-4-12_Test.root");
     //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/FinAvril2021-PUfixedMUTCutsfixedButBadEtaCutsNoPhiSPDCorr/FitFile_GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Gr1_0-5_40-100_pt8-12.root");
@@ -1259,6 +1259,12 @@ void FitTrainingPtBinned(){
     coefficients2 = (TH1F*)filerec->Get("coefficients2");
     baselines0 = (TH1F*)filerec->Get("baselines0");
     
+    for(int index=0; index<NbinsInvMass; index++){
+        cout << "Content "<< baselines0->GetBinContent(index+1)<<endl;
+        cout << "Error "<< baselines0->GetBinError(index+1)<<endl;
+    }
+    
+    
     YieldTkl_Central = (TH1F*)filerec->Get("YieldTkl_Central");
     YieldTkl_Periph = (TH1F*)filerec->Get("YieldTkl_Periph");
     YieldTkl_Difference = (TH1F*)filerec->Get("YieldTkl_Difference");
@@ -1497,10 +1503,6 @@ void FitTrainingPtBinned(){
         fitV2_2->SetLineWidth(4);
         fitV2_2->SetLineColor(kMagenta);
         fitV2_2->SetParameters(par);
-        TF1 *fitJustV2_2 = new TF1("fitJustV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-        fitJustV2_2->SetNpx(500);
-        fitJustV2_2->SetLineWidth(0);
-        fitJustV2_2->SetLineColor(kWhite);
         TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
         backFcnV2_2->SetLineColor(kRed);
         TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
@@ -1529,11 +1531,6 @@ void FitTrainingPtBinned(){
             fitV2_2->SetParName(13,"V2_2 Bkg M2");
         fitV2_2->SetParName(14,"V2_2 Bkg M1");
         fitV2_2->SetParName(15,"V2_2 Bkg M0");
-        
-        fitJustV2_2->SetParName(0,"V2_2 J/#psi-tkl");
-            fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
-        fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
-        fitJustV2_2->SetParName(3,"V2_2 Bkg M0");
         
            double minParams[16];
            double parErrors[16];
@@ -1596,10 +1593,6 @@ void FitTrainingPtBinned(){
             fitV2_2->SetLineWidth(4);
             fitV2_2->SetLineColor(kMagenta);
             fitV2_2->SetParameters(par);
-            TF1 *fitJustV2_2 = new TF1("fitJustV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-            fitJustV2_2->SetNpx(500);
-            fitJustV2_2->SetLineWidth(0);
-            fitJustV2_2->SetLineColor(kWhite);
             TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
             backFcnV2_2->SetLineColor(kRed);
             TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
@@ -1628,11 +1621,6 @@ void FitTrainingPtBinned(){
                 fitV2_2->SetParName(13,"V2_2 Bkg M2");
             fitV2_2->SetParName(14,"V2_2 Bkg M1");
             fitV2_2->SetParName(15,"V2_2 Nkg M0");
-            
-            fitJustV2_2->SetParName(0,"V2_2 J/#psi");
-                fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
-            fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
-            fitJustV2_2->SetParName(3,"V2_2 Nkg M0");
             
                double minParams[16];
                double parErrors[16];
@@ -1700,10 +1688,6 @@ void FitTrainingPtBinned(){
          fitb0_3->SetLineWidth(4);
          fitb0_3->SetLineColor(kMagenta);
          fitb0_3->SetParameters(par);
-         TF1 *fitJustb0_3 = new TF1("fitJustb0_3",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-         fitJustb0_3->SetNpx(500);
-         fitJustb0_3->SetLineWidth(0);
-         fitJustb0_3->SetLineColor(kWhite);
          TF1 *backFcnb0_3 = new TF1("backFcnb0_3",BackFcnV2Poly,2.1,5.1,16);
          backFcnb0_3->SetLineColor(kRed);
          TF1 *signalFcnJPsib0_3 = new TF1("signalFcnJPsib0_3",SignalFcnJPsiV2,2.1,5.1,16);
@@ -1732,11 +1716,7 @@ void FitTrainingPtBinned(){
              fitb0_3->SetParName(13,"B0 Bkg M2");
          fitb0_3->SetParName(14,"B0 Bkg M1");
          fitb0_3->SetParName(15,"B0 Nkg M0");
-         
-         fitJustb0_3->SetParName(0,"B0 J/#psi");
-             fitJustb0_3->SetParName(1,"B0 Bkg M2");
-         fitJustb0_3->SetParName(2,"B0 Bkg M1");
-         fitJustb0_3->SetParName(3,"B0 Nkg M0");
+    
          
          //Fit of b0
              res = baselines0->Fit("fitb0_3","SBMERI+","ep");
@@ -1790,10 +1770,6 @@ void FitTrainingPtBinned(){
              fitc0_3->SetLineWidth(4);
              fitc0_3->SetLineColor(kMagenta);
              fitc0_3->SetParameters(par);
-             TF1 *fitJustc0_3 = new TF1("fitJustc0_3",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-             fitJustc0_3->SetNpx(500);
-             fitJustc0_3->SetLineWidth(0);
-             fitJustc0_3->SetLineColor(kWhite);
              TF1 *backFcnc0_3 = new TF1("backFcnc0_3",BackFcnV2Poly,2.1,5.1,16);
              backFcnc0_3->SetLineColor(kRed);
              TF1 *signalFcnJPsic0_3 = new TF1("signalFcnJPsic0_3",SignalFcnJPsiV2,2.1,5.1,16);
@@ -1823,10 +1799,6 @@ void FitTrainingPtBinned(){
              fitc0_3->SetParName(14,"c0 Bkg M1");
              fitc0_3->SetParName(15,"c0 Nkg M0");
              
-             fitJustc0_3->SetParName(0,"c0 J/#psi");
-                 fitJustc0_3->SetParName(1,"c0 Bkg M2");
-             fitJustc0_3->SetParName(2,"c0 Bkg M1");
-             fitJustc0_3->SetParName(3,"c0 Nkg M0");
              
              //Fit of c0
                  res = coefficients0->Fit("fitc0_3","SBMERI+","ep");
@@ -1880,10 +1852,6 @@ void FitTrainingPtBinned(){
              fitc2_3->SetLineWidth(4);
              fitc2_3->SetLineColor(kMagenta);
              fitc2_3->SetParameters(par);
-             TF1 *fitJustc2_3 = new TF1("fitJustc2_3",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-             fitJustc2_3->SetNpx(500);
-             fitJustc2_3->SetLineWidth(0);
-             fitJustc2_3->SetLineColor(kWhite);
              TF1 *backFcnc2_3 = new TF1("backFcnc2_3",BackFcnV2Poly,2.1,5.1,16);
              backFcnc2_3->SetLineColor(kRed);
              TF1 *signalFcnJPsic2_3 = new TF1("signalFcnJPsic2_3",SignalFcnJPsiV2,2.1,5.1,16);
@@ -1912,11 +1880,6 @@ void FitTrainingPtBinned(){
                  fitc2_3->SetParName(13,"c2 Bkg M2");
              fitc2_3->SetParName(14,"c2 Bkg M1");
              fitc2_3->SetParName(15,"c2 Nkg M0");
-             
-             fitJustc2_3->SetParName(0,"c2 J/#psi");
-                 fitJustc2_3->SetParName(1,"c2 Bkg M2");
-             fitJustc2_3->SetParName(2,"c2 Bkg M1");
-             fitJustc2_3->SetParName(3,"c2 Nkg M0");
              
              //Fit of c2
                  res = coefficients2->Fit("fitc2_3","SBMERI+","ep");
@@ -2297,10 +2260,6 @@ void FitTrainingPtBinned(){
              fitb0_3->SetLineWidth(4);
              fitb0_3->SetLineColor(kMagenta);
              fitb0_3->SetParameters(par);
-             TF1 *fitJustb0_3 = new TF1("fitJustb0_3",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-             fitJustb0_3->SetNpx(500);
-             fitJustb0_3->SetLineWidth(0);
-             fitJustb0_3->SetLineColor(kWhite);
              TF1 *backFcnb0_3 = new TF1("backFcnb0_3",BackFcnV2Poly,2.1,5.1,16);
              backFcnb0_3->SetLineColor(kRed);
              TF1 *signalFcnJPsib0_3 = new TF1("signalFcnJPsib0_3",SignalFcnJPsiV2,2.1,5.1,16);
@@ -2329,11 +2288,6 @@ void FitTrainingPtBinned(){
                  fitb0_3->SetParName(13,"B0 Bkg M2");
              fitb0_3->SetParName(14,"B0 Bkg M1");
              fitb0_3->SetParName(15,"B0 Nkg M0");
-             
-             fitJustb0_3->SetParName(0,"B0 J/#psi");
-                 fitJustb0_3->SetParName(1,"B0 Bkg M2");
-             fitJustb0_3->SetParName(2,"B0 Bkg M1");
-             fitJustb0_3->SetParName(3,"B0 Nkg M0");
              
              //Fit of b0
                  res = baselines0PtBinned[ptbin]->Fit("fitb0_3","SBMERI+","ep");
@@ -2387,10 +2341,6 @@ void FitTrainingPtBinned(){
                  fitc0_3->SetLineWidth(4);
                  fitc0_3->SetLineColor(kMagenta);
                  fitc0_3->SetParameters(par);
-                 TF1 *fitJustc0_3 = new TF1("fitJustc0_3",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-                 fitJustc0_3->SetNpx(500);
-                 fitJustc0_3->SetLineWidth(0);
-                 fitJustc0_3->SetLineColor(kWhite);
                  TF1 *backFcnc0_3 = new TF1("backFcnc0_3",BackFcnV2Poly,2.1,5.1,16);
                  backFcnc0_3->SetLineColor(kRed);
                  TF1 *signalFcnJPsic0_3 = new TF1("signalFcnJPsic0_3",SignalFcnJPsiV2,2.1,5.1,16);
@@ -2419,11 +2369,7 @@ void FitTrainingPtBinned(){
                      fitc0_3->SetParName(13,"c0 Bkg M2");
                  fitc0_3->SetParName(14,"c0 Bkg M1");
                  fitc0_3->SetParName(15,"c0 Nkg M0");
-                 
-                 fitJustc0_3->SetParName(0,"c0 J/#psi");
-                     fitJustc0_3->SetParName(1,"c0 Bkg M2");
-                 fitJustc0_3->SetParName(2,"c0 Bkg M1");
-                 fitJustc0_3->SetParName(3,"c0 Nkg M0");
+        
                  
                  //Fit of c0
                      res = coefficients0PtBinned[ptbin]->Fit("fitc0_3","SBMERI+","ep");
@@ -2477,10 +2423,6 @@ void FitTrainingPtBinned(){
                  fitc2_3->SetLineWidth(4);
                  fitc2_3->SetLineColor(kMagenta);
                  fitc2_3->SetParameters(par);
-                 TF1 *fitJustc2_3 = new TF1("fitJustc2_3",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
-                 fitJustc2_3->SetNpx(500);
-                 fitJustc2_3->SetLineWidth(0);
-                 fitJustc2_3->SetLineColor(kWhite);
                  TF1 *backFcnc2_3 = new TF1("backFcnc2_3",BackFcnV2Poly,2.1,5.1,16);
                  backFcnc2_3->SetLineColor(kRed);
                  TF1 *signalFcnJPsic2_3 = new TF1("signalFcnJPsic2_3",SignalFcnJPsiV2,2.1,5.1,16);
@@ -2509,11 +2451,6 @@ void FitTrainingPtBinned(){
                      fitc2_3->SetParName(13,"c2 Bkg M2");
                  fitc2_3->SetParName(14,"c2 Bkg M1");
                  fitc2_3->SetParName(15,"c2 Bkg M0");
-                 
-                 fitJustc2_3->SetParName(0,"c2 J/#psi");
-                     fitJustc2_3->SetParName(1,"c2 Bkg M2");
-                 fitJustc2_3->SetParName(2,"c2 Bkg M1");
-                 fitJustc2_3->SetParName(3,"c2 Nkg M0");
                  
                  //Fit of c2
                      res = coefficients2PtBinned[ptbin]->Fit("fitc2_3","SBMERI+","ep");
@@ -5669,13 +5606,13 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
 //   covMatrix.Print();
    Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     auto covtot = res->GetCovarianceMatrix();
-    auto covsgn = covtot.GetSub(0,8,0,8);
+    auto covsgn = covtot.GetSub(0,7,0,7);
     std::cout << "Matrice totale" <<endl;
     covtot.Print();
     std::cout << "Matrice réduite" <<endl;
     covsgn.Print();
     std::cout << "STATUS COV " << res->CovMatrixStatus() <<endl;
-   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,7,0,7).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     std::cout << "Erreur integrale " << integralerror <<endl;
     
     std::cout << "Fitted " << histoname << std::endl;
