@@ -38,9 +38,19 @@
 
 // FUNCTIONS
 
-void StatsPU();
+void StatsPU(Char_t* GroupeChoisi);
+void MultipleStatsPU();
 
-void StatsPU(){
+void MultipleStatsPU(){
+     Char_t *arrayPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+    int nOfPeriods = sizeof(arrayPeriods) / sizeof(arrayPeriods[0]);
+    
+    for(int idx=0; idx<nOfPeriods; idx++){
+        StatsPU(arrayPeriods[idx]);
+    }
+}
+
+void StatsPU(Char_t* GroupeChoisi){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     
 // ************************************
@@ -79,7 +89,7 @@ void StatsPU(){
     
     Char_t Group_Period[50] = "Group1_LHC16h";
    // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"NewAnalysis/Group12_LHC18m"};
+    Char_t *arrayOfPeriods[] = {GroupeChoisi};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -185,7 +195,9 @@ void StatsPU(){
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        //sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
         
     // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
  //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
