@@ -7,7 +7,7 @@ if [ -f "${pwd}ListCSV.txt" ]
 	then mv "${pwd}ListCSV.txt" "${pwd}OldListCSV.txt"
 fi
 
-for fo in /Users/sperrin/Desktop/Images\ JavierAnalysis/2021\ septembre/NewAnalysisAllEst_TKL_16h25_*/
+for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/NewAnalysisAllEst_TKL_16h25_*/
 	do
 	focsv="${fo}SystematicsFile.csv"
 	if [ -f "${focsv}" ]

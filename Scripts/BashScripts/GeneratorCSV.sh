@@ -1,10 +1,10 @@
 #!/bin/bash
 
-FOLDER="/Users/sperrin/Desktop/Images JavierAnalysis/2021 septembre/*/"
+FOLDER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/*/"
 SCRIPTDIR="${pwd}"
-prefix="/Users/sperrin/Desktop/Images JavierAnalysis/2021 septembre/"
+prefix="/Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/"
 suffix="/"
-for fo in /Users/sperrin/Desktop/Images\ JavierAnalysis/2021\ septembre/NewAnalysisAllEst_TKL_16h25_*/ 
+for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/NewAnalysisAllEst_TKL_16h25_*/ 
 	do
 	echo "Looking into folder ${fo}"
 	focsv="${fo}SystematicsFile.csv"
