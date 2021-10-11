@@ -42,10 +42,10 @@
 
 // FUNCTIONS
 
-void PlotFromTreeTKL();
+void PlotFromTreeTKL(Char_t radical[200]);
 Double_t FourierV2(Double_t *x,Double_t *par);
 Double_t FourierV5(Double_t *x,Double_t *par);
-int GetCent(int cent);
+int GetCent(float cent);
 int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPer, int zvtx_idx, int groupnumber);
 int GetCentCvetan(float V0MPer);
 bool isCentral(int centint);
@@ -77,7 +77,6 @@ int PeripheralHighBound = 13;
 string centralityMethod = "V0MPercentile";
 
 bool isMultiplicityStudy = kFALSE;
-bool useOtherMENorm = kFALSE;
 
 int NtklCentralLowBound = 6;
 int NtklCentralHighBound = 12;
@@ -349,7 +348,7 @@ int LimitsPM_SPDTracklets_Uncal_DataDriven[12][20][14] =
 Int_t npfits;
 
 
-void PlotFromTreeTKL(){
+void PlotFromTreeTKL(Char_t radical[200]){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
     bool doTracklets = kTRUE;
@@ -367,7 +366,6 @@ void PlotFromTreeTKL(){
 // Définitions de paramètres          *
 // ************************************
 
-    double ZvtxCut = 10;
     double SigmaZvtxCut = 0.25;
     double DPhiCut = 0.01; //0.01
     double TklEtaCut  = 1;
@@ -383,7 +381,6 @@ void PlotFromTreeTKL(){
    double MinDeltaEtaTKL = -2.4; //1.2  //2.4
     double MaxDeltaEtaTKL = 2.4;
     const int NbinsDeltaEtaTKL = 48; //24
-    double DeltaEtaTKLCut = 1.2; //1.2  //1.2
     double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
     
     double MinDeltaPhi = -TMath::Pi()/2;
@@ -393,7 +390,6 @@ void PlotFromTreeTKL(){
     int BinZeroLeftTKL = floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
     
     const int NbBinsCent = 14;
-    const int NbBinsZvtx = 20;
     
     
     int DeltaEtaLongCMS = 2.0;
@@ -404,11 +400,317 @@ void PlotFromTreeTKL(){
     double corrFactorDeltaPhi = R_SPD1/(R_SPD2-R_SPD1);
     
     
+    // Getting info from radical name
+    
+    
+    Char_t DPhiCutText[20] = "10mrad";
+    Char_t CentEstText[50] = "PercentileMethodSPDTracklets";
+    Char_t CentralClassText[20] = "0-5";
+    Char_t PeriphClassText[20] = "40-100";
+    Char_t DeltaEtaGapText[20] = "1.2";
+    Char_t ZvtxCutText[20] = "10";
+    
+    
+    Char_t EMNormText[20] = "Method1";
+    
+    
+    Char_t EMPoolMaxText[20] = "100";
+    Char_t EMPoolThresholdText[20] = "10";
+    Char_t ScalingPeriphText[20] = "1";
+    
+    
+    Char_t SummationText[20] = "Method2";
+    
+    bool hasChangedDPhiCut = kFALSE;
+    bool hasChangedEtaGap = kFALSE;
+    bool hasChangedZvtxCut = kFALSE;
+    bool hasChangedEMNorm = kFALSE;
+    bool hasChangedEMMax = kFALSE;
+    bool hasChangedEMThreshold = kFALSE;
+    bool hasChangedPeriphScaling = kFALSE;
+    bool hasChangedSummationZvtx = kFALSE;
+    
+    
+    Char_t dataUsed[50];
+    Char_t estimator[50];
+    Char_t rest[50];
+    Char_t speTampon[50];
+    Char_t specificity[100];
+    Char_t lessCentral[5];
+    Char_t mostCentral[5];
+    Char_t lessPeriph[5];
+    Char_t mostPeriph[5];
+    int lessCentralNum;
+    int mostCentralNum;
+    int lessPeriphNum;
+    int mostPeriphNum;
+    Char_t minpt[5];
+    Char_t maxpt[5];
+    
+    double DPhiCutNum;
+    double DeltaEtaGapNum;
+    double ZvtxCutNum;
+    
+    sscanf(radical, "NewAnalysisAllEst_TKL_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
+    
+    string srest;
+    stringstream ss;
+    ss << rest;
+    ss >> srest;
+
+    if (srest.find("_") != std::string::npos) {
+        std::cout << "Underscore found: There is a specificity" << endl;
+        sscanf(rest,"%[^_]_%s", maxpt, specificity);
+    }
+    else{
+        cout << "No underscore found: No specificity"<<endl;
+        sprintf(maxpt, "%s", rest);
+    }
+    
+    string sspe;
+    stringstream ss2;
+    ss2 << specificity;
+    ss2 >> sspe;
+    
+    while (sspe.find("_") != std::string::npos){
+        std::cout << "Underscore found: There is another specificity" << endl;
+        sscanf(specificity,"%[^_]_%s", speTampon, specificity);
+        
+        stringstream ss3;
+        ss3 << specificity;
+        ss3 >> sspe;
+        
+        string sspecT;
+        stringstream ss3T;
+        ss3T << speTampon;
+        ss3T >> sspecT;
+        
+        if (sspecT.find("DPhiCut") != std::string::npos) {
+            std::cout << "Change on DPhiCut" << endl;
+            if (sspecT.find("DPhiCutNo") != std::string::npos) {
+                cout << "There is no DPhi cut"<<endl;
+                sprintf(DPhiCutText,"None");
+                hasChangedDPhiCut=kTRUE;
+                DPhiCutNum = 9999.;
+            }
+            else{
+                sscanf(speTampon, "DPhiCut%[^mrad]", DPhiCutText);
+                cout << "DPhiCutText set to " << DPhiCutText<< " mrad"<<endl;
+                DPhiCutNum = stod(DPhiCutText);
+                sprintf(DPhiCutText, "%smrad",DPhiCutText);
+                hasChangedDPhiCut = kTRUE;
+            }
+        }
+        
+        if (sspecT.find("Eta") != std::string::npos) {
+            std::cout << "Change on Eta" << endl;
+           sscanf(speTampon, "Eta%s", DeltaEtaGapText);
+           cout << "DeltaEtaGapText set to " << DeltaEtaGapText<<endl;
+            hasChangedEtaGap = kTRUE;
+        }
+        
+        if (sspecT.find("Zvtx") != std::string::npos) {
+            std::cout << "Precisions on Zvtx" << endl;
+           sscanf(speTampon, "Zvtx%s", ZvtxCutText);
+           cout << "ZvtxCutText set to " << ZvtxCutText<<endl;
+            hasChangedZvtxCut = kTRUE;
+        }
+        
+        if (sspecT.find("EMNorm") != std::string::npos) {
+            std::cout << "Precisions on EMNorm" << endl;
+           sscanf(speTampon, "EMNorm%s", EMNormText);
+           cout << "EMNormText set to " << EMNormText<<endl;
+            hasChangedEMNorm = kTRUE;
+        }
+        
+        if (sspecT.find("EMMax") != std::string::npos) {
+            std::cout << "Precisions on EMMax" << endl;
+           sscanf(speTampon, "EMMax%s", EMPoolMaxText);
+           cout << "EMPoolMaxText set to " << EMPoolMaxText<<endl;
+            hasChangedEMMax = kTRUE;
+        }
+        
+        if (sspecT.find("EMThreshold") != std::string::npos) {
+            std::cout << "Precisions on EMThreshold" << endl;
+           sscanf(speTampon, "EMThreshold%s", EMPoolThresholdText);
+           cout << "EMPoolThresholdText set to " << EMPoolThresholdText<<endl;
+            hasChangedEMThreshold = kTRUE;
+        }
+        
+        if (sspecT.find("PeriphScaling") != std::string::npos) {
+            std::cout << "Precisions on PeriphScaling" << endl;
+           sscanf(speTampon, "PeriphScaling%s", ScalingPeriphText);
+           cout << "ScalingPeriphText set to " << ScalingPeriphText<<endl;
+            hasChangedPeriphScaling = kTRUE;
+        }
+        
+        if (sspecT.find("SummationZvtx") != std::string::npos) {
+            std::cout << "Precisions on SummationZvtx" << endl;
+           sscanf(speTampon, "SummationZvtx%s", SummationText);
+           cout << "SummationText set to " << SummationText<<endl;
+            hasChangedSummationZvtx= kTRUE;
+        }
+        
+    }
+    
+    
+    if (sspe.find("DPhiCut") != std::string::npos) {
+        std::cout << "Change on DPhiCut" << endl;
+        if (sspe.find("DPhiCutNo") != std::string::npos) {
+            cout << "There is no DPhi cut"<<endl;
+            sprintf(DPhiCutText,"None");
+            hasChangedDPhiCut=kTRUE;
+            DPhiCutNum = 9999.;
+        }
+        else{
+            sscanf(specificity, "DPhiCut%[^mrad]", DPhiCutText);
+            cout << "DPhiCutText set to " << DPhiCutText<< " mrad"<<endl;
+            DPhiCutNum = stod(DPhiCutText);
+            sprintf(DPhiCutText, "%smrad",DPhiCutText);
+            hasChangedDPhiCut = kTRUE;
+        }
+    }
+    
+    if (sspe.find("Eta") != std::string::npos) {
+        std::cout << "Change on Eta" << endl;
+       sscanf(specificity, "Eta%s", DeltaEtaGapText);
+       cout << "DeltaEtaGapText set to " << DeltaEtaGapText<<endl;
+        hasChangedEtaGap = kTRUE;
+    }
+    
+    if (sspe.find("Zvtx") != std::string::npos) {
+        std::cout << "Precisions on Zvtx" << endl;
+       sscanf(specificity, "Zvtx%s", ZvtxCutText);
+       cout << "ZvtxCutText set to " << ZvtxCutText<<endl;
+        hasChangedZvtxCut = kTRUE;
+    }
+    
+    if (sspe.find("EMNorm") != std::string::npos) {
+        std::cout << "Precisions on EMNorm" << endl;
+       sscanf(specificity, "EMNorm%s", EMNormText);
+       cout << "EMNormText set to " << EMNormText<<endl;
+        hasChangedEMNorm = kTRUE;
+    }
+    
+    if (sspe.find("EMMax") != std::string::npos) {
+        std::cout << "Precisions on EMMax" << endl;
+       sscanf(specificity, "EMMax%s", EMPoolMaxText);
+       cout << "EMPoolMaxText set to " << EMPoolMaxText<<endl;
+        hasChangedEMMax = kTRUE;
+    }
+    
+    if (sspe.find("EMThreshold") != std::string::npos) {
+        std::cout << "Precisions on EMThreshold" << endl;
+       sscanf(specificity, "EMThreshold%s", EMPoolThresholdText);
+       cout << "EMPoolThresholdText set to " << EMPoolThresholdText<<endl;
+        hasChangedEMThreshold = kTRUE;
+    }
+    
+    if (sspe.find("PeriphScaling") != std::string::npos) {
+        std::cout << "Precisions on PeriphScaling" << endl;
+       sscanf(specificity, "PeriphScaling%s", ScalingPeriphText);
+       cout << "ScalingPeriphText set to " << ScalingPeriphText<<endl;
+        hasChangedPeriphScaling = kTRUE;
+    }
+    
+    if (sspe.find("SummationZvtx") != std::string::npos) {
+        std::cout << "Precisions on SummationZvtx" << endl;
+       sscanf(specificity, "SummationZvtx%s", SummationText);
+       cout << "SummationText set to " << SummationText<<endl;
+        hasChangedSummationZvtx= kTRUE;
+    }
+    
+    stringstream intValue1(lessCentral);
+    intValue1 >> lessCentralNum;
+    stringstream intValue2(mostCentral);
+    intValue2 >> mostCentralNum;
+    stringstream intValue3(lessPeriph);
+    intValue3 >> lessPeriphNum;
+    stringstream intValue4(mostPeriph);
+    intValue4 >> mostPeriphNum;
+    
+    sprintf(CentEstText,"%s", estimator);
+    cout << "CentEstText " << CentEstText<<endl;
+    sprintf(CentralClassText, "%i-%i", mostCentralNum, lessCentralNum);
+    cout << "CentralClassText " << CentralClassText<<endl;
+    sprintf(PeriphClassText, "%i-%i", lessPeriphNum, mostPeriphNum);
+    cout << "PeriphClassText " << PeriphClassText<<endl;
+    cout << "min pt " << minpt << " max pt " << maxpt<<endl;
+    
+    // Là on a toutes les linformations de radical et on sait qui a été changé
+    
+    //MAJ des informations sur la centralité (estimateur et classes)
+    
+    CentralLowBound = GetCent(mostCentralNum);
+    CentralHighBound = GetCent(lessCentralNum);
+    PeripheralLowBound = GetCent(lessCentralNum)+1;
+    PeripheralHighBound = GetCent(mostPeriphNum);
+    
+    stringstream scent;
+    scent << CentEstText;
+    scent >> centralityMethod;
+    
+    
+    double ZvtxCut = stod(ZvtxCutText);
+    if(hasChangedDPhiCut){
+        DPhiCut = DPhiCutNum;
+    }
+
+    double DeltaEtaTKLCut = stod(DeltaEtaGapText); //1.2  //1.2
+     
+    int NbBinsZvtx = int(2*ZvtxCut);
+    
+    int EMPoolMax = stoi(EMPoolMaxText);
+    int EMPoolThreshold = stoi(EMPoolThresholdText);
+    double ScalingPeriph = stod(ScalingPeriphText);
+    
+    //FIXME__: Adapter les déclarations avec NBBinsZvtx qui n'est plus const
+    //FIXME__: Ajouter les valeurs Num des 5 dernières variables systematiques
+    //FIXME__: Adapter arrayofPeriods
+    //FIXME__: Adapter % =!
+    
+    
+    
+    
+    
+    
+    
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    string sdataUsed;
+    stringstream strim;
+    strim << dataUsed;
+    strim >> sdataUsed;
+    
+    bool is16h25 = kFALSE;
+    int dataPercentage = 100;
+    
+    if(strncmp (dataUsed,"Run2",10) == 0){
+//        arrayOfPeriods = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+    }
+    else if(sdataUsed.find("16hj") != std::string::npos){
+//        arrayOfPeriods = {"Group1_LHC16h","Group1_LHC16j"};
+        if(strncmp (dataUsed,"16hj",10) != 0){
+            sscanf(dataUsed, "16hj%i", &dataPercentage);
+        }
+    }
+    else if(sdataUsed.find("16h") != std::string::npos){
+//        arrayOfPeriods = {"Group1_LHC16h"};
+        if(strncmp (dataUsed,"16h25",10) == 0){
+            is16h25 = kTRUE;
+        }
+        else if(strncmp (dataUsed,"16h",10) != 0){
+            sscanf(dataUsed, "16h%i", &dataPercentage);
+        }
+    }
+    else{
+        cout << "The data set you are asking for is not a possibility yet. Put it by hand"<<endl;
+        return;
+    }
   //  Char_t Group_Period[50] = "Group1";
   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
    // Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
-    Char_t *arrayOfPeriods[] = {"Cvetan_LHC16r"};
+   // Char_t *arrayOfPeriods[] = {"Cvetan_LHC16r"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j"};
   // Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU_OnlyMuonTrackCutsApplied"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
@@ -420,12 +722,12 @@ void PlotFromTreeTKL(){
  //   Char_t AssociateFileName[200];
     
     Char_t RadicalName[200];
-    sprintf(RadicalName,"NewAnalysisAllEst_TKL_Cvetan16r5_V0MPercentile_0-20_40-100_pt0-12");
+    sprintf(RadicalName,"%s",radical);
 
     sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_%s.root",RadicalName);
 //    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/Systematics/FitFile_TKL_DPhi10mrad_PercentileMethodSPDTracklets_EtaGap1.2_Zcut10.root");
 //    sprintf(AssociateFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/Systematics/AssociateFile_TKL_DPhi10mrad_PercentileMethodSPDTracklets_EtaGap1.2_Zcut10.txt");
-    sprintf(FolderName,"/Users/sperrin/Desktop/Images JavierAnalysis/2021 septembre/%s",RadicalName);
+    sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/%s",RadicalName);
     
     int rc = mkdir(FolderName, 0777);
     cout << "rc " <<rc<<endl;
@@ -467,15 +769,24 @@ void PlotFromTreeTKL(){
     TH1F* YieldsTkl[NbBinsCent]{ NULL };
     TH1F* YieldsTklShortCMS[NbBinsCent]{ NULL };
     TH1F* YieldsTklLongCMS[NbBinsCent]{ NULL };
-    TH2I* CorrelationsTkl[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2I* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2I* CorrelationsTklLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2I* CorrelationsTklME[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2I* CorrelationsTklMEShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2I* CorrelationsTklMELongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2F* CorrelationsTklMEScaled[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2F* CorrelationsTklMEScaledShortCMS[NbBinsCent][NbBinsZvtx]{ NULL };
-    TH2F* CorrelationsTklMEScaledLongCMS[NbBinsCent][NbBinsZvtx]{ NULL };
+    TH2I* CorrelationsTkl[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTkl, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
+    TH2I* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklShortCMS, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
+    TH2I* CorrelationsTklLongCMS[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklLongCMS, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
+    TH2I* CorrelationsTklME[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklME, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
+    TH2I* CorrelationsTklMEShortCMS[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklMEShortCMS, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
+    TH2I* CorrelationsTklMELongCMS[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklMELongCMS, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
+    TH2F* CorrelationsTklMEScaled[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklMEScaled, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2F*));
+    TH2F* CorrelationsTklMEScaledShortCMS[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklMEScaledShortCMS, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2F*));
+    TH2F* CorrelationsTklMEScaledLongCMS[NbBinsCent][NbBinsZvtx];
+    memset( CorrelationsTklMEScaledLongCMS, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2F*));
     TH1F* Yield_tampon(NULL);
     TH1F* YieldTkl_tampon(NULL);
     TH1F* Yield_allC(NULL);
@@ -757,9 +1068,11 @@ void PlotFromTreeTKL(){
     int RefTrackletsPeriph = 0;
     int cmul = 0;
     int barWidth = 50;
-    int RefTklCounter[NbBinsCent][NbBinsZvtx] = {0};
+    int RefTklCounter[NbBinsCent][NbBinsZvtx];
+    memset( RefTklCounter, 0, NbBinsCent*NbBinsZvtx*sizeof(int));
     int RefTklCounterZint[NbBinsCent] = {0};
-    double NormMETkl[NbBinsCent][NbBinsZvtx] = {0};
+    double NormMETkl[NbBinsCent][NbBinsZvtx];
+    memset( NormMETkl, 0, NbBinsCent*NbBinsZvtx*sizeof(double));
     double NormMETklZint[NbBinsCent] = {0};
     
     //Nassoc
@@ -798,7 +1111,7 @@ void PlotFromTreeTKL(){
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
    //     sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
      //   sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
     TFile fileIn(fileInLoc);
         
@@ -807,7 +1120,8 @@ void PlotFromTreeTKL(){
         
         std::vector <double> PoolsTkl[NbBinsCent][NbBinsZvtx];
         std::vector <int> PoolsTklEventTracker[NbBinsCent][NbBinsZvtx];
-        int PoolsSizeTkl[NbBinsCent][NbBinsZvtx] = {0};
+        int PoolsSizeTkl[NbBinsCent][NbBinsZvtx];
+        memset( PoolsSizeTkl, 0, NbBinsCent*NbBinsZvtx*sizeof(int));
 
         sscanf (arrayOfPeriods[tree_idx],"Group%d_%s",&GroupNum,str);
     
@@ -839,7 +1153,7 @@ void PlotFromTreeTKL(){
         myfiletxt.open("/tmp/memorycheckbin.txt");
     
         for (int i=0;i<nevent;i++) {
-            if(i%100000 == 0){
+            if(i%10000 == 0){
                     std::cout << "[";
                     double portion = double(i)/nevent;
                     long pos = barWidth * portion;
@@ -848,11 +1162,18 @@ void PlotFromTreeTKL(){
                         else if (k == pos) std::cout << ">";
                         else std::cout << " ";
                     }
-                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods;
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx+1 << "/" << numberOfPeriods << " " <<radical;
                     std::cout.flush();
                 std::cout << std::endl;
             }
-            if(doTracklets && (i%20!=0)){
+            
+            if(is16h25){
+                if(doTracklets && (i%4!=0)){
+                    continue;
+                }
+            }
+            
+            if(doTracklets && (i%100 >= dataPercentage)){
                 continue;
             }
                 theTree->GetEvent(i);
@@ -925,8 +1246,8 @@ void PlotFromTreeTKL(){
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
               //  cout << NumberOfTrackletsPassingEtaCut << " " << zvint << " " <<GroupNum<<endl;
-                 // int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
-                    int centint = GetCentCvetan(fEvent->fCentralityV0M);
+                  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                  //  int centint = GetCentCvetan(fEvent->fCentralityV0M);
                     if(NumberCloseEtaTracklets>=2){
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets-1; //fEvent->fNTracklets //FIXME ok
                     fTracklets->Randomize(); //Moved here to avoid randomising everytime
@@ -955,8 +1276,8 @@ void PlotFromTreeTKL(){
                             Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
                         double zv = fEvent->fVertexZ;
                         int zvint = floor(zv) + ZvtxCut;
-                         //int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
-                        int centint = GetCentCvetan(fEvent->fCentralityV0M);
+                         int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                      //  int centint = GetCentCvetan(fEvent->fCentralityV0M);
                         
                         if(isCMSMethod){
                             if(TMath::Abs(DeltaEta)<DeltaEtaShortCMS){
@@ -999,8 +1320,8 @@ void PlotFromTreeTKL(){
                         //  int centintME = GetCent(centME);
                           double zvME = fEvent->fVertexZ;
                           int zvintME = floor(zvME) + ZvtxCut;
-                           // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
-                        int centintME = GetCentCvetan(fEvent->fCentralityV0M);
+                            int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                     //   int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                         TklMEcounter++;
                         
                         if(PoolsSizeTkl[centintME][zvintME]>=10){

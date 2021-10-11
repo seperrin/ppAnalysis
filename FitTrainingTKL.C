@@ -149,7 +149,7 @@ void FitTrainingTKL(Char_t radical[200]){
    // Char_t RadicalName[200];
     //sprintf(RadicalName,"NewAnalysisAllEst_TKL_16h25_SPDTrackletsPercentile_0-5_40-100_pt0-12");
     sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_%s.root", radical);
-        sprintf(FolderName,"/Users/sperrin/Desktop/Images JavierAnalysis/2021 septembre/%s", radical);
+        sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/%s", radical);
     sprintf(SystematicsFileName,"%s/SystematicsFile.csv", FolderName);
     
 //    if(exists_test0(SystematicsFileName)){

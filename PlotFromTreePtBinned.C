@@ -80,7 +80,7 @@ Double_t myEtaHigh(double x);
 //13: 90-100%
 
 int CentralLowBound = 0;
-int CentralHighBound = 5;
+int CentralHighBound = 3;
 int PeripheralLowBound = 8;
 int PeripheralHighBound = 13;
 
@@ -93,10 +93,10 @@ int NtklCentralHighBound = 12;
 int NtklPeripheralLowBound = 0;
 int NtklPeripheralHighBound = 6;
 
-double PtBins[] = {0,2,3,4,6,8};
-const int NbPtBins = 5;
+double PtBins[] = {0,2,3,4,6,8,12};
+const int NbPtBins = 6;
 double LowDimuPtCut = 0;
-double HighDimuPtCut = 8;
+double HighDimuPtCut = 12;
 
 double MinInvMass = 2.1;
 double MaxInvMass = 5.1;
@@ -449,10 +449,10 @@ void PlotFromTreePtBinned(){
     
     
   //  Char_t Group_Period[50] = "Group1";
-  // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+   Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l"};
    // Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
-    Char_t *arrayOfPeriods[] = {"Cvetan_LHC16r"};
+   // Char_t *arrayOfPeriods[] = {"Cvetan_LHC16r"};
   //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j"};
   // Char_t *arrayOfPeriods[] = {"Group8_LHC18m_CvetanPU_OnlyMuonTrackCutsApplied"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
@@ -464,10 +464,10 @@ void PlotFromTreePtBinned(){
     Char_t FitFileName[200];
  //   Char_t AssociateFileName[200];
 
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_MasschangeVerbose10v2.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-3-4-6-8-12.root");
 //    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/Systematics/FitFile_TKL_DPhi10mrad_PercentileMethodSPDTracklets_EtaGap1.2_Zcut10.root");
 //    sprintf(AssociateFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/Systematics/AssociateFile_TKL_DPhi10mrad_PercentileMethodSPDTracklets_EtaGap1.2_Zcut10.txt");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 septembre/NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_8_MasschangeVerbose10v2");
+    sprintf(FolderName,"~/Desktop/ImagesJavierAnalysis/2021octobre/NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-3-4-6-8-12");
     
     
     
@@ -1638,7 +1638,7 @@ void PlotFromTreePtBinned(){
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
    //     sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
     //    sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
     TFile fileIn(fileInLoc);
         
@@ -1799,8 +1799,8 @@ void PlotFromTreePtBinned(){
                         }
                         
                 //      int centint = GetCent(cent);
-                       // centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
-                        centint = GetCentCvetan(fEvent->fCentralityV0M);
+                        centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                       // centint = GetCentCvetan(fEvent->fCentralityV0M);
                         DimuonCounter[centint][zvint][massint]++;
                         if(PtBinned){
                             ptint = GetPtBin(dimu->fPt);
@@ -1838,8 +1838,8 @@ void PlotFromTreePtBinned(){
                      //   int centintME = GetCent(centME);
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
-                       // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
-                            int centintME = GetCentCvetan(fEvent->fCentralityV0M);
+                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                         //   int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -1934,8 +1934,8 @@ void PlotFromTreePtBinned(){
                        double zvME = fEvent->fVertexZ;
                        int zvintME = floor(zvME) + ZvtxCut;
                             int ptintME = GetPtBin(dimu->fPt);
-                       // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
-                            int centintME = GetCentCvetan(fEvent->fCentralityV0M);
+                        int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                         //   int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                        int phintME = 0;
                        double phiME = dimu->fPhi;
                        if(phiME < -TMath::Pi()/2){
@@ -2051,8 +2051,8 @@ void PlotFromTreePtBinned(){
                   //  int centint = GetCent(cent);
                     double zv = fEvent->fVertexZ;
                     int zvint = floor(zv) + ZvtxCut;
-                    //int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
-                        int centint = GetCentCvetan(fEvent->fCentralityV0M);
+                    int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                      //  int centint = GetCentCvetan(fEvent->fCentralityV0M);
                     //    cout << centint << " " << zvint << " " << massint <<endl;
                     Correlations[centint][zvint][massint]->Fill(DeltaPhi,correl->fDeltaEta);
                         if(PtBinned){
@@ -2089,8 +2089,8 @@ void PlotFromTreePtBinned(){
                   double zv = fEvent->fVertexZ;
                   int zvint = floor(zv) + ZvtxCut;
               //  cout << NumberOfTrackletsPassingEtaCut << " " << zvint << " " <<GroupNum<<endl;
-                 // int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
-                    int centint = GetCentCvetan(fEvent->fCentralityV0M);
+                  int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                  //  int centint = GetCentCvetan(fEvent->fCentralityV0M);
                     if(NumberCloseEtaTracklets>=2){
                    RefTklCounter[centint][zvint] += NumberCloseEtaTracklets-1; //fEvent->fNTracklets //FIXME ok
                     fTracklets->Randomize(); //Moved here to avoid randomising everytime
@@ -2119,8 +2119,8 @@ void PlotFromTreePtBinned(){
                             Float_t DeltaEta = tracklet1->fEta - tracklet2->fEta; //DeltaEtaAbs TMath::Abs(
                         double zv = fEvent->fVertexZ;
                         int zvint = floor(zv) + ZvtxCut;
-                         //int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
-                        int centint = GetCentCvetan(fEvent->fCentralityV0M);
+                         int centint = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvint, GroupNum);
+                      //  int centint = GetCentCvetan(fEvent->fCentralityV0M);
                         
                         if(isCMSMethod){
                             if(TMath::Abs(DeltaEta)<DeltaEtaShortCMS){
@@ -2163,8 +2163,8 @@ void PlotFromTreePtBinned(){
                         //  int centintME = GetCent(centME);
                           double zvME = fEvent->fVertexZ;
                           int zvintME = floor(zvME) + ZvtxCut;
-                           // int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
-                        int centintME = GetCentCvetan(fEvent->fCentralityV0M);
+                            int centintME = GetCentPM(NumberOfTrackletsPassingEtaCut, fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters, fEvent->fCentralityV0M, zvintME, GroupNum);
+                      //  int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                         TklMEcounter++;
                         
                         if(PoolsSizeTkl[centintME][zvintME]>=10){
@@ -3054,7 +3054,7 @@ void PlotFromTreePtBinned(){
         DimuCnt=0;
         for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
             if(DimuonCounterZint[i][k]>0){
-                Yield_tampon->Reset();//FIXME LAST MASS BIN
+                Yield_tampon->Reset();
                 Yield_tampon->Add(Yields[i][k]);
                 Yield_tampon->Scale(DimuonCounterZint[i][k]);
                 Yield_Periph_MassBin[k]->Add(Yield_tampon);
@@ -3071,7 +3071,7 @@ void PlotFromTreePtBinned(){
     
     if(PtBinned){
         for(int ptbin=0; ptbin<NbPtBins; ptbin++){
-            for(int k=0; k<NbinsInvMass; k++){//FIXME MAYBE ADD DIMU>0
+            for(int k=0; k<NbinsInvMass; k++){
                    DimuCnt=0;
                    for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
                        if(DimuonCounterZintPtBinned[i][k][ptbin]>0){
@@ -3851,7 +3851,7 @@ void PlotFromTreePtBinned(){
         }
       legend->AddEntry(histo,"Data","lpe");
       legend->Draw();
-    //FIXME Ajouter d'autres méthodes
+    //FIXME Ajouter d'autres méthodes ok
     }
     
     if(PtBinned){
@@ -3918,7 +3918,7 @@ void PlotFromTreePtBinned(){
 //                legend->AddEntry(fitFcnV2_2,message);
 //              legend->AddEntry(histo,"Data","lpe");
 //              legend->Draw();
-            //FIXME Ajouter d'autres méthodes
+            //FIXME Ajouter d'autres méthodes ok
             }
         }
     }

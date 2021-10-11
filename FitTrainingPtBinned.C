@@ -119,7 +119,7 @@ double errbaselineTKL_periph = 1;
 double baselineTKL_central = 9999;
 double errbaselineTKL_central = 1;
 
-double PtBins[] = {0,2,3,4,6,8};
+double PtBins[] = {0,2,4,6,8,12};
 const int NbPtBins = 5;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
@@ -168,14 +168,14 @@ double errbaseline_periphPtBinned[NbPtBins] = {NULL};
 double baseline_centralPtBinned[NbPtBins] = {NULL};
 double errbaseline_centralPtBinned[NbPtBins] = {NULL};
 
-Char_t FitFileName[200];
+Char_t FitFileName[300];
 
 void FitTrainingPtBinned(){
     
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
-   // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/Septembre2021-Run2ReferencesTKLSystematicsStart/FitFile_CrossCheckQGPFrance_Run2_PercentileMethodSPDTracklets_0-5_40-100_pt0-2-4-6-8-12.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_QGPFrance_0-5_40-100_pt0-2-4-6-8-12.root"); //BEST
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_MasschangeVerbose10v2.root");
+    //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_MasschangeVerbose10v2.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_16h_QGPFrance_0-5_40-100_pt0-4-12_Test.root");
     //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/FinAvril2021-PUfixedMUTCutsfixedButBadEtaCutsNoPhiSPDCorr/FitFile_GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Gr1_0-5_40-100_pt8-12.root");
@@ -1363,7 +1363,7 @@ void FitTrainingPtBinned(){
         
         V2JPsiTklPtBinned_noZYAM[ptbin]->Draw();
     }
-    //FIXME Ajouter méthodes
+    //FIXME Ajouter méthodes FIXED
     
     
     
@@ -1416,7 +1416,7 @@ void FitTrainingPtBinned(){
                 }
         }
     
-    //FIXME: Add the pulls in mass inv fit
+    //FIXME: Add the pulls in mass inv fit FIXED
     
     {
         ofstream myfiletxt;
@@ -4668,7 +4668,7 @@ void FitTrainingPtBinned(){
     }
     
     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-         PtMiddle[ptbin] = (PtBins[ptbin]+PtBins[ptbin+1])/2 - 0.02*4;
+         PtMiddle[ptbin] = (PtBins[ptbin]+PtBins[ptbin+1])/2 - 0.02*3;
          PtErrorSize[ptbin] = (PtBins[ptbin+1]-PtBins[ptbin])/2;
      }
      
@@ -4692,16 +4692,16 @@ void FitTrainingPtBinned(){
      PtMiddle[ptbin] += 0.02;
      }
     
-    TGraphErrors *grv2_wrt_Pt1_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext1_noZYAM,PtErrorSize,errv2_Ext1_noZYAM);
-     // TGraph *gr3 = new TGraph (n, K3, chi);
-    grv2_wrt_Pt1_noZYAM->SetMarkerColor(kAzure-3);
-       grv2_wrt_Pt1_noZYAM->SetLineColor(kAzure-3);
-       grv2_wrt_Pt1_noZYAM->SetMarkerStyle(8);
-         grv2_wrt_Pt1_noZYAM->Draw("P");
-
-    for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-    PtMiddle[ptbin] += 0.02;
-    }
+//    TGraphErrors *grv2_wrt_Pt1_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext1_noZYAM,PtErrorSize,errv2_Ext1_noZYAM);
+//     // TGraph *gr3 = new TGraph (n, K3, chi);
+//    grv2_wrt_Pt1_noZYAM->SetMarkerColor(kAzure-3);
+//       grv2_wrt_Pt1_noZYAM->SetLineColor(kAzure-3);
+//       grv2_wrt_Pt1_noZYAM->SetMarkerStyle(8);
+//         grv2_wrt_Pt1_noZYAM->Draw("P");
+//
+//    for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//    PtMiddle[ptbin] += 0.02;
+//    }
      
      TGraphErrors *grv2_wrt_Pt2 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext2,PtErrorSize,errv2_Ext2);
       // TGraph *gr3 = new TGraph (n, K3, chi);
@@ -4715,16 +4715,16 @@ void FitTrainingPtBinned(){
      PtMiddle[ptbin] += 0.02;
      }
     
-    TGraphErrors *grv2_wrt_Pt2_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext2_noZYAM,PtErrorSize,errv2_Ext2_noZYAM);
-     // TGraph *gr3 = new TGraph (n, K3, chi);
-    grv2_wrt_Pt2_noZYAM->SetMarkerColor(kGreen-7);
-    grv2_wrt_Pt2_noZYAM->SetLineColor(kGreen-7);
-    grv2_wrt_Pt2_noZYAM->SetMarkerStyle(23);
-      grv2_wrt_Pt2_noZYAM->Draw("P");
-
-    for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-    PtMiddle[ptbin] += 0.02;
-    }
+//    TGraphErrors *grv2_wrt_Pt2_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext2_noZYAM,PtErrorSize,errv2_Ext2_noZYAM);
+//     // TGraph *gr3 = new TGraph (n, K3, chi);
+//    grv2_wrt_Pt2_noZYAM->SetMarkerColor(kGreen-7);
+//    grv2_wrt_Pt2_noZYAM->SetLineColor(kGreen-7);
+//    grv2_wrt_Pt2_noZYAM->SetMarkerStyle(23);
+//      grv2_wrt_Pt2_noZYAM->Draw("P");
+//
+//    for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//    PtMiddle[ptbin] += 0.02;
+//    }
     
     TGraphErrors *grv2_wrt_Pt3 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext3,PtErrorSize,errv2_Ext3);
          // TGraph *gr3 = new TGraph (n, K3, chi);
@@ -4738,17 +4738,17 @@ void FitTrainingPtBinned(){
         PtMiddle[ptbin] += 0.02;
         }
     
-    TGraphErrors *grv2_wrt_Pt3_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext3_noZYAM,PtErrorSize,errv2_Ext3_noZYAM);
-            // TGraph *gr3 = new TGraph (n, K3, chi);
-           grv2_wrt_Pt3_noZYAM->SetMarkerColor(kMagenta-7);
-           grv2_wrt_Pt3_noZYAM->SetLineColor(kMagenta-7);
-           grv2_wrt_Pt3_noZYAM->SetMarkerStyle(22);
-             grv2_wrt_Pt3_noZYAM->Draw("P");
-
-           for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-           PtMiddle[ptbin] += 0.02;
-           }
-     
+//    TGraphErrors *grv2_wrt_Pt3_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext3_noZYAM,PtErrorSize,errv2_Ext3_noZYAM);
+//            // TGraph *gr3 = new TGraph (n, K3, chi);
+//           grv2_wrt_Pt3_noZYAM->SetMarkerColor(kMagenta-7);
+//           grv2_wrt_Pt3_noZYAM->SetLineColor(kMagenta-7);
+//           grv2_wrt_Pt3_noZYAM->SetMarkerStyle(22);
+//             grv2_wrt_Pt3_noZYAM->Draw("P");
+//
+//           for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//           PtMiddle[ptbin] += 0.02;
+//           }
+//     
      TGraphErrors *grv2_wrt_PtCvetanQuentin = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentin,PtErrorSize,errv2_CvetanQuentin);
       // TGraph *gr3 = new TGraph (n, K3, chi);
     grv2_wrt_PtCvetanQuentin->SetMarkerColor(kOrange+3);
@@ -4825,19 +4825,19 @@ void FitTrainingPtBinned(){
               legendov->SetBorderSize(0);
                legendov->SetTextFont(42);
                legendov->SetTextSize(0.02);
-            legendov->AddEntry(grv2_wrt_Pt1,"v2_Ext1 (pPb-like)");
-    legendov->AddEntry(grv2_wrt_Pt1_noZYAM,"v2_Ext1_noZYAM (pPb-like no ZYAM)");
-             legendov->AddEntry(grv2_wrt_Pt2,"v2_Ext2 (pPb-like)");
-    legendov->AddEntry(grv2_wrt_Pt2_noZYAM,"v2_Ext2_noZYAM (pPb-like no ZYAM)");
-            legendov->AddEntry(grv2_wrt_Pt3,"v2_Ext3 (pPb-like)");
-    legendov->AddEntry(grv2_wrt_Pt3_noZYAM,"v2_Ext3_noZYAM (pPb-like no ZYAM)");
-            legendov->AddEntry(grv2_wrt_PtZYAM,"v2_ZYAM");
-             legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v2_CvetanQuentin (Template + ZYAM Periph)");
+            legendov->AddEntry(grv2_wrt_Pt1,"v_{2,Ext1} (pPb-like : Y_{C}-Y_{P}=a_{0}+2a_{1}cos(#Delta#phi)+2a_{2}cos(2#Delta#phi))");
+  //  legendov->AddEntry(grv2_wrt_Pt1_noZYAM,"v2_Ext1_noZYAM (pPb-like no ZYAM)");
+             legendov->AddEntry(grv2_wrt_Pt2,"v_{2,Ext2} (pPb-like)");
+  //  legendov->AddEntry(grv2_wrt_Pt2_noZYAM,"v2_Ext2_noZYAM (pPb-like no ZYAM)");
+            legendov->AddEntry(grv2_wrt_Pt3,"v_{2,Ext3} (pPb-like)");
+  //  legendov->AddEntry(grv2_wrt_Pt3_noZYAM,"v2_Ext3_noZYAM (pPb-like no ZYAM)");
+            legendov->AddEntry(grv2_wrt_PtZYAM,"v_{2,ZYAM} : (Y_{C}-Y_{C}(0))-(Y_{P}-Y_{P}(0))=a_{0}+2a_{1}cos(#Delta#phi)+2a_{2}cos(2#Delta#phi)");
+             legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v_{2,Template+PeriphZYAM}: Y_{C}-F(Y_{P}-Y_{P}(0))=Y_{C,0}(1+v_{2,2}cos(2#Delta#phi))");
             // legendov->AddEntry(grv2_wrt_PtCvetanQuentinMe,"v2_CvetanQuentinMe");
-             legendov->AddEntry(grv2_wrt_PtPRL,"v2_ATLAS Template");
+             legendov->AddEntry(grv2_wrt_PtPRL,"v_{2,TemplateATLAS}: Y_{C}-F(Y_{P}-Y_{P}(0))=G(1+v_{2,2}cos(2#Delta#phi))");
 //    legendov->AddEntry(grv2_wrt_PtPbPb,"Pb-Pb, 5.02 TeV, 5-20%");
 //    legendov->AddEntry(grv2_wrt_PtpPb,"p-Pb, 5.02-8.16 TeV, y>0 direction");
-             legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v2_ATLAS Template and ZYAM");
+             legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v_{2,TemplateATLAS+ZYAM}: (Y_{C}-Y_{C}(0))-F(Y_{P}-Y_{P}(0))=G(1+v_{2,2}cos(2#Delta#phi))");
               legendov->Draw();
      
      cv2Pt->Update();

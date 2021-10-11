@@ -415,7 +415,7 @@ void MassFitsAndPulls(string SignalF, string BackgroundF, double min, double max
     cinvmass->Divide(1,3);
     
     sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_SPDTrackletsPercentile_0-5_40-100_pt0-2-4-6-8-12_ManuInvMass.root");
-    sprintf(FolderName,"~/Desktop/Images JavierAnalysis/2021 mai/NewAnalysis_16h10_TKL_QGPFrance_0-5_40-100_pt0-12/FitTrainingTKLa");
+    sprintf(FolderName,"~/Desktop/ImagesJavierAnalysis/2021 mai/NewAnalysis_16h10_TKL_QGPFrance_0-5_40-100_pt0-12/FitTrainingTKLa");
     
     TFile *filerec = new TFile(FitFileName);
     hnseg = (TH1F*)filerec->Get("hnseg");
@@ -1614,7 +1614,7 @@ poly *= par[0];
 return poly;
 }
 
-//FIXME : Coder NA60
+//FIXME : Coder NA60 FIXED
 
 Double_t JPsiCrystalBallExtended(Double_t *x,Double_t *par)
 {
