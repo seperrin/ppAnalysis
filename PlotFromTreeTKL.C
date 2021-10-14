@@ -769,6 +769,8 @@ void PlotFromTreeTKL(Char_t radical[200]){
     TH1F* YieldsTkl[NbBinsCent]{ NULL };
     TH1F* YieldsTklShortCMS[NbBinsCent]{ NULL };
     TH1F* YieldsTklLongCMS[NbBinsCent]{ NULL };
+    TH2F* YieldsTkl1a[NbBinsCent][NbBinsZvtx];
+    memset( YieldsTkl1a, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2F*));
     TH2I* CorrelationsTkl[NbBinsCent][NbBinsZvtx];
     memset( CorrelationsTkl, 0, NbBinsCent*NbBinsZvtx*sizeof(TH2I*));
     TH2I* CorrelationsTklShortCMS[NbBinsCent][NbBinsZvtx];
@@ -889,6 +891,14 @@ void PlotFromTreeTKL(Char_t radical[200]){
                           NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi);
         YieldsTklLongCMS[i]->SetXTitle("Correlation #Delta#phi (rad)");
         for(int j=0; j<NbBinsZvtx; j++){
+            
+            sprintf(hname,"Yields Tkl 1a %d %d",i,j);
+            YieldsTkl1a[i][j] = new TH1F(hname,
+                              "Yields 1a Correlation Tkl wrt #Delta#phi and #Delta#eta",
+                              NbinsDeltaPhiTKL,MinDeltaPhi,MaxDeltaPhi,NbinsDeltaEtaTKL,MinDeltaEtaTKL,MaxDeltaEtaTKL);
+            YieldsTkl1a[i][j]->SetXTitle("Correlation #Delta#phi (rad)");
+            YieldsTkl1a[i][j]->SetYTitle("Correlation #Delta#eta");
+            
             sprintf(hname,"Correlations Tkl %d %d ",i,j);
             CorrelationsTkl[i][j] = new TH2I(hname,
                               "Correlation Tkl #Delta#eta wrt #Delta#phi",
@@ -1324,7 +1334,7 @@ void PlotFromTreeTKL(Char_t radical[200]){
                      //   int centintME = GetCentCvetan(fEvent->fCentralityV0M);
                         TklMEcounter++;
                         
-                        if(PoolsSizeTkl[centintME][zvintME]>=10){
+                        if(PoolsSizeTkl[centintME][zvintME]>=EMPoolThreshold){
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
                               tracklet1 = (TrackletLight*)fTracklets->At(j);
                                 if((tracklet1->fEta < myEtaHigh(zvME)) && (tracklet1->fEta > myEtaLow(zvME)) && (TMath::Abs(tracklet1->fDPhi) < DPhiCut)){ //FIXME ok
@@ -1383,7 +1393,7 @@ void PlotFromTreeTKL(Char_t radical[200]){
                             }
                         }
                         
-                        if(PoolsSizeTkl[centintME][zvintME] == 100){
+                        if(PoolsSizeTkl[centintME][zvintME] == EMPoolMax){
                          //    cout << "The Tkl pool is full" <<endl;
                             int valueDiscarded = PoolsTklEventTracker[centintME][zvintME].front();
                            //  cout << "Discarding events with index " << valueDiscarded<<endl;
@@ -1424,7 +1434,7 @@ void PlotFromTreeTKL(Char_t radical[200]){
                              
                         }
                         
-                        else if(PoolsSizeTkl[centintME][zvintME] < 100){
+                        else if(PoolsSizeTkl[centintME][zvintME] < EMPoolMax){
                            //   cout << "Pool is not full - Will add event"<<endl;
                             bool hasBeenFilled = kFALSE;
                             for (Int_t j=0; j<fEvent->fNTracklets; j++) {
@@ -1593,22 +1603,73 @@ void PlotFromTreeTKL(Char_t radical[200]){
         cout << "Scaling CorrelationsMETkl" <<endl;
         
         if(doTracklets){
-        for(int i=0; i<NbBinsCent; i++){
-               for(int j=0; j<NbBinsZvtx; j++){
-                 //  cout << i << " " << j <<endl;
-                //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
-                   if(NormMETkl[i][j]>0){
-                        // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
-                       for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
-                           for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
-                               CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
-                                CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+            
+            if(EMNormText=="Method1"){
+            
+                for(int i=0; i<NbBinsCent; i++){
+                       for(int j=0; j<NbBinsZvtx; j++){
+                         //  cout << i << " " << j <<endl;
+                        //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
+                           if(NormMETkl[i][j]>0){
+                                // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                               for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
+                                   for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
+                                       CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                                        CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                                   }
+                               }
                            }
+                           
                        }
-                   }
-                   
-               }
-        }
+                }
+                
+            }
+            
+            if(EMNormText=="Method2"){
+            
+                for(int i=0; i<NbBinsCent; i++){
+                       for(int j=0; j<NbBinsZvtx; j++){
+                         //  cout << i << " " << j <<endl;
+                        //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
+                           if(NormMETklZint[i]>0){
+                                // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                               for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
+                                   for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
+                                       CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/NormMETklZint[i]);
+                                        CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/NormMETklZint[i]);
+                                   }
+                               }
+                           }
+                           
+                       }
+                }
+                
+            }
+            
+            if(EMNormText=="Method3"){
+            
+                for(int i=0; i<NbBinsCent; i++){
+                       for(int j=0; j<NbBinsZvtx; j++){
+                         //  cout << i << " " << j <<endl;
+                        //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
+                           
+                           
+                           //Do nothing
+                           
+                                // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                               for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
+                                   for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
+                                       CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/1.);
+                                        CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/1.);
+                                   }
+                               }
+                           
+                           
+                       }
+                }
+                
+            }
+            
         }
         
         if(doTracklets && isCMSMethod){
@@ -1646,158 +1707,244 @@ void PlotFromTreeTKL(Char_t radical[200]){
             }
         }
         
-        TCanvas*ctesteTkl = new TCanvas();
-        ctesteTkl->SetTitle("SE Projected, ME projected and division Tkl-Tkl");
-        ctesteTkl->Divide(1,3);
-            
-            TCanvas*ctestesumTkl = new TCanvas();
-            ctestesumTkl->SetTitle("Sommation des yields selon z Tkl-Tkl");
-            ctestesumTkl->Divide(5,2);
-            
-            TCanvas*ctestefinTkl = new TCanvas();
-            ctestefinTkl->SetTitle("Yield[0] final sommé selon z Tkl-Tkl");
-            
-            TCanvas*ctesteprojTkl = new TCanvas();
-            ctesteprojTkl->SetTitle("Projction SE et ME Tkl-Tkl");
-            ctesteprojTkl->Divide(2,2);
+        if(SummationText=="Method2"){
         
-        ctesteprojTkl->cd(1);
-        CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
-        ctesteprojTkl->cd(2);
-        CorrelationsTklME[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
-        
-        cout << "Calculation of YieldsTkl[Cent]" <<endl;
-        for(int i=0; i<NbBinsCent; i++){
-                      SoverMi->Reset();
-                      for(int j=0; j<NbBinsZvtx; j++){
-                          SoverMij->Reset();
-                          ProjCopyTkl->Reset();
-                          ProjCopy2Tkl->Reset();
-                          if(doMixedEvents){
-                              ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaled[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
-                          }
-                          SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
-                          
-                          ProjCopyTkl->Add(SE_proj_Tkl_tampon);
-                          //   ProjCopy->Sumw2();
-                          if(doMixedEvents){
-                              ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
-                          }
-                          //   ProjCopy2->Sumw2();
-                          if(doMixedEvents){
-                              SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
-                          }
-                          else if(!doMixedEvents){
-                              SoverMij->Add(ProjCopyTkl);
-                          }
-                             if(i ==preciseCentFocus && j==preciseZbinFocus){
-                                 ctesteprojTkl->cd(3);
-                                 ProjCopyTkl->DrawCopy();
-                                 ctesteprojTkl->cd(4);
-                                 ProjCopy2Tkl->DrawCopy();
-                                 ctesteTkl->cd(1);
-                                 ProjCopyTkl->DrawCopy();
-                                 cout << "Relative error on SE Tkl bin 4 is: " << ProjCopyTkl->GetBinError(4)/ProjCopyTkl->GetBinContent(4) << endl;
-                                  cout << "ProjCopyTkl->GetBinError(4): " << ProjCopyTkl->GetBinError(4) << endl;
-                                 cout << "ProjCopyTkl->GetBinContent(4): " << ProjCopyTkl->GetBinContent(4) << endl;
-                                 ctesteTkl->cd(2);
-                                 if(doMixedEvents){
-                                     ProjCopy2Tkl->DrawCopy();
-                                     cout << "Relative error on ME Tkl bin 4 is: " << ProjCopy2Tkl->GetBinError(4)/ProjCopy2Tkl->GetBinContent(4) << endl;
-                                     cout << "ProjCopy2Tkl->GetBinError(4): " << ProjCopy2Tkl->GetBinError(4) << endl;
-                                     cout << "ProjCopy2Tkl->GetBinContent(4): " << ProjCopy2Tkl->GetBinContent(4) << endl;
-                                 }
-                                 ctesteTkl->cd(3);
-                                 SoverMij->DrawCopy();
-                                 cout << "Relative error on SE/ME Tkl bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
-                             }
-                             if(i ==preciseCentFocus && j<5){
-                                 ctestesumTkl->cd(j+1);
-                                 SoverMij->DrawCopy();
-                                 cout << "Relative error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
-                                 cout << "Error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4) << endl;
-                             }
-                            SoverMi->Add(SoverMij);
-                             if(i ==preciseCentFocus && j<5){
-                                 ctestesumTkl->cd(5+j+1);
-                                 SoverMi->DrawCopy();
-                                 cout << "Relative error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4)/SoverMi->GetBinContent(4) << endl;
-                                 cout << "Error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4) << endl;
-                             }
+                    TCanvas*ctesteTkl = new TCanvas();
+                    ctesteTkl->SetTitle("SE Projected, ME projected and division Tkl-Tkl");
+                    ctesteTkl->Divide(1,3);
                         
-                          RefTracklets+=RefTklCounter[i][j];
-                      }
-                      YieldsTkl[i]->Add(SoverMi);
-                      if(RefTklCounterZint[i] >0){
-                        //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
-                          for(int binx=1; binx<(1+YieldsTkl[i]->GetNbinsX()); binx++){
+                        TCanvas*ctestesumTkl = new TCanvas();
+                        ctestesumTkl->SetTitle("Sommation des yields selon z Tkl-Tkl");
+                        ctestesumTkl->Divide(5,2);
+                        
+                        TCanvas*ctestefinTkl = new TCanvas();
+                        ctestefinTkl->SetTitle("Yield[0] final sommé selon z Tkl-Tkl");
+                        
+                        TCanvas*ctesteprojTkl = new TCanvas();
+                        ctesteprojTkl->SetTitle("Projction SE et ME Tkl-Tkl");
+                        ctesteprojTkl->Divide(2,2);
+                    
+                    ctesteprojTkl->cd(1);
+                    CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+                    ctesteprojTkl->cd(2);
+                    CorrelationsTklME[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+                    
+                    cout << "Calculation of YieldsTkl[Cent]" <<endl;
+                    for(int i=0; i<NbBinsCent; i++){
+                                  SoverMi->Reset();
+                                  for(int j=0; j<NbBinsZvtx; j++){
+                                      SoverMij->Reset();
+                                      ProjCopyTkl->Reset();
+                                      ProjCopy2Tkl->Reset();
+                                      if(doMixedEvents){
+                                          ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaled[i][j]->ProjectionX("ME_proj_Tkl",1,-1,"e")); //Change underflow
+                                      }
+                                      SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,-1,"e")); //Change underflow
+                                      
+                                      ProjCopyTkl->Add(SE_proj_Tkl_tampon);
+                                      //   ProjCopy->Sumw2();
+                                      if(doMixedEvents){
+                                          ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
+                                      }
+                                      //   ProjCopy2->Sumw2();
+                                      if(doMixedEvents){
+                                          SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
+                                      }
+                                      else if(!doMixedEvents){
+                                          SoverMij->Add(ProjCopyTkl);
+                                      }
+                                         if(i ==preciseCentFocus && j==preciseZbinFocus){
+                                             ctesteprojTkl->cd(3);
+                                             ProjCopyTkl->DrawCopy();
+                                             ctesteprojTkl->cd(4);
+                                             ProjCopy2Tkl->DrawCopy();
+                                             ctesteTkl->cd(1);
+                                             ProjCopyTkl->DrawCopy();
+                                             cout << "Relative error on SE Tkl bin 4 is: " << ProjCopyTkl->GetBinError(4)/ProjCopyTkl->GetBinContent(4) << endl;
+                                              cout << "ProjCopyTkl->GetBinError(4): " << ProjCopyTkl->GetBinError(4) << endl;
+                                             cout << "ProjCopyTkl->GetBinContent(4): " << ProjCopyTkl->GetBinContent(4) << endl;
+                                             ctesteTkl->cd(2);
+                                             if(doMixedEvents){
+                                                 ProjCopy2Tkl->DrawCopy();
+                                                 cout << "Relative error on ME Tkl bin 4 is: " << ProjCopy2Tkl->GetBinError(4)/ProjCopy2Tkl->GetBinContent(4) << endl;
+                                                 cout << "ProjCopy2Tkl->GetBinError(4): " << ProjCopy2Tkl->GetBinError(4) << endl;
+                                                 cout << "ProjCopy2Tkl->GetBinContent(4): " << ProjCopy2Tkl->GetBinContent(4) << endl;
+                                             }
+                                             ctesteTkl->cd(3);
+                                             SoverMij->DrawCopy();
+                                             cout << "Relative error on SE/ME Tkl bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
+                                         }
+                                         if(i ==preciseCentFocus && j<5){
+                                             ctestesumTkl->cd(j+1);
+                                             SoverMij->DrawCopy();
+                                             cout << "Relative error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
+                                             cout << "Error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4) << endl;
+                                         }
+                                        SoverMi->Add(SoverMij);
+                                         if(i ==preciseCentFocus && j<5){
+                                             ctestesumTkl->cd(5+j+1);
+                                             SoverMi->DrawCopy();
+                                             cout << "Relative error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4)/SoverMi->GetBinContent(4) << endl;
+                                             cout << "Error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4) << endl;
+                                         }
+                                    
+                                      RefTracklets+=RefTklCounter[i][j];
+                                  }
+                                  YieldsTkl[i]->Add(SoverMi);
+                                  if(RefTklCounterZint[i] >0){
+                                    //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                                      for(int binx=1; binx<(1+YieldsTkl[i]->GetNbinsX()); binx++){
 
-                                    double oldContent = YieldsTkl[i]->GetBinContent(binx);
-                                    double oldError = YieldsTkl[i]->GetBinError(binx);
-                                    YieldsTkl[i]->SetBinContent(binx, (YieldsTkl[i]->GetBinContent(binx))/RefTklCounterZint[i]);
-                                    double newContent = YieldsTkl[i]->GetBinContent(binx);
-                                    YieldsTkl[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
+                                                double oldContent = YieldsTkl[i]->GetBinContent(binx);
+                                                double oldError = YieldsTkl[i]->GetBinError(binx);
+                                                YieldsTkl[i]->SetBinContent(binx, (YieldsTkl[i]->GetBinContent(binx))/RefTklCounterZint[i]);
+                                                double newContent = YieldsTkl[i]->GetBinContent(binx);
+                                                YieldsTkl[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
 
-                            }
+                                        }
+                                  }
+                          
+                        if(i==preciseCentFocus){
+                            ctestefinTkl->cd();
+                            YieldsTkl[i]->DrawCopy("colz");
+                        }
+                        
+                        TFile *f = new TFile(FitFileName,"UPDATE");
+                        YieldsTkl[i]->Write();
+                        f->Close();
+                        
+            //            ofstream myassociatetxt;
+            //            myassociatetxt.open(AssociateFileName);
+            //            myassociatetxt<< "RefTklCounterZint[" << i << "] = " << RefTklCounterZint[i] <<endl;
+            //            myassociatetxt.close();
+                        
                       }
-              
-            if(i==preciseCentFocus){
-                ctestefinTkl->cd();
-                YieldsTkl[i]->DrawCopy("colz");
+                    
+                    sprintf(CanvasName,"%s/TKL SE ME Division.pdf",FolderName);
+                    ctesteTkl->SaveAs(CanvasName);
+                    sprintf(CanvasName,"%s/Z_SummationCheckTKL.pdf",FolderName);
+                    ctestesumTkl->SaveAs(CanvasName);
+                    sprintf(CanvasName,"%s/YieldTkl[0].pdf",FolderName);
+                    ctestefinTkl->SaveAs(CanvasName);
+                    printf(CanvasName,"%s/TKL SE ME.pdf",FolderName);
+                    ctesteprojTkl->SaveAs(CanvasName);
+                    
+                    cout << "Calculation of YieldsTkl for allC, central, periph" <<endl;
+                    for(int i=0; i<NbBinsCent; i++){
+                            YieldTkl_tampon->Reset();
+                            YieldTkl_tampon->Add(YieldsTkl[i]);
+                            YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                            YieldTkl_allC->Add(YieldTkl_tampon);
+                    }
+                    YieldTkl_allC->Scale(1./RefTracklets);
+                    
+                    int RefTklCnt=0;
+                    for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                        YieldTkl_tampon->Reset();
+                        YieldTkl_tampon->Add(YieldsTkl[i]);
+                        YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                        YieldTkl_Central->Add(YieldTkl_tampon);
+                        RefTklCnt += RefTklCounterZint[i];
+                    }
+                     YieldTkl_Central->Scale(1./RefTklCnt);
+                    RefTklCnt=0;
+                    for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                        cout << "i= " << i <<endl;
+                        YieldTkl_tampon->Reset();
+                        YieldTkl_tampon->Add(YieldsTkl[i]);
+                        cout << "Taken YieldsTkl[i]" <<endl;
+                        YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                        cout << "Scaled by RefTklCounterZint[i]: " << RefTklCounterZint[i] <<endl;
+                        YieldTkl_Periph->Add(YieldTkl_tampon);
+                        RefTklCnt += RefTklCounterZint[i];
+                        cout << "Now RefTklCnt is : " << RefTklCnt <<endl;
+                    }
+                    YieldTkl_Periph->Scale(ScalingPeriph/RefTklCnt);
+                    YieldTkl_Difference->Add(YieldTkl_Central,YieldTkl_Periph,1,-1);
+        }
+        
+        if(SummationText=="Method1a"){
+        
+                    //Pour chaque centralité et chaque z
+                            //Yield = Moyenne sur z pondéré par entries correlations C,z
+                            //Projection sur phi
+            
+            
+            for(int i=0; i<NbBinsCent; i++){
+                SoverMi->Reset();
+                double scaly = 0;
+                          for(int j=0; j<NbBinsZvtx; j++){
+                                  SoverMij->Reset();
+                              if(CorrelationsTkl[i][j]->GetEntries() > 0 && RefTklCounter[i][j]>0){
+                                  YieldTkl1a[i][j]->Divide(CorrelationsTkl[i][j],CorrelationsTklMEScaled[i][j],1,RefTklCounter[i][j]);
+                                RefTracklets+=RefTklCounter[i][j];
+                                  SoverMij->Add(YieldTkl1a[i][j]);
+                                  SoverMij->Scale(1./(CorrelationsTkl[i][j]->GetEntries()));
+                                  scaly+=1./(CorrelationsTkl[i][j]->GetEntries());
+                                  SoverMi->Add(SoverMij);
+                              }
+                          }
+                SoverMi->Scale(1./scaly);
+                ME_proj_Tkl_tampon = (TH1F*)(SoverMi->ProjectionX("SoverMi",1,-1,"e"));
+                YieldsTkl[i]->Add(ME_proj_Tkl_tampon);
+                
+                TFile *f = new TFile(FitFileName,"UPDATE");
+                YieldsTkl[i]->Write();
+                f->Close();
+                
+    //            ofstream myassociatetxt;
+    //            myassociatetxt.open(AssociateFileName);
+    //            myassociatetxt<< "RefTklCounterZint[" << i << "] = " << RefTklCounterZint[i] <<endl;
+    //            myassociatetxt.close();
+                
+              }
+            
+            cout << "Calculation of YieldsTkl for allC, central, periph" <<endl;
+            for(int i=0; i<NbBinsCent; i++){
+                    YieldTkl_tampon->Reset();
+                    YieldTkl_tampon->Add(YieldsTkl[i]);
+                    YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                    YieldTkl_allC->Add(YieldTkl_tampon);
             }
+            YieldTkl_allC->Scale(1./RefTracklets);
             
-            TFile *f = new TFile(FitFileName,"UPDATE");
-            YieldsTkl[i]->Write();
-            f->Close();
-            
-//            ofstream myassociatetxt;
-//            myassociatetxt.open(AssociateFileName);
-//            myassociatetxt<< "RefTklCounterZint[" << i << "] = " << RefTklCounterZint[i] <<endl;
-//            myassociatetxt.close();
-            
-          }
-        
-        sprintf(CanvasName,"%s/TKL SE ME Division.pdf",FolderName);
-        ctesteTkl->SaveAs(CanvasName);
-        sprintf(CanvasName,"%s/Z_SummationCheckTKL.pdf",FolderName);
-        ctestesumTkl->SaveAs(CanvasName);
-        sprintf(CanvasName,"%s/YieldTkl[0].pdf",FolderName);
-        ctestefinTkl->SaveAs(CanvasName);
-        printf(CanvasName,"%s/TKL SE ME.pdf",FolderName);
-        ctesteprojTkl->SaveAs(CanvasName);
-        
-        cout << "Calculation of YieldsTkl for allC, central, periph" <<endl;
-        for(int i=0; i<NbBinsCent; i++){
+            int RefTklCnt=0;
+            for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
                 YieldTkl_tampon->Reset();
                 YieldTkl_tampon->Add(YieldsTkl[i]);
                 YieldTkl_tampon->Scale(RefTklCounterZint[i]);
-                YieldTkl_allC->Add(YieldTkl_tampon);
+                YieldTkl_Central->Add(YieldTkl_tampon);
+                RefTklCnt += RefTklCounterZint[i];
+            }
+             YieldTkl_Central->Scale(1./RefTklCnt);
+            RefTklCnt=0;
+            for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                cout << "i= " << i <<endl;
+                YieldTkl_tampon->Reset();
+                YieldTkl_tampon->Add(YieldsTkl[i]);
+                cout << "Taken YieldsTkl[i]" <<endl;
+                YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                cout << "Scaled by RefTklCounterZint[i]: " << RefTklCounterZint[i] <<endl;
+                YieldTkl_Periph->Add(YieldTkl_tampon);
+                RefTklCnt += RefTklCounterZint[i];
+                cout << "Now RefTklCnt is : " << RefTklCnt <<endl;
+            }
+            YieldTkl_Periph->Scale(ScalingPeriph/RefTklCnt);
+            YieldTkl_Difference->Add(YieldTkl_Central,YieldTkl_Periph,1,-1);
+                        
         }
-        YieldTkl_allC->Scale(1./RefTracklets);
         
-        int RefTklCnt=0;
-        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
-            YieldTkl_tampon->Reset();
-            YieldTkl_tampon->Add(YieldsTkl[i]);
-            YieldTkl_tampon->Scale(RefTklCounterZint[i]);
-            YieldTkl_Central->Add(YieldTkl_tampon);
-            RefTklCnt += RefTklCounterZint[i];
+        
+        if(SummationText=="Method1b"){
+        
+                    //Pour chaque centralité et chaque z
+                        //Pour chaque bin des TH2
+                            //Fit SE et N*ME: Donne Y et erreur (phi, eta) par C et z
+                            //Somme Moyenne sur z
+                            //Projection sur phi
+                        
+                   
         }
-         YieldTkl_Central->Scale(1./RefTklCnt);
-        RefTklCnt=0;
-        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
-            cout << "i= " << i <<endl;
-            YieldTkl_tampon->Reset();
-            YieldTkl_tampon->Add(YieldsTkl[i]);
-            cout << "Taken YieldsTkl[i]" <<endl;
-            YieldTkl_tampon->Scale(RefTklCounterZint[i]);
-            cout << "Scaled by RefTklCounterZint[i]: " << RefTklCounterZint[i] <<endl;
-            YieldTkl_Periph->Add(YieldTkl_tampon);
-            RefTklCnt += RefTklCounterZint[i];
-            cout << "Now RefTklCnt is : " << RefTklCnt <<endl;
-        }
-        YieldTkl_Periph->Scale(1./RefTklCnt);
-        YieldTkl_Difference->Add(YieldTkl_Central,YieldTkl_Periph,1,-1);
         
     }
     
