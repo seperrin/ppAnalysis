@@ -567,6 +567,11 @@ void PlotQuickest(){
     
     double meanV0M16h = 107.5;
     double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
 
     double LowJPsiMass = 3.0;
     double HighJPsiMass = 3.3;
@@ -587,9 +592,9 @@ void PlotQuickest(){
     double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
     int barWidth = 50;
     
-    Char_t Group_Period[50] = "Group1_LHC16h";
+    Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
    // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -604,6 +609,8 @@ void PlotQuickest(){
 // *************************
     
     TH2F* V0M_vs_SPD(NULL);
+    TH1F* NewEst_norm(NULL);
+    TH1F* NewEst_norm_pond(NULL);
     TH1F* V0M_Dist(NULL);
     TH1F* V0M_Dist_Groups(NULL);
     TH1F* V0M_Dist_Groups_norm(NULL);
@@ -624,19 +631,19 @@ void PlotQuickest(){
     
     V0M_Dist_Groups_norm = new TH1F("V0M_Dist_Groups_norm",
                      "V0M_Dist_Groups_norm",
-                     1000,0, 30);
+                     1001,-0.05, 100.05);
     V0M_Dist_Groups_norm->SetXTitle("V0M_norm");
     V0M_Dist_Groups_norm->SetYTitle("Count");
     
     SPDTracklets_Dist_Groups = new TH1F("SPDTracklets_Dist_Groups",
                      "SPDTracklets_Dist_Groups",
-                     1000,-0.5, 999.5);
+                     1001,-0.05, 100.05);
     SPDTracklets_Dist_Groups->SetXTitle("SPDTracklets");
     SPDTracklets_Dist_Groups->SetYTitle("Count");
     
     SPDTracklets_Dist_Groups_norm = new TH1F("SPDTracklets_Dist_Groups_norm",
                      "SPDTracklets_Dist_Groups_norm",
-                     1000,0, 30);
+                     1001,-0.05, 100.05);
     SPDTracklets_Dist_Groups_norm->SetXTitle("SPDTracklets_norm");
     SPDTracklets_Dist_Groups_norm->SetYTitle("Count");
     
@@ -656,7 +663,7 @@ void PlotQuickest(){
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
         
         V0M_vs_SPD = new TH2F("V0M_vs_SPD",
                             "V0M_vs_SPD",
@@ -678,19 +685,31 @@ void PlotQuickest(){
         
         V0M_vs_SPD_norm = new TH2F("V0M_vs_SPD_norm",
                             "V0M_vs_SPD_norm",
-                            1000,0,30,1000,0,30);
+                            1001,-0.05, 100.05,1001,-0.05, 100.05);
            V0M_vs_SPD_norm->SetXTitle("V0M_norm");
            V0M_vs_SPD_norm->SetYTitle("SPDTracklets_norm");
         
+        NewEst_norm = new TH1F("NewEst_norm",
+                         "NewEst_norm",
+                         50,0, 100);
+        NewEst_norm->SetXTitle("NewEst_norm");
+        NewEst_norm->SetYTitle("Count");
+        
+        NewEst_norm_pond = new TH1F("NewEst_norm_pond",
+                         "NewEst_norm_pond",
+                         50,0, 100);
+        NewEst_norm_pond->SetXTitle("NewEst_norm_pond");
+        NewEst_norm_pond->SetYTitle("Count");
+        
         V0M_Dist_norm = new TH1F("V0M_Dist_norm",
                          "V0M_Dist_norm",
-                         1000,0,30);
+                         50,0, 100);
         V0M_Dist_norm->SetXTitle("V0M_norm");
         V0M_Dist_norm->SetYTitle("Count");
         
         SPDTracklets_Dist_norm = new TH1F("SPDTracklets_Dist_norm",
                          "SPDTracklets_Dist_norm",
-                         1000,0,30);
+                         50,0, 100);
         SPDTracklets_Dist_norm->SetXTitle("SPDTracklets_norm");
         SPDTracklets_Dist_norm->SetYTitle("Count");
         
@@ -779,13 +798,237 @@ void PlotQuickest(){
                 V0M_Dist->Fill(fEvent->fV0MValue);
                 SPDTracklets_Dist->Fill(fEvent->fSPDTrackletsValue);
                 V0M_vs_SPD->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
-                V0M_Dist_norm->Fill(fEvent->fV0MValue/meanV0M16h);
-                SPDTracklets_Dist_norm->Fill(fEvent->fSPDTrackletsValue/meanSPDTkl16h);
-                V0M_vs_SPD_norm->Fill(fEvent->fV0MValue/meanV0M16h, fEvent->fSPDTrackletsValue/meanSPDTkl16h);
+                V0M_Dist_norm->Fill((fEvent->fV0MValue/medianV0M16h)*10);
+                SPDTracklets_Dist_norm->Fill((fEvent->fSPDTrackletsValue/medianSPD16h)*10);
+                V0M_vs_SPD_norm->Fill((fEvent->fV0MValue/medianV0M16h)*10,((fEvent->fSPDTrackletsValue/medianSPD16h)*10));
+                
+                //V0M_Dist_norm->Scale(1./entries16h);
+                //SPDTracklets_Dist_norm->Scale(1./entries16h);
+                NewEst_norm->Fill(((4.3*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
+                NewEst_norm_pond->Fill(((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
 
                }
            
         }
+        
+        //Getting quantiles
+        int cumul = 0;
+        double q_90 = 0;
+        double q_80 = 0;
+        double q_70 = 0;
+        double q_60 = 0;
+        double q_50 = 0;
+        double q_40 = 0;
+        double q_30 = 0;
+        double q_20 = 0;
+        double q_15 = 0;
+        double q_10 = 0;
+        double q_05 = 0;
+        double q_03 = 0;
+        double q_01 = 0;
+        
+        for(int bin_idx=NewEst_norm->GetNbinsX(); bin_idx>=1; bin_idx--){
+            if(cumul <= entries16h*0.9){
+                q_90 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                if(cumul <= entries16h*0.8){
+                    q_80 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                    if(cumul <= entries16h*0.7){
+                        q_70 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                        if(cumul <= entries16h*0.6){
+                            q_60 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                            if(cumul <= entries16h*0.5){
+                                q_50 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                if(cumul <= entries16h*0.4){
+                                    q_40 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                    if(cumul <= entries16h*0.3){
+                                        q_30 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                        if(cumul <= entries16h*0.2){
+                                            q_20 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                            if(cumul <= entries16h*0.15){
+                                                q_15 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                                if(cumul <= entries16h*0.1){
+                                                    q_10 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                                    if(cumul <= entries16h*0.05){
+                                                        q_05 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                                        if(cumul <= entries16h*0.03){
+                                                            q_03 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                                            if(cumul <= entries16h*0.01){
+                                                                q_01 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            cumul+=NewEst_norm->GetBinContent(bin_idx);
+        }
+        
+        double maxNewEst = 0;
+                    for(int bin_idx=1; bin_idx<=NewEst_norm->GetNbinsX(); bin_idx++){
+                        if(NewEst_norm->GetBinContent(bin_idx)>0){
+                            maxNewEst = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
+                        }
+                    }
+        
+        cout << "0-1% is above "<< q_01<<endl;
+        cout << "1-3% is above "<< q_03<<endl;
+        cout << "3-5% is above "<< q_05<<endl;
+        cout << "5-10% is above "<< q_10<<endl;
+        cout << "10-15% is above "<< q_15<<endl;
+        cout << "15-20% is above "<< q_20<<endl;
+        cout << "20-30% is above "<< q_30<<endl;
+        cout << "30-40% is above "<< q_40<<endl;
+        cout << "40-50% is above "<< q_50<<endl;
+        cout << "50-60% is above "<< q_60<<endl;
+        cout << "60-70% is above "<< q_70<<endl;
+        cout << "70-80% is above "<< q_80<<endl;
+        cout << "80-90% is above "<< q_90<<endl;
+        cout << "90-100% is the rest from 0 to "<<q_90<<endl;
+        
+        
+        
+        //Getting quantiles for Average = Density
+        int cumul_pond = 0;
+        double q_90_pond = 0;
+        double q_80_pond = 0;
+        double q_70_pond = 0;
+        double q_60_pond = 0;
+        double q_50_pond = 0;
+        double q_40_pond = 0;
+        double q_30_pond = 0;
+        double q_20_pond = 0;
+        double q_15_pond = 0;
+        double q_10_pond = 0;
+        double q_05_pond = 0;
+        double q_03_pond = 0;
+        double q_01_pond = 0;
+        
+        for(int bin_idx=NewEst_norm_pond->GetNbinsX(); bin_idx>=1; bin_idx--){
+            if(cumul_pond <= entries16h*0.9){
+                q_90_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                if(cumul_pond <= entries16h*0.8){
+                    q_80_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                    if(cumul_pond <= entries16h*0.7){
+                        q_70_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                        if(cumul_pond <= entries16h*0.6){
+                            q_60_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                            if(cumul_pond <= entries16h*0.5){
+                                q_50_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                if(cumul_pond <= entries16h*0.4){
+                                    q_40_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                    if(cumul_pond <= entries16h*0.3){
+                                        q_30_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                        if(cumul_pond <= entries16h*0.2){
+                                            q_20_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                            if(cumul_pond <= entries16h*0.15){
+                                                q_15_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                                if(cumul_pond <= entries16h*0.1){
+                                                    q_10_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                                    if(cumul_pond <= entries16h*0.05){
+                                                        q_05_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                                        if(cumul_pond <= entries16h*0.03){
+                                                            q_03_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                                            if(cumul_pond <= entries16h*0.01){
+                                                                q_01_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            cumul_pond+=NewEst_norm_pond->GetBinContent(bin_idx);
+        }
+        
+        double maxNewEst_pond = 0;
+                    for(int bin_idx=1; bin_idx<=NewEst_norm_pond->GetNbinsX(); bin_idx++){
+                        if(NewEst_norm_pond->GetBinContent(bin_idx)>0){
+                            maxNewEst_pond = NewEst_norm_pond->GetXaxis()->GetBinCenter(bin_idx);
+                        }
+                    }
+        
+        cout << "Takind density into account"<<endl;
+        cout << "0-1% is above "<< q_01_pond<<endl;
+        cout << "1-3% is above "<< q_03_pond<<endl;
+        cout << "3-5% is above "<< q_05_pond<<endl;
+        cout << "5-10% is above "<< q_10_pond<<endl;
+        cout << "10-15% is above "<< q_15_pond<<endl;
+        cout << "15-20% is above "<< q_20_pond<<endl;
+        cout << "20-30% is above "<< q_30_pond<<endl;
+        cout << "30-40% is above "<< q_40_pond<<endl;
+        cout << "40-50% is above "<< q_50_pond<<endl;
+        cout << "50-60% is above "<< q_60_pond<<endl;
+        cout << "60-70% is above "<< q_70_pond<<endl;
+        cout << "70-80% is above "<< q_80_pond<<endl;
+        cout << "80-90% is above "<< q_90_pond<<endl;
+        cout << "90-100% is the rest from 0 to "<<q_90_pond<<endl;
+        
+        
+
+            //Getting distributions infos
+
+            //Finding the medians
+            int entriesV0M = V0M_Dist->GetEntries();
+            int cumulativeV0M = 0;
+            double medianV0M = 0;
+            for(int bin_idx=1; bin_idx<=V0M_Dist->GetNbinsX(); bin_idx++){
+                if(cumulativeV0M < entriesV0M/2){
+                    cumulativeV0M+= V0M_Dist->GetBinContent(bin_idx);
+                    if(cumulativeV0M >= entriesV0M/2){
+                        medianV0M = V0M_Dist->GetXaxis()->GetBinCenter(bin_idx);
+                    }
+                }
+            }
+
+            int entriesSPD = SPDTracklets_Dist->GetEntries();
+            int cumulativeSPD = 0;
+            double medianSPD = 0;
+            for(int bin_idx=1; bin_idx<=SPDTracklets_Dist->GetNbinsX(); bin_idx++){
+                if(cumulativeSPD < entriesSPD/2){
+                    cumulativeSPD+= SPDTracklets_Dist->GetBinContent(bin_idx);
+                    if(cumulativeSPD >= entriesSPD/2){
+                        medianSPD = SPDTracklets_Dist->GetXaxis()->GetBinCenter(bin_idx);
+                    }
+                }
+            }
+
+            //Finding minimum and maximum
+
+            double maxV0M = 0;
+            for(int bin_idx=1; bin_idx<=V0M_Dist->GetNbinsX(); bin_idx++){
+                if(V0M_Dist->GetBinContent(bin_idx)>0){
+                    maxV0M = V0M_Dist->GetXaxis()->GetBinCenter(bin_idx);
+                }
+            }
+
+            double maxSPD = 0;
+            for(int bin_idx=1; bin_idx<=SPDTracklets_Dist->GetNbinsX(); bin_idx++){
+                if(SPDTracklets_Dist->GetBinContent(bin_idx)>0){
+                    maxSPD = SPDTracklets_Dist->GetXaxis()->GetBinCenter(bin_idx);
+                }
+            }
+
+
+
+        cout << "Entries V0M: " << entriesV0M<<endl;
+        cout << "Maximum V0M: " << maxV0M<<endl;
+        cout << "Median V0M: " << medianV0M<<endl;
+        cout << "Entries SPD: " << entriesSPD<<endl;
+        cout << "Maximum SPD: " << maxSPD<<endl;
+        cout << "Median SPD: " << medianSPD<<endl;
         
         char hname[100];
         sprintf(hname, "V0M_Dist - %s" ,arrayOfPeriods[tree_idx]);
@@ -805,15 +1048,30 @@ void PlotQuickest(){
         
         sprintf(hname, "V0M_Dist_norm - %s" ,arrayOfPeriods[tree_idx]);
         TCanvas* cV0M_norm=new TCanvas(hname);
-        V0M_Dist_norm->Scale(1./V0M_Dist_norm->GetEntries());
         V0M_Dist_norm->SetTitle(hname);
         V0M_Dist_norm->Draw();
         
         sprintf(hname, "SPDTracklets_Dist_norm - %s" ,arrayOfPeriods[tree_idx]);
         TCanvas* cSPDTracklets_norm=new TCanvas(hname);
-        SPDTracklets_Dist_norm->Scale(1./SPDTracklets_Dist_norm->GetEntries());
         SPDTracklets_Dist_norm->SetTitle(hname);
         SPDTracklets_Dist_norm->Draw();
+        
+        sprintf(hname, "NewEst_norm - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cNewEst_norm=new TCanvas(hname);
+        cNewEst_norm->cd();
+        NewEst_norm->SetTitle(hname);
+        NewEst_norm->SetLineColor(kGreen);
+        NewEst_norm->SetLineWidth(3);
+        NewEst_norm->Draw();
+        V0M_Dist_norm->SetLineColor(kBlue);
+        V0M_Dist_norm->SetLineWidth(3);
+        V0M_Dist_norm->Draw("same");
+        SPDTracklets_Dist_norm->SetLineColor(kRed);
+        SPDTracklets_Dist_norm->SetLineWidth(3);
+        SPDTracklets_Dist_norm->Draw("same");
+        NewEst_norm_pond->SetLineColor(kMagenta);
+        NewEst_norm_pond->SetLineWidth(3);
+        NewEst_norm_pond->Draw("same");
         
         sprintf(hname, "V0M_vs_SPD_norm - %s" ,arrayOfPeriods[tree_idx]);
         TCanvas* cV0M_vs_SPD_norm = new TCanvas(hname);
@@ -825,19 +1083,19 @@ void PlotQuickest(){
         legend->AddEntry(V0M_Dist,message);
         
         cV0M_Dist_Groups->cd();
-        V0M_Dist->SetLineColor(tree_idx+1);
+      //  V0M_Dist->SetLineColor(tree_idx+1);
         V0M_Dist->Draw("same");
         
         cV0M_Dist_Groups_norm->cd();
-        V0M_Dist_norm->SetLineColor(tree_idx+1);
+       // V0M_Dist_norm->SetLineColor(tree_idx+1);
         V0M_Dist_norm->Draw("same");
         
         cSPDTracklets_Dist_Groups->cd();
-        SPDTracklets_Dist->SetLineColor(tree_idx+1);
+       // SPDTracklets_Dist->SetLineColor(tree_idx+1);
         SPDTracklets_Dist->Draw("same");
         
         cSPDTracklets_Dist_Groups_norm->cd();
-        SPDTracklets_Dist_norm->SetLineColor(tree_idx+1);
+        //SPDTracklets_Dist_norm->SetLineColor(tree_idx+1);
         SPDTracklets_Dist_norm->Draw("same");
         
         
@@ -1795,3 +2053,192 @@ Double_t myEtaLow(double x){
 
 Double_t myEtaHigh(double x){
 return -(TMath::Log(TMath::Tan(0.5*TMath::ATan(7.6/(14.1-(floor(x)+0.5)))))) - 0.05; }
+
+
+void PlotMass(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double SigmaZvtxCut = 0.25;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 12;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 1.0;
+    double MaxInvMass = 5;
+    const int NbinsDimuInvMass = 500;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsDimuInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+    Char_t FitFileName[500];
+    //   Char_t AssociateFileName[200];
+
+       sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_Manuel.root");
+    
+    //Char_t Group_Period[50] = "Group1_LHC16h";
+   // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
+    Char_t *arrayOfPeriods[] = {"Cvetan_LHC16r_PU2"};
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH1I* hnseg(NULL);
+    TH2I* hPU(NULL);
+    TF1 *fPUCut = new TF1("fPUCut","100+4*x",0,200);
+    
+    
+    hnseg = new TH1I("hnseg",
+                     "Invariant mass of dimuon",
+                     NbinsDimuInvMass,MinInvMass,MaxInvMass);
+    hnseg->SetXTitle("Mass of dimuon (GeV/c^{2})");
+    hPU = new TH2I("hPU",
+                     "Clusters vs tracklets",
+                     200,0,200,1000,0,1000);
+    hPU->SetXTitle("Tracklets");
+    hPU->SetYTitle("Clusters");
+    
+
+// *************************
+// Analyse                 *
+// *************************
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            theTree->GetEvent(i);
+            
+            if(fEvent->fIsPileupFromSPDMultBins || fEvent->fVertexNC < 1 || fEvent->fNDimuons <1 || fEvent->fPassPhysicsSelection == 0 || fEvent->fIsPileupClustVsTkl == 1){//}|| fEvent->fIsPileupClustVsTkl == 0 || fEvent->fPassPhysicsSelection == 0){ //|| fEvent->fNPileupVtx != 0
+                continue;
+            }
+            
+            hPU->Fill(fEvent->fNTracklets, fEvent->fSPDClustersValue);
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+//            for (Int_t j=0; j<fEvent->fNDimuons; j++) {
+//                dimu = (DimuonLight*)fDimuons->At(j);
+//                if ((TMath::Abs(fEvent->fVertexZ) < ZvtxCut) && (TMath::Abs(fEvent->fSPDVertexSigmaZ) < SigmaZvtxCut) && (dimu->fY < HighDimuYCut ) && (dimu->fY > LowDimuYCut) && (dimu->fCharge == 0) && (dimu->fPt > LowDimuPtCut) && (dimu->fPt < HighDimuPtCut)){
+//
+//                    hnseg->Fill(dimu->fInvMass);
+//
+//
+//                }
+//            }
+
+            
+            
+        }
+        
+        
+    }
+    
+    cout << "Reading of events finished" <<endl;
+    
+//    TFile *f = new TFile(FitFileName,"UPDATE");
+//
+//    hPU->Write();
+//    f->Close();
+//
+    hPU->Draw("colz");
+    fPUCut->Draw("same");
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+    
+    
+    
+}
