@@ -36,6 +36,7 @@
 # include "TH1I.h"
 # include "TH1D.h"
 # include "TH2F.h"
+# include "THnSparse.h"
 # include "Scripts/AliAnalysisTaskMyMuonTree_AOD.h"
 
 //Code pour essayer différents fits de masse invariante et pulls
@@ -72,16 +73,35 @@ int NumberOfParametersBkg(string BackgroundF);
 
 
 TH1F* hnseg(NULL);
+TH1F* hnseg2(NULL);
+TH1F* hnseg3(NULL);
+TH1F* hnseg4(NULL);
+TH1F* hnseg5(NULL);
+TH1F* hnseg6(NULL);
+TH1F* hnseg7(NULL);
+TH1F* hnseg8(NULL);
+TH1F* hnseg9(NULL);
+TH1F* hnseg10(NULL);
+TH1F* hnseg11(NULL);
+TH1F* hnseg12(NULL);
+TH1F* hnseg13(NULL);
+TH1F* hnseg14(NULL);
+TH1F* hnseg15(NULL);
+TH1F* hnseg16(NULL);
+TH1F* hnseg_div(NULL);
+THnSparse* hnfile(NULL);
 TH1F* hpool(NULL);
 TH1F* isSuccess(NULL);
-TGraphErrors* hchi2(NULL);
-TGraphErrors* hmassjpsi(NULL);
-TGraphErrors* hsigma(NULL);
-TGraphErrors* hstats(NULL);
-TGraphErrors* ha1(NULL);
-TGraphErrors* hn1(NULL);
-TGraphErrors* ha2(NULL);
-TGraphErrors* hn2(NULL);
+TH1F* hchi2(NULL);
+TH1F* hchi2signal(NULL);
+TH1F* hmassjpsi(NULL);
+TH1F* hsigma(NULL);
+TH1F* hstats(NULL);
+TH1F* hstatsPsi2s(NULL);
+TH1F* ha1(NULL);
+TH1F* hn1(NULL);
+TH1F* ha2(NULL);
+TH1F* hn2(NULL);
 char histoname[50];
 
 Double_t mJpsi =  3.096916;
@@ -90,10 +110,15 @@ Double_t mDiff = 0.589188;// Double_t ratMass = 1.01;
  //Double_t ratSigma = 1.05;
 Int_t npfits;
 
-double MinInvMass = 2.1;
-double MaxInvMass = 5.1;
+//double MinInvMass = 2.1;
+//double MaxInvMass = 5.1;
+//
+//const int NbinsDimuInvMass = 3000;
 
-const int NbinsDimuInvMass = 3000;
+double MinInvMass = 2;
+double MaxInvMass = 12;
+
+const int NbinsDimuInvMass = 10000;
 
 bool PtBinned = kFALSE;
 double PtBins[] = {0,2,4,6,8,12};
@@ -101,7 +126,23 @@ const int NbPtBins = 5;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
 
-Char_t FitFileName[200];
+Char_t FitFileName[500];
+Char_t FitFileName2[500];
+Char_t FitFileName3[500];
+Char_t FitFileName4[500];
+Char_t FitFileName5[500];
+Char_t FitFileName6[500];
+Char_t FitFileName7[500];
+Char_t FitFileName8[500];
+Char_t FitFileName9[500];
+Char_t FitFileName10[500];
+Char_t FitFileName11[500];
+Char_t FitFileName12[500];
+Char_t FitFileName13[500];
+Char_t FitFileName14[500];
+Char_t FitFileName15[500];
+Char_t FitFileName16[500];
+
 Char_t FolderName[200];
 
 
@@ -114,28 +155,38 @@ double VarRatSigma[2] = {1.0, 1.05};
 
 int compteur = 0;
 
-double accroche[96];
-double erraccroche[96];
-double chi2Valeurs[96];
-double chi2Erreurs[96];
-double massjpsiValeurs[96];
-double massjpsiErreurs[96];
-double sigmaValeurs[96];
-double sigmaErreurs[96];
-double statsValeurs[96];
-double statsErreurs[96];
-double a1Valeurs[96];
-double a1Erreurs[96];
-double n1Valeurs[96];
-double n1Erreurs[96];
-double a2Valeurs[96];
-double a2Erreurs[96];
-double n2Valeurs[96];
-double n2Erreurs[96];
-int isValid[96];
-string methods[96];
+double accroche[36];
+double erraccroche[36];
+double chi2Valeurs[36];
+double chi2signalValeurs[36];
+double chi2signalErreurs[36];
+double chi2Erreurs[36];
+double massjpsiValeurs[36];
+double massjpsiErreurs[36];
+double sigmaValeurs[36];
+double sigmaErreurs[36];
+double statsValeurs[36];
+double statsErreurs[36];
+double statsPsi2sValeurs[36];
+double statsPsi2sErreurs[36];
+double a1Valeurs[36];
+double a1Erreurs[36];
+double n1Valeurs[36];
+double n1Erreurs[36];
+double a2Valeurs[36];
+double a2Erreurs[36];
+double n2Valeurs[36];
+double n2Erreurs[36];
+int isValid[36];
+string methods[36];
 
 void InvMassStudies(){
+    
+    hnseg_div = new TH1F("hnseg_div","hnseg_div",3000,2,5);
+    // TGraph *gr3 = new TGraph (n, K3, chi);
+     hnseg_div->SetTitle("Division");
+     hnseg_div->GetXaxis()->SetTitle("Mass");
+     hnseg_div->GetYaxis()->SetTitle("Manu/Me");
 
 //    for(int signal=0; signal<3; signal++){
 //        for(int background=0; background<3; background++){
@@ -147,7 +198,7 @@ void InvMassStudies(){
 //        }
 //    }
     
-    isSuccess = new TH1F("isSuccess", "isSuccess",0,96,96);
+    isSuccess = new TH1F("isSuccess", "isSuccess",0,36,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      isSuccess->SetTitle("is fit Success");
      isSuccess->GetXaxis()->SetTitle("Method");
@@ -179,88 +230,157 @@ void InvMassStudies(){
         for(int background=0; background<3; background++){
                 for(int massrange=0; massrange<2; massrange++){
                                 for(int ratidx=0;ratidx<2;ratidx++){
-                                    
+
                                     MassFitsAndPulls(VarSignals[signal], VarBackgrounds[background], VarMinInvMass[massrange], VarMaxInvMass[massrange], VarRatSigma[ratidx]);
-                                    
+
                                     char massranges[100];
                                        sprintf(massranges, "%.1f_%.1f_rat%.2f", VarMinInvMass[massrange], VarMaxInvMass[massrange], VarRatSigma[ratidx]);
-                                       
+
                                        string fitPerformed_index = VarSignals[signal]+VarBackgrounds[background]+massranges;
-                                       
+
                                     methods[compteur] = fitPerformed_index;
-                                    
+
                                     compteur++;
-                                    
+
                                 }
                             }
         }
     }
     
-  //  MassFitsAndPulls(VarSignals[0], VarBackgrounds[2], 2.1, 5.1, 1.05);
+   // MassFitsAndPulls(VarSignals[1], VarBackgrounds[1], 2.4, 4.7, 1.);
     
+//    string VarSignals[3] = {"CB2-Run2", "CB2-MC","NA60-MC"};
+//    string VarBackgrounds[4] = {"VWG", "POL1POL2", "DoubleExpo","Tchebychev"};
+//    double VarMinInvMass[3] = {2.3, 2.4,2.1};
+//    double VarMaxInvMass[3] = {4.9, 4.7,5.1};
+//    double VarRatSigma[2] = {1.0, 1.05};
     
-    double accroche[96];
-    double erraccroche[96];
+    double accroche[36];
+    double erraccroche[36];
     
-    for(int idx=0; idx<96;idx++){
-        accroche[idx] = idx+0.5;
+    for(int idx=0; idx<36;idx++){
+        accroche[idx] = idx;
         erraccroche[idx] = 0.5;
     }
-    hchi2 = new TGraphErrors(96,accroche,chi2Valeurs,erraccroche,chi2Erreurs);
+    hchi2 = new TH1F("hchi2","hchi2",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      hchi2->SetTitle("Value of #\chi^2/ndf depending on fit");
      hchi2->GetXaxis()->SetTitle("Method");
      hchi2->GetYaxis()->SetTitle("#\chi^2/ndf");
     
-    hmassjpsi = new TGraphErrors(96,accroche,massjpsiValeurs,erraccroche,massjpsiErreurs);
+    for(int binx=1; binx<=hchi2->GetNbinsX();binx++){
+        hchi2->SetBinContent(binx,chi2Valeurs[binx-1]);
+        hchi2->SetBinError(binx,chi2Erreurs[binx-1]);
+    }
+    
+    hchi2signal = new TH1F("hchi2signal","hchi2signal",36,0,36);
+    // TGraph *gr3 = new TGraph (n, K3, chi);
+     hchi2signal->SetTitle("Value of #\chi^2/ndf in 2.5 to 3.5 depending on fit");
+     hchi2signal->GetXaxis()->SetTitle("Method");
+     hchi2signal->GetYaxis()->SetTitle("#\chi^2/ndf signal");
+    
+    for(int binx=1; binx<=hchi2signal->GetNbinsX();binx++){
+        hchi2signal->SetBinContent(binx,chi2signalValeurs[binx-1]);
+        hchi2signal->SetBinError(binx,chi2signalErreurs[binx-1]);
+    }
+    
+    hmassjpsi = new TH1F("hmassjpsi","hmassjpsi",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      hmassjpsi->SetTitle("Value of mass of jpsi depending on fit");
      hmassjpsi->GetXaxis()->SetTitle("Method");
      hmassjpsi->GetYaxis()->SetTitle("mass of jpsi");
     
-    hsigma = new TGraphErrors(96,accroche,sigmaValeurs,erraccroche,sigmaErreurs);
+    for(int binx=1; binx<=hmassjpsi->GetNbinsX();binx++){
+        hmassjpsi->SetBinContent(binx,massjpsiValeurs[binx-1]);
+        hmassjpsi->SetBinError(binx,massjpsiErreurs[binx-1]);
+    }
+    
+    hsigma = new TH1F("hsigma","hsigma",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      hsigma->SetTitle("Value of sigma depending on fit");
      hsigma->GetXaxis()->SetTitle("Method");
      hsigma->GetYaxis()->SetTitle("Sigma");
     
-    hstats = new TGraphErrors(96,accroche,statsValeurs,erraccroche,statsErreurs);
+    for(int binx=1; binx<=hsigma->GetNbinsX();binx++){
+        hsigma->SetBinContent(binx,sigmaValeurs[binx-1]);
+        hsigma->SetBinError(binx,sigmaErreurs[binx-1]);
+    }
+    
+    hstats = new TH1F("hstats","hstats",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      hstats->SetTitle("Value of number of jpsi depending on fit");
      hstats->GetXaxis()->SetTitle("Method");
      hstats->GetYaxis()->SetTitle("number of jpsi");
     
-    ha1 = new TGraphErrors(96,accroche,a1Valeurs,erraccroche,a1Erreurs);
+    for(int binx=1; binx<=hstats->GetNbinsX();binx++){
+        hstats->SetBinContent(binx,statsValeurs[binx-1]);
+        hstats->SetBinError(binx,statsErreurs[binx-1]);
+    }
+    
+    hstatsPsi2s = new TH1F("hstatsPsi2s","hstatsPsi2s",36,0,36);
+    // TGraph *gr3 = new TGraph (n, K3, chi);
+     hstatsPsi2s->SetTitle("Value of number of Psi2s depending on fit");
+     hstatsPsi2s->GetXaxis()->SetTitle("Method");
+     hstatsPsi2s->GetYaxis()->SetTitle("number of Psi2s");
+    
+    for(int binx=1; binx<=hstatsPsi2s->GetNbinsX();binx++){
+        hstatsPsi2s->SetBinContent(binx,statsPsi2sValeurs[binx-1]);
+        hstatsPsi2s->SetBinError(binx,statsPsi2sErreurs[binx-1]);
+    }
+    
+    ha1 = new TH1F("ha1","ha1",36,0,36);
        // TGraph *gr3 = new TGraph (n, K3, chi);
         ha1->SetTitle("Value of a1 depending on fit");
         ha1->GetXaxis()->SetTitle("Method");
         ha1->GetYaxis()->SetTitle("a1");
     
-    hn1 = new TGraphErrors(96,accroche,n1Valeurs,erraccroche,n1Erreurs);
+    for(int binx=1; binx<=ha1->GetNbinsX();binx++){
+        ha1->SetBinContent(binx,a1Valeurs[binx-1]);
+        ha1->SetBinError(binx,a1Erreurs[binx-1]);
+    }
+    
+    hn1 = new TH1F("hn1","hn1",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      hn1->SetTitle("Value of n1 depending on fit");
      hn1->GetXaxis()->SetTitle("Method");
      hn1->GetYaxis()->SetTitle("n1");
     
-    ha2 = new TGraphErrors(96,accroche,a2Valeurs,erraccroche,a2Erreurs);
+    for(int binx=1; binx<=hn1->GetNbinsX();binx++){
+        hn1->SetBinContent(binx,n1Valeurs[binx-1]);
+        hn1->SetBinError(binx,n1Erreurs[binx-1]);
+    }
+    
+    ha2 = new TH1F("ha2","ha2",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      ha2->SetTitle("Value of a2 depending on fit");
      ha2->GetXaxis()->SetTitle("Method");
      ha2->GetYaxis()->SetTitle("a2");
     
-    hn2 = new TGraphErrors(96,accroche,n2Valeurs,erraccroche,n2Erreurs);
+    for(int binx=1; binx<=ha2->GetNbinsX();binx++){
+        ha2->SetBinContent(binx,a2Valeurs[binx-1]);
+        ha2->SetBinError(binx,a2Erreurs[binx-1]);
+    }
+    
+    hn2 = new TH1F("hn2","hn2",36,0,36);
     // TGraph *gr3 = new TGraph (n, K3, chi);
      hn2->SetTitle("Value of n2 depending on fit");
      hn2->GetXaxis()->SetTitle("Method");
      hn2->GetYaxis()->SetTitle("n2");
     
+    for(int binx=1; binx<=hn2->GetNbinsX();binx++){
+        hn2->SetBinContent(binx,n2Valeurs[binx-1]);
+        hn2->SetBinError(binx,n2Erreurs[binx-1]);
+    }
+    
       //  cout << methods[i]<<endl;
-    for(int i=0;i<96;i++){
+    for(int i=0;i<36;i++){
         if(isValid[i] == 1){
         hchi2->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
+            hchi2signal->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
         hmassjpsi->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
             hsigma->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
             hstats->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
+            hstatsPsi2s->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
             ha1->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
             hn1->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
             ha2->GetXaxis()->SetBinLabel(i+1,methods[i].c_str());
@@ -271,9 +391,11 @@ void InvMassStudies(){
             sprintf(tempy, "#color[4]{%s}",methods[i].c_str());
             
             hchi2->GetXaxis()->SetBinLabel((i+1),tempy);
+            hchi2signal->GetXaxis()->SetBinLabel((i+1),tempy);
             hmassjpsi->GetXaxis()->SetBinLabel((i+1),tempy);
             hsigma->GetXaxis()->SetBinLabel((i+1),tempy);
             hstats->GetXaxis()->SetBinLabel((i+1),tempy);
+            hstatsPsi2s->GetXaxis()->SetBinLabel((i+1),tempy);
             ha1->GetXaxis()->SetBinLabel((i+1),tempy);
             hn1->GetXaxis()->SetBinLabel((i+1),tempy);
             ha2->GetXaxis()->SetBinLabel((i+1),tempy);
@@ -284,9 +406,11 @@ void InvMassStudies(){
             sprintf(tempy, "#color[2]{%s}",methods[i].c_str());
             
             hchi2->GetXaxis()->SetBinLabel((i+1),tempy);
+            hchi2signal->GetXaxis()->SetBinLabel((i+1),tempy);
             hmassjpsi->GetXaxis()->SetBinLabel((i+1),tempy);
             hsigma->GetXaxis()->SetBinLabel((i+1),tempy);
             hstats->GetXaxis()->SetBinLabel((i+1),tempy);
+            hstatsPsi2s->GetXaxis()->SetBinLabel((i+1),tempy);
             ha1->GetXaxis()->SetBinLabel((i+1),tempy);
             hn1->GetXaxis()->SetBinLabel((i+1),tempy);
             ha2->GetXaxis()->SetBinLabel((i+1),tempy);
@@ -294,12 +418,16 @@ void InvMassStudies(){
         }
         hchi2->GetXaxis()->LabelsOption("v");
         hchi2->GetXaxis()->SetLabelSize(0.025);
+        hchi2signal->GetXaxis()->LabelsOption("v");
+        hchi2signal->GetXaxis()->SetLabelSize(0.025);
         hmassjpsi->GetXaxis()->LabelsOption("v");
         hmassjpsi->GetXaxis()->SetLabelSize(0.025);
         hsigma->GetXaxis()->LabelsOption("v");
         hsigma->GetXaxis()->SetLabelSize(0.025);
         hstats->GetXaxis()->LabelsOption("v");
         hstats->GetXaxis()->SetLabelSize(0.025);
+        hstatsPsi2s->GetXaxis()->LabelsOption("v");
+        hstatsPsi2s->GetXaxis()->SetLabelSize(0.025);
         ha1->GetXaxis()->LabelsOption("v");
         ha1->GetXaxis()->SetLabelSize(0.025);
         hn1->GetXaxis()->LabelsOption("v");
@@ -315,42 +443,52 @@ void InvMassStudies(){
     TCanvas *cchi2 = new TCanvas("cchi2","Fits chi2/ndf",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     cchi2->SetTitle("Fits chi2/ndf");
-    hchi2->Draw("AP");
+    hchi2->Draw();
+    
+    TCanvas *cchi2signal = new TCanvas("cchi2signal","Fits chi2/ndf for signal",10,10,1400,1000);
+    if (gPad) gPad->SetBottomMargin(0.3);
+    cchi2signal->SetTitle("Fits chi2/ndf for signal");
+    hchi2signal->Draw();
     
     TCanvas *cmassjpsi = new TCanvas("cmassjpsi","Fits mass of jpsi",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     cmassjpsi->SetTitle("Fits mass of jpsi");
-    hmassjpsi->Draw("AP");
+    hmassjpsi->Draw();
     
     TCanvas *csigma = new TCanvas("csigma","Fits sigma of jpsi",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     csigma->SetTitle("Fits sigma of jpsi");
-    hsigma->Draw("AP");
+    hsigma->Draw();
     
     TCanvas *cstats = new TCanvas("cstats","Fits number of jpsi",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     cstats->SetTitle("Fits number of jpsi");
-    hstats->Draw("AP");
+    hstats->Draw();
+    
+    TCanvas *cstatsPsi2s = new TCanvas("cstatsPsi2s","Fits number of Psi2s",10,10,1400,1000);
+    if (gPad) gPad->SetBottomMargin(0.3);
+    cstatsPsi2s->SetTitle("Fits number of Psi2s");
+    hstatsPsi2s->Draw();
     
     TCanvas *ca1 = new TCanvas("ca1","Fits a1",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     ca1->SetTitle("Fits a1");
-    ha1->Draw("AP");
+    ha1->Draw();
     
     TCanvas *cn1 = new TCanvas("cn1","Fits n1",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     cn1->SetTitle("Fits n1");
-    hn1->Draw("AP");
+    hn1->Draw();
     
     TCanvas *ca2 = new TCanvas("ca2","Fits a2",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     ca2->SetTitle("Fits a2");
-    ha2->Draw("AP");
+    ha2->Draw();
     
     TCanvas *cn2 = new TCanvas("cn2","Fits n2",10,10,1400,1000);
     if (gPad) gPad->SetBottomMargin(0.3);
     cn2->SetTitle("Fits n2");
-    hn2->Draw("AP");
+    hn2->Draw();
     
     double meana1 = 0;
     double meana2 = 0;
@@ -358,7 +496,7 @@ void InvMassStudies(){
     double meann2 = 0;
     
     int compty = 0;
-    for(int index=0;index<96;index++){
+    for(int index=0;index<36;index++){
         if(isValid[index]==1 && chi2Valeurs[index] < 5 && n1Valeurs[index] < 49 && n2Valeurs[index] < 49){
             compty++;
             meana1+=a1Valeurs[index];
@@ -379,27 +517,38 @@ void InvMassStudies(){
     double meanJPsi = 0;
     double meanStat = 0;
     double rms = 0;
+    double meanPsi2s = 0;
+    double meanPsi2sStat = 0;
+    double rmsPsi2s = 0;
     int comp = 0;
     
-    for(int index=0;index<96;index++){
+    for(int index=0;index<36;index++){
         if(isValid[index] != 0 && statsErreurs[index]<500000 && statsErreurs[index]> 0){
             comp++;
         meanJPsi+=statsValeurs[index];
         meanStat+=statsErreurs[index];
+            meanPsi2s+=statsPsi2sValeurs[index];
+            meanPsi2sStat+=statsPsi2sErreurs[index];
         }
     }
     meanJPsi/=comp;
     meanStat/=comp;
+    meanPsi2s/=comp;
+    meanPsi2sStat/=comp;
     
-    for(int index=0;index<96;index++){
+    for(int index=0;index<36;index++){
         if(isValid[index] != 0 && statsErreurs[index]<500000 && statsErreurs[index]> 0){
             rms+=pow(statsValeurs[index]-meanJPsi,2);
+            rmsPsi2s+=pow(statsPsi2sValeurs[index]-meanPsi2s,2);
         }
     }
     rms/=comp;
     rms=sqrt(rms);
+    rmsPsi2s/=comp;
+    rmsPsi2s=sqrt(rmsPsi2s);
     
     cout << "Final statistics of JPsi: " << meanJPsi << " +/- " << meanStat << " (stat.) +/- " << rms << " (syst.)"<<endl;
+    cout << "Final statistics of PSI2S: " << meanPsi2s << " +/- " << meanPsi2sStat << " (stat.) +/- " << rmsPsi2s << " (syst.)"<<endl;
     
 }
 
@@ -414,11 +563,81 @@ void MassFitsAndPulls(string SignalF, string BackgroundF, double min, double max
     // ROOT THAT Inv mass fits
     cinvmass->Divide(1,3);
     
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_SPDTrackletsPercentile_0-5_40-100_pt0-2-4-6-8-12_ManuInvMass.root");
+    sprintf(FitFileName5,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/Septembre2021-Run2ReferencesTKLSystematicsStart/FitFile_NewAnalysisAllEst_Run2_SPDTrackletsPercentile_0-5_40-100_pt0-2-4-6-8-12_ManuInvMass.root");
+//    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group4_LHC18o_AllEst_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+//    sprintf(FitFileName3,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group4_LHC17k_AllEst_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+//
+//    sprintf(FitFileName5,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC16j_AllEst_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+//    sprintf(FitFileName7,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC17i_AllEst_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-3-4-6-8-12.root");
+    sprintf(FitFileName2,"~/Downloads/DimuonRun2.root");
+    
+    sprintf(FitFileName4,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Mix_CMUL_MULi_nTrk1_Birmingham_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_noIAll_ManuInvMass.root");
+    
+    //sprintf(FitFileName2,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group4_LHC18o_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+//    sprintf(FitFileName4,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC16h_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    
+    sprintf(FitFileName6,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC16j_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    sprintf(FitFileName8,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC16o_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    
+    sprintf(FitFileName10,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC16p_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    
+    sprintf(FitFileName12,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group1_LHC17i_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    
+    sprintf(FitFileName14,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group4_LHC17k_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    
+    sprintf(FitFileName16,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Group4_LHC18o_CMUL_MUL_V0MPercentile_0-20_40-100_pt0-2-3-6-8_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll.root");
+    
     sprintf(FolderName,"~/Desktop/ImagesJavierAnalysis/2021 mai/NewAnalysis_16h10_TKL_QGPFrance_0-5_40-100_pt0-12/FitTrainingTKLa");
     
     TFile *filerec = new TFile(FitFileName);
+    TFile *filerec2 = new TFile(FitFileName2);
+   // TFile *filerec3 = new TFile(FitFileName3);
+    TFile *filerec4 = new TFile(FitFileName4);
+    TFile *filerec5 = new TFile(FitFileName5);
+    TFile *filerec6 = new TFile(FitFileName6);
+   // TFile *filerec7 = new TFile(FitFileName7);
+    TFile *filerec8 = new TFile(FitFileName8);
+    TFile *filerec10 = new TFile(FitFileName8);
+    TFile *filerec12 = new TFile(FitFileName8);
+    TFile *filerec14 = new TFile(FitFileName8);
+    TFile *filerec16 = new TFile(FitFileName8);
+hnfile = (THnSparse*)filerec2->Get("CMUL_fhDimuon");
+    cout << "LEL1"<<endl;
+hnseg2 = (TH1F*)hnfile->Projection(0);
+  //  hnseg2 = (TH1F*)filerec2->Get("hnseg");
+  //  cout << hnseg2->GetBinContent(2)<<endl;
+    cout << "LEL2"<<endl;
     hnseg = (TH1F*)filerec->Get("hnseg");
+  //  hnseg2 = (TH1F*)filerec2->Get("hnseg");
+    hnseg4 = (TH1F*)filerec4->Get("hnseg");
+    hnseg5 = (TH1F*)filerec5->Get("hnseg");
+    hnseg6 = (TH1F*)filerec6->Get("hnseg");
+    //hnseg7 = (TH1F*)filerec7->Get("hnseg");
+    hnseg8 = (TH1F*)filerec8->Get("hnseg");
+    hnseg10 = (TH1F*)filerec10->Get("hnseg");
+    hnseg12 = (TH1F*)filerec12->Get("hnseg");
+    hnseg14 = (TH1F*)filerec14->Get("hnseg");
+    hnseg16 = (TH1F*)filerec16->Get("hnseg");
+    
+    for(int bin_index=100;bin_index<=3000;bin_index++){
+        
+        double moyennage = 0;
+        for(int ind=0; ind < 1;ind++){
+            moyennage += hnseg2->GetBinContent(bin_index+ind)/(hnseg5->GetBinContent(bin_index-100+ind));
+        }
+        moyennage/=1;
+        hnseg_div->SetBinContent(bin_index, moyennage);
+        
+    }
+    
+    TCanvas *cdiv = new TCanvas("cdiv","Divide",10,10,1400,1000);
+    cdiv->SetTitle("Divide");
+    cdiv->cd();
+    hnseg_div->Draw();
+    
+    
 //    InvMass_Central = (TH1F*)filerec->Get("InvMass_Central");
 //    InvMass_Periph = (TH1F*)filerec->Get("InvMass_Periph");
     
@@ -532,9 +751,11 @@ void MassFitsAndPulls(string SignalF, string BackgroundF, double min, double max
         
         myfiletxt << "POUET" <<endl;
          myfiletxt << "POUET " << hnseg->GetNbinsX() <<endl;
+        double chi2signal = 0;
+        int rejectedBins = 0;
         for(int bin=0; bin<hnseg->GetNbinsX(); bin++){
-            if(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass > min && MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass < max){
-                double fit_prediction = fitFcn->Eval(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass);
+            if(MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass > min && MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass < max){
+                double fit_prediction = fitFcn->Eval(MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass);
                 double data = hnseg->GetBinContent(bin+1);
                 double error = hnseg->GetBinError(bin+1);
                 if(error>0){
@@ -543,8 +764,20 @@ void MassFitsAndPulls(string SignalF, string BackgroundF, double min, double max
                     hpool->SetBinContent(bin+1,pool);
                     
                    }
+                if(MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass > 2.5 && MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass < 3.5){
+                    chi2signal += pow((data-fit_prediction)/error,2);
+                }
+                if (MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass <= 2.5 || MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass >= 3.5){
+                    rejectedBins++;
+                }
+                
             }
         }
+        cout <<"fitFcn->GetNDF() "<< fitFcn->GetNDF()<<endl;
+        cout <<"rejectedBins "<< rejectedBins<<endl;
+        chi2signal/=990;
+        chi2signalValeurs[compteur] = chi2signal;
+        chi2signalErreurs[compteur] = 0;
         myfiletxt.close();
 
         TCanvas*cpoolall = new TCanvas();
@@ -650,8 +883,8 @@ void MassFitsAndPulls(string SignalF, string BackgroundF, double min, double max
                 // Ajouter le point à un histo
 
             for(int bin=0; bin<histo->GetNbinsX(); bin++){
-                if(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass > min && MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass < max){
-                    double fit_prediction = fitFcn->Eval(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass);
+                if(MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass > min && MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass < max){
+                    double fit_prediction = fitFcn->Eval(MinInvMass + 10*(0.5+bin)/NbinsDimuInvMass);
                     double data = histo->GetBinContent(bin+1);
                     double error = histo->GetBinError(bin+1);
                     double pool = (data-fit_prediction)/error;
@@ -723,7 +956,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
      10: Norlmalisation After
      11: Exponent After
      */
-    TFile *file0 = new TFile(FitFileName);
+    TFile *file0 = new TFile(FitFileName); //POUET
     
     ofstream myfiletxt;
     myfiletxt.open("/tmp/debugging.txt");
@@ -736,7 +969,9 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
    cinvmass->SetFrameFillColor(41);
    cinvmass->SetGrid();
    TH1F *histo = (TH1F*)file0->Get(histoname);
-   // create a TF1 with the range from 0 to 3 and 6 parameters
+  //  THnSparse *histoa = (THnSparse*)file0->Get("CMUL_fhDimuon");
+    //  TH1F* histo = (TH1F*)histoa->Projection(0);
+  //  create a TF1 with the range from 0 to 3 and 6 parameters
     
     TF1 *fitFcn = NULL;
     TF1 *backFcn1 = NULL;
@@ -817,7 +1052,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
          
            fitFcn->SetParLimits(0,0.1,100000000);
            fitFcn->SetParLimits(1,3.05,3.15);
-           fitFcn->SetParLimits(2,0.03,0.1);
+           fitFcn->SetParLimits(2,0.06,0.1);
            fitFcn->SetParLimits(3,0.7,1.1);
            fitFcn->SetParLimits(4,1,50);
            fitFcn->SetParLimits(5,1,10);
@@ -828,8 +1063,8 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
          fitFcn->SetParameter(7,100);
          fitFcn->SetParameter(0,3300);
          
-         fitFcn->FixParameter(1,mJpsi); // Mean x core
-         fitFcn->FixParameter(2,0.07);
+         fitFcn->FixParameter(1,3.0966); // Mean x core //mJpsi
+         fitFcn->FixParameter(2,0.0708);
          fitFcn->FixParameter(8,ratsigma);
          
          if(SignalF=="CB2-Run2"){
@@ -873,7 +1108,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
            
            fitFcn->SetParLimits(0,0.1,10000000);
            fitFcn->SetParLimits(1,3.05,3.15);
-           fitFcn->SetParLimits(2,0.03,0.1);
+           fitFcn->SetParLimits(2,0.06,0.1);
            fitFcn->SetParLimits(3,-1.,1.);
            fitFcn->SetParLimits(4,0,10);
            fitFcn->SetParLimits(5,0,10);
@@ -929,15 +1164,15 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
            fitFcn->SetParName(nextPar+3,"b_{2}");
            
            fitFcn->SetParLimits(nextPar+0,1000,40000);
-           fitFcn->SetParLimits(nextPar+1,-1,1);
-           fitFcn->SetParLimits(nextPar+2,-10,10);
-           fitFcn->SetParLimits(nextPar+3,-10,10);
+           fitFcn->SetParLimits(nextPar+1,-0.5,0.5);
+           fitFcn->SetParLimits(nextPar+2,-2,0);
+           fitFcn->SetParLimits(nextPar+3,0,1);
 
            
            fitFcn->SetParameter(nextPar+0,30000);
            fitFcn->SetParameter(nextPar+1,-0.16);
-           fitFcn->SetParameter(nextPar+2,-1.46);
-           fitFcn->SetParameter(nextPar+3,1);
+           fitFcn->SetParameter(nextPar+2,-1.);
+           fitFcn->SetParameter(nextPar+3,0.5);
        }
     
     if(BackgroundF =="VWG"){
@@ -984,13 +1219,13 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     Double_t par[numParameters];
     
    TFitResultPtr res = histo->Fit("fitFcn","SBMER","ep");
+   //res = histo->Fit("fitFcn","SBMER","ep");
+     fitFcn->ReleaseParameter(1);
    res = histo->Fit("fitFcn","SBMER","ep");
-      fitFcn->ReleaseParameter(1);
-   res = histo->Fit("fitFcn","SBMER","ep");
-    fitFcn->ReleaseParameter(2);
+     fitFcn->ReleaseParameter(2);
    res = histo->Fit("fitFcn","SBMER","ep");
     if(SignalF=="CB2-Run2" || SignalF=="CB2-MC" || SignalF=="CB2-FREE"){
-        fitFcn->ReleaseParameter(13);
+        fitFcn->ReleaseParameter(7);
         res = histo->Fit("fitFcn","SBMER","ep");
     }
     if(SignalF=="NA60-MC" || SignalF=="NA60-FREE"){
@@ -1002,8 +1237,24 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
        res = histo->Fit("fitFcn","SBMER","ep");
     }
     
+//    for(int idx = 0; idx<NumberOfParameters(SignalF,BackgroundF);idx++){
+//        if(SignalF=="NA60-MC"){
+//            if((idx>=3 && idx<=10)|| idx==12){ // if((idx>=3 && idx<=10)|| idx==12){
+//                continue;
+//            }
+//        }
+//        if(SignalF=="CB2-Run2" || SignalF=="CB2-MC"){
+//            if((idx>=3 && idx<=6)||idx==8){ //if((idx>=3 && idx<=6)||idx==8){
+//                continue;
+//            }
+//        }
+//        fitFcn->ReleaseParameter(idx);
+//    }
+//    res2 = histo->Fit("fitFcn","SBMER","ep");
+    
     //If fit failed first time, try to set bkg first
     
+   // if(kFALSE){
     if(res->CovMatrixStatus() !=3){
         
         isFitRetried = kTRUE;
@@ -1024,7 +1275,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
              
                fitFcn->SetParLimits(0,0.1,100000000);
                fitFcn->SetParLimits(1,3.05,3.15);
-               fitFcn->SetParLimits(2,0.03,0.1);
+               fitFcn->SetParLimits(2,0.06,0.1);
                fitFcn->SetParLimits(3,0.7,1.1);
                fitFcn->SetParLimits(4,1,50);
                fitFcn->SetParLimits(5,1,10);
@@ -1079,7 +1330,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
                
                fitFcn->SetParLimits(0,0.1,10000000);
                fitFcn->SetParLimits(1,3.05,3.15);
-               fitFcn->SetParLimits(2,0.03,0.1);
+               fitFcn->SetParLimits(2,0.06,0.1);
                fitFcn->SetParLimits(3,-1.,1.);
                fitFcn->SetParLimits(4,0,10);
                fitFcn->SetParLimits(5,0,10);
@@ -1095,7 +1346,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
                fitFcn->SetParameter(11,100);
                
                fitFcn->FixParameter(1,mJpsi); // Mean x core
-               fitFcn->FixParameter(2,0.0666);
+               fitFcn->FixParameter(2,0.07);
                fitFcn->FixParameter(12,ratsigma);
                
                if(SignalF=="NA60-MC"){
@@ -1150,14 +1401,15 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
                backFcn1->SetParName(3,"b_{2}");
                
                backFcn1->SetParLimits(0,1000,40000);
-               backFcn1->SetParLimits(1,-1,1);
-               backFcn1->SetParLimits(2,-10,10);
-               backFcn1->SetParLimits(3,-10,10);
+               backFcn1->SetParLimits(1,-0.5,0.5);
+               backFcn1->SetParLimits(2,-2,0);
+               backFcn1->SetParLimits(3,0,1);
                
                backFcn1->SetParameter(0,3000);
                backFcn1->SetParameter(1,-0.16);
-               backFcn1->SetParameter(2,-0.146);
-               backFcn1->SetParameter(3,0.1);
+               backFcn1->SetParameter(2,-1.);
+               backFcn1->SetParameter(3,0.5);
+            
                
                TFitResultPtr resb = histo->Fit("backFcn1","SBMER","ep");
                double parb[4];
@@ -1181,7 +1433,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
             backFcn1->SetParName(3,"Beta");
             
             backFcn1->SetParLimits(0,0.001,10000000);
-            backFcn1->SetParLimits(1,0.001,100);
+            backFcn1->SetParLimits(1,0.,2.5);
             backFcn1->SetParLimits(2,0.001,100);
             backFcn1->SetParLimits(3,0.001,100);
             
@@ -1248,22 +1500,37 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
         }
         
         res2 = histo->Fit("fitFcn","SBMER","ep");
-        res2 = histo->Fit("fitFcn","SBMER","ep");
+     //   res2 = histo->Fit("fitFcn","SBMER","ep");
            fitFcn->ReleaseParameter(1);
         res2 = histo->Fit("fitFcn","SBMER","ep");
          fitFcn->ReleaseParameter(2);
         res2 = histo->Fit("fitFcn","SBMER","ep");
          if(SignalF=="CB2-Run2" || SignalF=="CB2-MC" || SignalF=="CB2-FREE"){
              fitFcn->ReleaseParameter(7);
+             res2 = histo->Fit("fitFcn","SBMER","ep");
          }
          if(SignalF=="NA60-MC" || SignalF=="NA60-FREE"){
              fitFcn->ReleaseParameter(11);
+             res2 = histo->Fit("fitFcn","SBMER","ep");
          }
          if(res2->CovMatrixStatus() !=3){
             res2 = histo->Fit("fitFcn","SBMER","ep");
             res2 = histo->Fit("fitFcn","SBMER","ep");
          }
         
+        for(int idx = 0; idx<NumberOfParameters(SignalF,BackgroundF);idx++){
+            if(SignalF=="CB2-Run2" || SignalF=="CB2-MC"){
+               if((idx>=0 && idx<=6)|| idx==8){ //if((idx>=3 && idx<=6)||idx==8){
+                    continue;
+                }
+            }
+            fitFcn->ReleaseParameter(idx);
+        }
+        fitFcn->SetParLimits(9,0.001,10000000);
+        fitFcn->SetParLimits(10,0.,2.5);
+        fitFcn->SetParLimits(11,0.001,100);
+        fitFcn->SetParLimits(12,0.001,100);
+        res2 = histo->Fit("fitFcn","SBMER","ep");
         
     }
     
@@ -1304,12 +1571,12 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     TF1 *signalFcnPsi2S = NULL;
     
         if(SignalF =="CB2-Run2" || SignalF =="CB2-MC" || SignalF =="CB2-FREE"){
-            signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,min,max,numParameters-NumberOfParametersBkg(BackgroundF));
-            signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,min,max,numParameters-NumberOfParametersBkg(BackgroundF));
+            signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,0,max,numParameters-NumberOfParametersBkg(BackgroundF));
+            signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,0,max,numParameters-NumberOfParametersBkg(BackgroundF));
         }
         else if(SignalF =="NA60-MC" || SignalF =="NA60-FREE"){
-            signalFcnJPsi = new TF1("signalFcnJPsi",JPsiNA60,min,max,numParameters-NumberOfParametersBkg(BackgroundF));
-            signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SNA60,min,max,numParameters-NumberOfParametersBkg(BackgroundF));
+            signalFcnJPsi = new TF1("signalFcnJPsi",JPsiNA60,0,max,numParameters-NumberOfParametersBkg(BackgroundF));
+            signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SNA60,0,max,numParameters-NumberOfParametersBkg(BackgroundF));
         }
         
     
@@ -1326,11 +1593,14 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     
     Double_t integral;
     Double_t integralerror;
+    Double_t integralPsi2s;
+    Double_t integralerrorPsi2s;
     
     cout << "===== Fit results =====" <<endl;
     if(!isFitRetried){
         cout << "First try" <<endl;
-   integral = (signalFcnJPsi->Integral(min,5))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+   integral = (signalFcnJPsi->Integral(0,5))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+        integralPsi2s = (signalFcnPsi2S->Integral(0,10))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     auto covtot = res->GetCovarianceMatrix();
     auto covsgn = covtot.GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1);
     std::cout << "Matrice totale" <<endl;
@@ -1338,7 +1608,8 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     std::cout << "Matrice réduite" <<endl;
     covsgn.Print();
     std::cout << "STATUS COV " << res->CovMatrixStatus() <<endl;
-    integralerror = (signalFcnJPsi->IntegralError(min,5,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+    integralerror = (signalFcnJPsi->IntegralError(0,5,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+    integralerrorPsi2s = (signalFcnPsi2S->IntegralError(0,10,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     std::cout << "Erreur integrale " << integralerror <<endl;
     
     std::cout << "Fitted " << histoname << std::endl;
@@ -1347,7 +1618,8 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     }
     if(isFitRetried){
            cout << "Second try" <<endl;
-      integral = (signalFcnJPsi->Integral(min,5))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+      integral = (signalFcnJPsi->Integral(0,5))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+        integralPsi2s = (signalFcnPsi2S->Integral(0,10))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
        auto covtot = res2->GetCovarianceMatrix();
        auto covsgn = covtot.GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1);
        std::cout << "Matrice totale" <<endl;
@@ -1355,7 +1627,8 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
        std::cout << "Matrice réduite" <<endl;
        covsgn.Print();
        std::cout << "STATUS COV " << res2->CovMatrixStatus() <<endl;
-      integralerror = (signalFcnJPsi->IntegralError(min,3.45,signalFcnJPsi->GetParameters(), res2->GetCovarianceMatrix().GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+      integralerror = (signalFcnJPsi->IntegralError(0,5,signalFcnJPsi->GetParameters(), res2->GetCovarianceMatrix().GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+        integralerrorPsi2s = (signalFcnPsi2S->IntegralError(0,10,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,numParameters-NumberOfParametersBkg(BackgroundF)-1,0,numParameters-NumberOfParametersBkg(BackgroundF)-1).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
        std::cout << "Erreur integrale " << integralerror <<endl;
        
        std::cout << "Fitted " << histoname << std::endl;
@@ -1379,6 +1652,8 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     
     sprintf(str, "N_{J/#psi} = %i +/- %i  ", int(integral), int(integralerror));
    pave->AddText(str);
+    sprintf(str, "N_{#Psi(2S)} = %i +/- %i  ", int(integralPsi2s), int(integralerrorPsi2s));
+    pave->AddText(str);
     pave->AddText(char_fitPerformed);
     pave->SetTextFont(42);
     pave->SetTextSize(0.04);
@@ -1393,7 +1668,7 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     legend->SetFillColorAlpha(kWhite, 0.);
     legend->SetBorderSize(0);
     Char_t message[80];
-    sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcn->GetChisquare(),fitFcn->GetNDF());
+    sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d = %.2f",fitFcn->GetChisquare(),fitFcn->GetNDF(),fitFcn->GetChisquare()/fitFcn->GetNDF());
      legend->AddEntry(fitFcn,message);
     
     cout << "First try: " << res->CovMatrixStatus() <<endl;
@@ -1445,6 +1720,8 @@ TFitResultPtr FittingAllInvMassBinStudy(const char *histoname, TCanvas *cinvmass
     sigmaErreurs[compteur] = fitFcn->GetParError(2);
     statsValeurs[compteur] = int(integral);
     statsErreurs[compteur] = int(integralerror);
+    statsPsi2sValeurs[compteur] = int(integralPsi2s);
+    statsPsi2sErreurs[compteur] = int(integralerrorPsi2s);
     
     if(!isFitRetried){
         return res;
@@ -1628,21 +1905,21 @@ Double_t JPsiCrystalBallExtended(Double_t *x,Double_t *par)
     Double_t absAlpha2 = fabs((Double_t)par[5]);
     
     
-    if (t < -absAlpha) //left tail
+    if (t <= -absAlpha) //left tail
     {
         Double_t a =  TMath::Power(par[4]/absAlpha,par[4])*exp(-0.5*absAlpha*absAlpha);
         Double_t b = par[4]/absAlpha - absAlpha;
         
-        sum += (par[0]/(par[2]*sqrt(TMath::Pi()*2)))*(a/TMath::Power(b - t, par[4]));
-    } else if (t >= -absAlpha && t < absAlpha2) // gaussian core
+        sum += (par[0])*(a/TMath::Power(b - t, par[4]));
+    } else if (t > -absAlpha && t < absAlpha2) // gaussian core
     {
-        sum += (par[0]/(par[2]*sqrt(TMath::Pi()*2)))*(exp(-0.5*t*t));
+        sum += (par[0])*(exp(-0.5*t*t));
     } else if (t >= absAlpha2) //right
     {
         Double_t c =  TMath::Power(par[6]/absAlpha2,par[6])*exp(-0.5*absAlpha2*absAlpha2);
         Double_t d = par[6]/absAlpha2 - absAlpha2;
         
-        sum += (par[0]/(par[2]*sqrt(TMath::Pi()*2)))*(c/TMath::Power(d + t, par[6]));
+        sum += (par[0])*(c/TMath::Power(d + t, par[6]));
     } else
         sum += 0;
     
@@ -1664,18 +1941,18 @@ Double_t Psi2SCrystalBallExtended(Double_t *x,Double_t *par)
       Double_t a =  TMath::Power(par[4]/absAlpha,par[4])*exp(-0.5*absAlpha*absAlpha);
       Double_t b = par[4]/absAlpha - absAlpha;
       
-      sum += (par[7]/(par[2]*par[8]*sqrt(2*TMath::Pi())))*(a/TMath::Power(b - t, par[4]));
+      sum += (par[7])*(a/TMath::Power(b - t, par[4]));
   }
   else if (t >= -absAlpha && t < absAlpha2) // gaussian core
   {
-      sum += (par[7]/(par[2]*par[8]*sqrt(2*TMath::Pi())))*(exp(-0.5*t*t));
+      sum += (par[7])*(exp(-0.5*t*t));
   }
   else if (t >= absAlpha2) //right tail
   {
       Double_t c =  TMath::Power(par[6]/absAlpha2,par[6])*exp(-0.5*absAlpha2*absAlpha2);
       Double_t d = par[6]/absAlpha2 - absAlpha2;
       
-      sum += (par[7]/(par[2]*par[8]*sqrt(2*TMath::Pi())))*(c/TMath::Power(d + t, par[6]));
+      sum += (par[7])*(c/TMath::Power(d + t, par[6]));
   } else
       sum += 0;
     
