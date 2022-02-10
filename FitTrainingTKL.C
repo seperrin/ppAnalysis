@@ -52,7 +52,10 @@ void GenerateCSV();
 Double_t CvetanFTKL(Double_t *x,Double_t *par);
 void ChisquareCvetanFTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
  Double_t FourierV2(Double_t *x,Double_t *par);
+ Double_t FourierV3(Double_t *x,Double_t *par);
  Double_t FourierV5(Double_t *x,Double_t *par);
+Double_t FourierAndGauss(Double_t *x,Double_t *par);
+Double_t ConstAndGauss(Double_t *x,Double_t *par);
 Double_t ZYAMTKL(Double_t *x,Double_t *par);
 void ChisquareZYAMTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *par, Int_t /*iflag */  );
 Double_t PRLTemplateTKL(Double_t *x,Double_t *par);
@@ -88,6 +91,10 @@ double V2ClassiqueTKL = 0;
 double errV2ClassiqueTKL = 0;
 double V2ClassiqueTKL_noZYAM = 0;
 double errV2ClassiqueTKL_noZYAM = 0;
+double V2ClassiqueTKLV3 = 0;
+double errV2ClassiqueTKLV3 = 0;
+double V2ClassiqueTKLGauss = 0;
+double errV2ClassiqueTKLGauss = 0;
 double V2CvetanTKL = 0;
 double errV2CvetanTKL = 0;
 double V2CvetanMeTKL = 0;
@@ -111,6 +118,10 @@ double v2ClassiqueTKL = 0;
 double errv2ClassiqueTKL = 0;
 double v2ClassiqueTKL_noZYAM = 0;
 double errv2ClassiqueTKL_noZYAM = 0;
+double v2ClassiqueTKLV3 = 0;
+double errv2ClassiqueTKLV3 = 0;
+double v2ClassiqueTKLGauss = 0;
+double errv2ClassiqueTKLGauss = 0;
 double v2CvetanTKL = 0;
 double errv2CvetanTKL = 0;
 double v2CvetanMeTKL = 0;
@@ -124,8 +135,11 @@ double errv2PRL_PeriphZYAMTKL = 0;
 
 double fourierCentral[3] = {0,0,0};
 double fourierPeriph[3] = {0,0,0};
+double constAndGaussPeriph[3] = {0,0,0};
 
 Char_t FitFileName[200];
+Char_t FitCentralFileName[200];
+Char_t FitPeriphFileName[200];
 Char_t SystematicsFileName[200];
 
 inline bool exists_test0 (const std::string& name) {
@@ -142,14 +156,19 @@ void GenerateCSV(){
 
 void FitTrainingTKL(Char_t radical[200]){
     
+    bool isCentralityStudy = kTRUE;
+    
     cout << "Preparing the analysis of " << radical<<endl;
+    cout << "isCentralityStudy ? : " << isCentralityStudy <<endl;
     
     Char_t FolderName[200];
     Char_t CanvasName[200];
    // Char_t RadicalName[200];
     //sprintf(RadicalName,"NewAnalysisAllEst_TKL_16h25_SPDTrackletsPercentile_0-5_40-100_pt0-12");
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_%s.root", radical);
-        sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2021octobre/%s", radical);
+    if(!isCentralityStudy){
+        sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_%s.root", radical);
+    }
+        sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrier/%s", radical);
     sprintf(SystematicsFileName,"%s/SystematicsFile.csv", FolderName);
     
 //    if(exists_test0(SystematicsFileName)){
@@ -166,14 +185,16 @@ void FitTrainingTKL(Char_t radical[200]){
     Char_t DeltaEtaGapText[20] = "1.2";
     Char_t ZvtxCutText[20] = "10";
     Char_t EMNormText[20] = "Method1";
-    Char_t EMPoolMaxText[20] = "100";
+    Char_t EMPoolMaxText[20] = "30";
     Char_t EMPoolThresholdText[20] = "10";
     Char_t ScalingPeriphText[20] = "1";
-    Char_t SummationText[20] = "Method2";
+    Char_t SummationText[20] = "Method1c";
     
     Char_t dataUsed[50];
     Char_t estimator[50];
     Char_t rest[50];
+    Char_t tamp1[50];
+    Char_t tamp2[50];
     Char_t lessCentral[5];
     Char_t mostCentral[5];
     Char_t lessPeriph[5];
@@ -250,8 +271,14 @@ void FitTrainingTKL(Char_t radical[200]){
                 isSpecificityDPhi = kTRUE;
             }
             else{
-                sscanf(specificity, "DPhiCut%[^mrad]", DPhiCutText);
+                if(sspecificity.find("Zvtx") != std::string::npos){
+                    sscanf(specificity, "%[^_]_DPhiCut%[^mrad]mrad%s", tamp1, DPhiCutText, tamp2);
+                }
+                else{
+                sscanf(specificity, "DPhiCut%[^mrad]mrad%s", DPhiCutText, tamp2);
+                }
                 cout << "DPhiCutText set to " << DPhiCutText<< " mrad"<<endl;
+                cout << tamp2<<endl;
                 hasClassifiedSpecificity = kTRUE;
                 DPhiCutNum = stod(DPhiCutText);
                 sprintf(DPhiCutText, "%smrad",DPhiCutText);
@@ -259,22 +286,51 @@ void FitTrainingTKL(Char_t radical[200]){
             }
         }
         
+        if (sspecificity.find("Zvtx") != std::string::npos) {
+            std::cout << "Precisions on Zvtx" << endl;
+           sscanf(specificity, "Zvtx%[^_]", ZvtxCutText);
+           cout << "ZvtxCutText set to " << ZvtxCutText<<endl;
+            hasClassifiedSpecificity = kTRUE;
+            ZvtxCutNum = stod(ZvtxCutText);
+            isSpecificityZvtx = kTRUE;
+        }
+        
         if (sspecificity.find("Eta") != std::string::npos) {
             std::cout << "Precisions on Eta" << endl;
-           sscanf(specificity, "Eta%s", DeltaEtaGapText);
+            if(isSpecificityDPhi){
+            sscanf(specificity, "%[^_]_Eta%[^_]",tamp1, DeltaEtaGapText);
+            }
+            else{
+           sscanf(specificity, "Eta%[^_]", DeltaEtaGapText);
+            }
            cout << "DeltaEtaGapText set to " << DeltaEtaGapText<<endl;
             hasClassifiedSpecificity = kTRUE;
             DeltaEtaGapNum = stod(DeltaEtaGapText);
             isSpecificityEtaGap = kTRUE;
         }
         
-        if (sspecificity.find("Zvtx") != std::string::npos) {
-            std::cout << "Precisions on Zvtx" << endl;
-           sscanf(specificity, "Zvtx%s", ZvtxCutText);
-           cout << "ZvtxCutText set to " << ZvtxCutText<<endl;
+        if (sspecificity.find("EMNorm") != std::string::npos) {
+            std::cout << "Precisions on EMNorm" << endl;
+            if(isSpecificityDPhi){
+             sscanf(specificity, "%[^_]_EMNorm%[^_]", tamp1, EMNormText);
+                cout << tamp1 << endl;
+             }
+             else{
+            sscanf(specificity, "EMNorm%[^_]", EMNormText);
+             }
+           cout << "EMNormText set to " << EMNormText<<endl;
             hasClassifiedSpecificity = kTRUE;
-            ZvtxCutNum = stod(ZvtxCutText);
-            isSpecificityZvtx = kTRUE;
+        }
+        if (sspecificity.find("SummationZvtx") != std::string::npos) {
+            std::cout << "Precisions on SummationZvtx" << endl;
+            if(isSpecificityDPhi){
+             sscanf(specificity, "%[^_]_SummationZvtx%[^_]", tamp1,SummationText);
+             }
+             else{
+            sscanf(specificity, "SummationZvtx%[^_]", SummationText);
+             }
+           cout << "SummationText set to " << SummationText<<endl;
+            hasClassifiedSpecificity = kTRUE;
         }
         
         if(!hasClassifiedSpecificity){
@@ -283,6 +339,52 @@ void FitTrainingTKL(Char_t radical[200]){
         }
     }
     
+    if(isCentralityStudy){
+        sscanf(radical, "NewAnalysisAllEst_TKL_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
+        cout << "For centrality study, classes are: " << mostCentral << "-" << lessCentral <<" and " << lessPeriph << "-" << mostPeriph<<endl;
+        if(lessCentralNum == 1){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_20-100_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessCentralNum == 3 && mostCentralNum == 0){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_60-100_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessCentralNum == 3 && mostCentralNum == 1){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_40-80_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessCentralNum == 5 && mostCentralNum == 0){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_40-100_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessCentralNum == 5 && mostCentralNum == 3){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_60-80_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessCentralNum == 10 && mostCentralNum == 0){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_20-80_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessCentralNum == 10 && mostCentralNum == 5){
+            sprintf(FitCentralFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_%s-%s_0-100_pt%s-%s.root", dataUsed, estimator, mostCentral,lessCentral, minpt, rest);
+        }
+        if(lessPeriphNum == 20 && mostPeriphNum == 100){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_0-1_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+        if(lessPeriphNum == 60 && mostPeriphNum == 100){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_0-3_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+        if(lessPeriphNum == 20 && mostPeriphNum == 80){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_0-10_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+        if(lessPeriphNum == 40 && mostPeriphNum == 80){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_1-3_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+        if(lessPeriphNum == 60 && mostPeriphNum == 80){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_3-5_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+        if(lessPeriphNum == 0 && mostPeriphNum == 100){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_5-10_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+        if(lessPeriphNum == 40 && mostPeriphNum == 100){
+            sprintf(FitPeriphFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_NewAnalysisAllEst_TKL_%s_%s_0-5_%s-%s_pt%s-%s.root", dataUsed, estimator, lessPeriph, mostPeriph, minpt, rest);
+        }
+    }
     
     TH1::SetDefaultSumw2();
         bool doTracklets = kTRUE;
@@ -316,8 +418,8 @@ void FitTrainingTKL(Char_t radical[200]){
         const int NbinsInvMass = 10;
         double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
 
-        double MinDeltaPhi = -TMath::Pi()/2;
-        double MaxDeltaPhi = 1.5*TMath::Pi();
+    double MinDeltaPhi = 0;//-TMath::Pi()/2;
+    double MaxDeltaPhi = TMath::Pi();//1.5*TMath::Pi();
         const int NbinsDeltaPhi = 12;
         double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
         
@@ -328,12 +430,12 @@ void FitTrainingTKL(Char_t radical[200]){
         
         double MinDeltaEtaTKL = 1.2;
         double MaxDeltaEtaTKL = 2.4;
-        const int NbinsDeltaEtaTKL = 24;
+        const int NbinsDeltaEtaTKL = 48;
         double SizeBinDeltaEtaTKL = (MaxDeltaEtaTKL-MinDeltaEtaTKL)/NbinsDeltaEtaTKL;
         
-        const int NbinsDeltaPhiTKL = 48;
+        const int NbinsDeltaPhiTKL = 24;
         double SizeBinDeltaPhiTKL = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhiTKL;
-        int BinZeroLeftTKL = floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
+    int BinZeroLeftTKL = 1;//floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
     
     if(hasClassifiedSpecificity){
         if(isSpecificityDPhi){
@@ -469,11 +571,20 @@ void FitTrainingTKL(Char_t radical[200]){
     
     // Récup histos
     
-    TFile *filerec = new TFile(FitFileName);
+    if(!isCentralityStudy){
+        TFile *filerec = new TFile(FitFileName);
+        YieldTkl_Central = (TH1F*)filerec->Get("YieldTkl_Central");
+        YieldTkl_Periph = (TH1F*)filerec->Get("YieldTkl_Periph");
+        YieldTkl_Difference = (TH1F*)filerec->Get("YieldTkl_Difference");
+    }
     
-    YieldTkl_Central = (TH1F*)filerec->Get("YieldTkl_Central");
-    YieldTkl_Periph = (TH1F*)filerec->Get("YieldTkl_Periph");
-    YieldTkl_Difference = (TH1F*)filerec->Get("YieldTkl_Difference");
+    if(isCentralityStudy){
+        TFile *filereccent = new TFile(FitCentralFileName);
+        TFile *filerecperiph = new TFile(FitPeriphFileName);
+        YieldTkl_Central = (TH1F*)filereccent->Get("YieldTkl_Central");
+        YieldTkl_Periph = (TH1F*)filerecperiph->Get("YieldTkl_Periph");
+        YieldTkl_Difference->Add(YieldTkl_Central, YieldTkl_Periph, 1, -1);
+    }
     
     YieldTkl_FDifference->Add(YieldTkl_Central, YieldTkl_Periph, 1, -2.678);
 
@@ -502,18 +613,20 @@ void FitTrainingTKL(Char_t radical[200]){
     //Calculs baselinesTKL
     
     
-        baselineTKL_periph = (YieldTkl_Periph->GetBinContent(BinZeroLeftTKL) + YieldTkl_Periph->GetBinContent(BinZeroLeftTKL+1))/2;
-        errbaselineTKL_periph = sqrt(pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL+1),2));
+    baselineTKL_periph = YieldTkl_Periph->GetBinContent(BinZeroLeftTKL);//(YieldTkl_Periph->GetBinContent(BinZeroLeftTKL) + YieldTkl_Periph->GetBinContent(BinZeroLeftTKL+1))/2;
+    errbaselineTKL_periph = YieldTkl_Periph->GetBinError(BinZeroLeftTKL);//sqrt(pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL+1),2))/2;
 //
 //            baselineTKL_central = (YieldTkl_Central->GetBinContent(BinZeroLeftTKL) + YieldTkl_Central->GetBinContent(BinZeroLeftTKL+1))/2;
 //           errbaselineTKL_central = sqrt(pow(YieldTkl_Central->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Central->GetBinError(BinZeroLeftTKL+1),2));
         
         for(int bin_idx = 1; bin_idx<=NbinsDeltaPhiTKL; bin_idx++){
+            cout << "bin " <<bin_idx<< " has content " << YieldTkl_Central->GetBinContent(bin_idx)<<endl;
             if(YieldTkl_Central->GetBinContent(bin_idx)<baselineTKL_central){
                 baselineTKL_central = YieldTkl_Central->GetBinContent(bin_idx);
                 errbaselineTKL_central = YieldTkl_Central->GetBinError(bin_idx);
             }
         }
+    cout << "baseline central is " << baselineTKL_central<<endl;
         
         
         for(int phi_idx = 0; phi_idx<NbinsDeltaPhiTKL; phi_idx++){
@@ -550,8 +663,11 @@ void FitTrainingTKL(Char_t radical[200]){
         YieldTkl_Periph_MinusBaseline->DrawCopy();
 
         TCanvas*c14TKL=new TCanvas();
+        TCanvas*c14TKLv3=new TCanvas();
+    TCanvas*c14TKLGauss=new TCanvas();
         TCanvas*c14TKLCentral=new TCanvas();
         TCanvas*c14TKLPeriph=new TCanvas();
+    TCanvas*c14TKLPeriphGauss=new TCanvas();
         //Tracklets Yield difference wrt Phi fit
         
         
@@ -566,7 +682,7 @@ void FitTrainingTKL(Char_t radical[200]){
             // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
                 TH1F *histo = YieldTkl_Central;
               // create a TF1 with the range from 0 to 3 and 6 parameters
-              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+        TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
               fitFcnV2TKL->SetNpx(500);
               fitFcnV2TKL->SetLineWidth(4);
               fitFcnV2TKL->SetLineColor(kMagenta);
@@ -596,7 +712,7 @@ void FitTrainingTKL(Char_t radical[200]){
     //        fitFcnV2TKL->SetParName(11,"a11");
     //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
 
-              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
                 gStyle->SetOptStat("n");
                 gStyle->SetOptFit(1011);
                 TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
@@ -631,9 +747,9 @@ void FitTrainingTKL(Char_t radical[200]){
     {
             c14TKLPeriph->cd();
             // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
-                TH1F *histo = YieldTkl_Periph;
+                TH1F *histo = (TH1F*)YieldTkl_Periph->Clone();
               // create a TF1 with the range from 0 to 3 and 6 parameters
-              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
               fitFcnV2TKL->SetNpx(500);
               fitFcnV2TKL->SetLineWidth(4);
               fitFcnV2TKL->SetLineColor(kMagenta);
@@ -663,7 +779,7 @@ void FitTrainingTKL(Char_t radical[200]){
     //        fitFcnV2TKL->SetParName(11,"a11");
     //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
 
-              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
                 gStyle->SetOptStat("n");
                 gStyle->SetOptFit(1011);
                 TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
@@ -694,14 +810,98 @@ void FitTrainingTKL(Char_t radical[200]){
               legend->Draw();
                 
             }
+    
+    {
+            c14TKLPeriphGauss->cd();
+            // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                TH1F *histo = (TH1F*)YieldTkl_Periph->Clone();
+            histo->GetListOfFunctions()->Clear();
+              // create a TF1 with the range from 0 to 3 and 6 parameters
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",ConstAndGauss,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
+              fitFcnV2TKL->SetNpx(500);
+              fitFcnV2TKL->SetLineWidth(4);
+              fitFcnV2TKL->SetLineColor(kMagenta);
+              // first try without starting values for the parameters
+              // This defaults to 1 for each param.
+              // this results in an ok fit for the polynomial function
+              // however the non-linear part (lorenzian) does not
+              // respond well.
+               Double_t params[3] = {histo->GetBinContent(1),1,1};
+              fitFcnV2TKL->SetParameters(params);
+               TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(histo)->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+
+               fitFcnV2TKL->SetParName(0,"Const");
+               fitFcnV2TKL->SetParName(1,"Gauss_Width");
+               fitFcnV2TKL->SetParName(2,"Gauss_Norm");
+                fitFcnV2TKL->SetParLimits(0,0,10);
+    //            fitFcnV2TKL->SetParLimits(1,0,10);
+    //            fitFcnV2TKL->SetParName(4,"a4");
+    //        fitFcnV2TKL->SetParName(5,"a5");
+    //        fitFcnV2TKL->SetParName(6,"a6");
+    //        fitFcnV2TKL->SetParName(7,"a7");
+    //        fitFcnV2TKL->SetParName(8,"a8");
+    //        fitFcnV2TKL->SetParName(9,"a9");
+    //        fitFcnV2TKL->SetParName(10,"a10");
+    //        fitFcnV2TKL->SetParName(11,"a11");
+    //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
+              // improve the pictu
+            //   std::cout << "integral error: " << integralerror << std::endl;
+                fitFcnV2TKL->GetParameters(constAndGaussPeriph);
+              fitFcnV2TKL->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
+              legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                legend->AddEntry(fitFcnV2TKL,message);
+            legend->AddEntry(fitFcnV2TKL,message);
+            if(res->CovMatrixStatus() == 3){
+                     //  sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2TKL,message);
+                   }
+              legend->AddEntry(histo,"Data","lpe");
+              legend->Draw();
+                
+            }
         
         //Methode classique C-P
         {
         c14TKL->cd();
         // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
-            TH1F *histo = YieldTkl_Difference;
-          // create a TF1 with the range from 0 to 3 and 6 parameters
-          TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+            TH1F *histo = (TH1F*)YieldTkl_Difference->Clone();
+            histo->GetListOfFunctions()->Clear();
+            //Symmetrise tests
+//            for(int bin=1;bin<=12;bin++){
+//                histo->SetBinContent(12+bin, (histo->GetBinContent(12+bin)+histo->GetBinContent(12-bin+1)));
+//                histo->SetBinError(12+bin, (sqrt(pow(histo->GetBinError(12+bin),2)+pow(histo->GetBinError(12-bin+1),2))));
+//                histo->SetBinContent(12-bin+1, histo->GetBinContent(12+bin));
+//                histo->SetBinError(12-bin+1, histo->GetBinError(12+bin));
+//                histo->SetBinContent(24+bin, (histo->GetBinContent(24+bin)+histo->GetBinContent(48-bin+1)));
+//                histo->SetBinError(24+bin, (sqrt(pow(histo->GetBinError(24+bin),2)+pow(histo->GetBinError(48-bin+1),2))));
+//                histo->SetBinContent(48-bin+1, histo->GetBinContent(24+bin));
+//                histo->SetBinError(48-bin+1, histo->GetBinError(24+bin));
+//            }
+//            cout << "Bin 12 and 13"<<endl;
+//            cout << "Contents: "<<histo->GetBinContent(12) << " "<< histo->GetBinContent(13)<<endl;          // create a TF1 with the range from 0 to 3 and 6 parameters
+//            cout << "Errors: "<<histo->GetBinError(12) << " "<< histo->GetBinError(13)<<endl;
+//            cout << "Relative Errors: "<<histo->GetBinError(12)/histo->GetBinContent(12) << " "<< histo->GetBinError(13)/histo->GetBinContent(13)<<endl;
+            TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
           fitFcnV2TKL->SetNpx(500);
           fitFcnV2TKL->SetLineWidth(4);
           fitFcnV2TKL->SetLineColor(kMagenta);
@@ -732,7 +932,7 @@ void FitTrainingTKL(Char_t radical[200]){
 //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
         //    fitFcnV2TKL->FixParameter(1,0);
 
-          TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+          TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
             gStyle->SetOptStat("n");
             gStyle->SetOptFit(1011);
             TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
@@ -752,7 +952,8 @@ void FitTrainingTKL(Char_t radical[200]){
             Char_t message[80];
             sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
             legend->AddEntry(fitFcnV2TKL,message);
-        sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",par[2],par[0], baselineTKL_periph,par[2]/(par[0] + baselineTKL_periph),(par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2))));
+    //    sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",par[2],par[0], baselineTKL_periph,par[2]/(par[0] + baselineTKL_periph),(par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2))));
+        sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",par[2],par[0], baselineTKL_periph,par[2]/(par[0] + baselineTKL_periph),(par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL_periph,2))/(par[0] + baselineTKL_periph),2))));
         legend->AddEntry(fitFcnV2TKL,message);
 //        sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f) = %.5f +- %.5f",par[2],par[0],par[2]/(par[0]),(par[2]/(par[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2))));
 //        legend->AddEntry(fitFcnV2TKL,message);
@@ -767,7 +968,8 @@ void FitTrainingTKL(Char_t radical[200]){
           legend->Draw();
             
             V2ClassiqueTKL = par[2]/(par[0] + baselineTKL_periph);
-            errV2ClassiqueTKL = (par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2)));
+          //  errV2ClassiqueTKL = (par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2)));
+            errV2ClassiqueTKL = (par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL_periph,2))/(par[0] + baselineTKL_periph),2)));
             
             if(V2ClassiqueTKL>0){
             v2ClassiqueTKL = sqrt(V2ClassiqueTKL);
@@ -801,6 +1003,193 @@ void FitTrainingTKL(Char_t radical[200]){
             cout << "v2 TKL +/- err v2 TKL: " << v2ClassiqueTKL_noZYAM << " +/- " << errv2ClassiqueTKL_noZYAM <<endl;
             cout << "=============================" <<endl;
         }
+    //C-P avec un v3
+    {
+            c14TKLv3->cd();
+            // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                TH1F *histo = (TH1F*)YieldTkl_Difference->Clone();
+            histo->GetListOfFunctions()->Clear();
+              // create a TF1 with the range from 0 to 3 and 6 parameters
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV3,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
+              fitFcnV2TKL->SetNpx(500);
+              fitFcnV2TKL->SetLineWidth(4);
+              fitFcnV2TKL->SetLineColor(kMagenta);
+              // first try without starting values for the parameters
+              // This defaults to 1 for each param.
+              // this results in an ok fit for the polynomial function
+              // however the non-linear part (lorenzian) does not
+              // respond well.
+               Double_t params[4] = {1,0.01,0.01,0.01};
+              fitFcnV2TKL->SetParameters(params);
+               TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(histo)->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+
+               fitFcnV2TKL->SetParName(0,"a0");
+               fitFcnV2TKL->SetParName(1,"a1");
+               fitFcnV2TKL->SetParName(2,"a2");
+                fitFcnV2TKL->SetParName(3,"a3");
+    //            fitFcnV2TKL->SetParName(4,"a4");
+    //        fitFcnV2TKL->SetParName(5,"a5");
+    //        fitFcnV2TKL->SetParName(6,"a6");
+    //        fitFcnV2TKL->SetParName(7,"a7");
+    //        fitFcnV2TKL->SetParName(8,"a8");
+    //        fitFcnV2TKL->SetParName(9,"a9");
+    //        fitFcnV2TKL->SetParName(10,"a10");
+    //        fitFcnV2TKL->SetParName(11,"a11");
+    //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+            //    fitFcnV2TKL->FixParameter(1,0);
+
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
+              // improve the pictu
+            //   std::cout << "integral error: " << integralerror << std::endl;
+                Double_t par[4];
+                fitFcnV2TKL->GetParameters(par);
+              fitFcnV2TKL->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
+              legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                legend->AddEntry(fitFcnV2TKL,message);
+       //     sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",par[2],par[0], baselineTKL_periph,par[2]/(par[0] + baselineTKL_periph),(par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2))));
+        sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",par[2],par[0], baselineTKL_periph,par[2]/(par[0] + baselineTKL_periph),(par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL_periph,2))/(par[0] + baselineTKL_periph),2))));
+            legend->AddEntry(fitFcnV2TKL,message);
+    //        sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f) = %.5f +- %.5f",par[2],par[0],par[2]/(par[0]),(par[2]/(par[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2))));
+    //        legend->AddEntry(fitFcnV2TKL,message);
+            if(res->CovMatrixStatus() == 3){
+                      // sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2TKL,message);
+                   }
+              legend->AddEntry(histo,"Data","lpe");
+              legend->Draw();
+                
+                V2ClassiqueTKLV3 = par[2]/(par[0] + baselineTKL_periph);
+              //  errV2ClassiqueTKLV3 = (par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2)+pow(errbaselineTKL_periph/baselineTKL_periph,2)));
+        errV2ClassiqueTKLV3 = (par[2]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL_periph,2))/(par[0] + baselineTKL_periph),2)));
+                
+                if(V2ClassiqueTKLV3>0){
+                v2ClassiqueTKLV3 = sqrt(V2ClassiqueTKLV3);
+                errv2ClassiqueTKLV3 = 0.5*(errV2ClassiqueTKLV3/V2ClassiqueTKLV3)*v2ClassiqueTKLV3;
+                }
+                else{
+                    v2ClassiqueTKLV3=0;
+                    errv2ClassiqueTKLV3=99.;
+                }
+                
+                cout << "===== Méthode Classique + V3 =====" <<endl;
+                cout << "V2 TKL +/- err V2 TKL: " << V2ClassiqueTKLV3 << " +/- " << errV2ClassiqueTKLV3 <<endl;
+                cout << "v2 TKL +/- err v2 TKL: " << v2ClassiqueTKLV3 << " +/- " << errv2ClassiqueTKLV3 <<endl;
+                cout << "=============================" <<endl;
+                
+            }
+    //C-P avec une away side gaussian
+    {
+            c14TKLGauss->cd();
+            // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                TH1F *histo = (TH1F*)YieldTkl_Difference->Clone();
+            histo->GetListOfFunctions()->Clear();
+              // create a TF1 with the range from 0 to 3 and 6 parameters
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierAndGauss,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
+              fitFcnV2TKL->SetNpx(500);
+              fitFcnV2TKL->SetLineWidth(4);
+              fitFcnV2TKL->SetLineColor(kMagenta);
+              // first try without starting values for the parameters
+              // This defaults to 1 for each param.
+              // this results in an ok fit for the polynomial function
+              // however the non-linear part (lorenzian) does not
+              // respond well.
+               Double_t params[4] = {1,1,-1,1};
+              fitFcnV2TKL->SetParameters(params);
+               TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(histo)->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+
+               fitFcnV2TKL->SetParName(0,"a0");
+               fitFcnV2TKL->SetParName(1,"Gauss_Width");
+               fitFcnV2TKL->SetParName(2,"Gauss_Norm");
+                fitFcnV2TKL->SetParName(3,"a2");
+    //            fitFcnV2TKL->SetParName(4,"a4");
+    //        fitFcnV2TKL->SetParName(5,"a5");
+    //        fitFcnV2TKL->SetParName(6,"a6");
+    //        fitFcnV2TKL->SetParName(7,"a7");
+    //        fitFcnV2TKL->SetParName(8,"a8");
+    //        fitFcnV2TKL->SetParName(9,"a9");
+    //        fitFcnV2TKL->SetParName(10,"a10");
+    //        fitFcnV2TKL->SetParName(11,"a11");
+            //    fitFcnV2TKL->FixParameter(1,0);
+        
+        fitFcnV2TKL->FixParameter(1,constAndGaussPeriph[1]);
+        
+
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
+        Double_t par[4];
+//        fitFcnV2TKL->GetParameters(par);
+//        fitFcnV2TKL->FixParameter(2,par[2]);
+//        res = histo->Fit("fitFcnV2TKL","SBMERI","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
+              // improve the pictu
+            //   std::cout << "integral error: " << integralerror << std::endl;
+                fitFcnV2TKL->GetParameters(par);
+              fitFcnV2TKL->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
+              legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                legend->AddEntry(fitFcnV2TKL,message);
+            sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",par[3],par[0], baselineTKL_periph,par[3]/(par[0] + baselineTKL_periph),(par[3]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(3)/par[3],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL_periph,2))/(par[0] + baselineTKL_periph),2))));
+            legend->AddEntry(fitFcnV2TKL,message);
+    //        sprintf(message,"V2 Tkl-Tkl: %.4f / (%.4f) = %.5f +- %.5f",par[2],par[0],par[2]/(par[0]),(par[2]/(par[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(fitFcnV2TKL->GetParError(0)/par[0],2))));
+    //        legend->AddEntry(fitFcnV2TKL,message);
+            if(res->CovMatrixStatus() == 3){
+                      // sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2TKL,message);
+                   }
+              legend->AddEntry(histo,"Data","lpe");
+              legend->Draw();
+                
+                V2ClassiqueTKLGauss = par[3]/(par[0] + baselineTKL_periph);
+                errV2ClassiqueTKLGauss = (par[3]/(par[0] + baselineTKL_periph)*sqrt(pow(fitFcnV2TKL->GetParError(3)/par[3],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL_periph,2))/(par[0] + baselineTKL_periph),2)));
+                
+                if(V2ClassiqueTKLGauss>0){
+                v2ClassiqueTKLGauss = sqrt(V2ClassiqueTKLGauss);
+                errv2ClassiqueTKLGauss = 0.5*(errV2ClassiqueTKLGauss/V2ClassiqueTKLGauss)*v2ClassiqueTKLGauss;
+                }
+                else{
+                    v2ClassiqueTKLGauss=0;
+                    errv2ClassiqueTKLGauss=99.;
+                }
+                
+                cout << "===== Méthode Classique + Gauss =====" <<endl;
+                cout << "V2 TKL +/- err V2 TKL: " << V2ClassiqueTKLGauss << " +/- " << errV2ClassiqueTKLGauss <<endl;
+                cout << "v2 TKL +/- err v2 TKL: " << v2ClassiqueTKLGauss << " +/- " << errv2ClassiqueTKLGauss <<endl;
+                cout << "=============================" <<endl;
+                
+            }
         
     sprintf(CanvasName,"%s/YieldsTKL_Difference.pdf",FolderName);
     c14TKL->SaveAs(CanvasName);
@@ -808,6 +1197,12 @@ void FitTrainingTKL(Char_t radical[200]){
     c14TKLCentral->SaveAs(CanvasName);
     sprintf(CanvasName,"%s/YieldsTKL_Periph.pdf",FolderName);
     c14TKLPeriph->SaveAs(CanvasName);
+    sprintf(CanvasName,"%s/YieldsTKL_DifferenceV3.pdf",FolderName);
+    c14TKLv3->SaveAs(CanvasName);
+    sprintf(CanvasName,"%s/YieldsTKL_PeriphGauss.pdf",FolderName);
+    c14TKLPeriphGauss->SaveAs(CanvasName);
+    sprintf(CanvasName,"%s/YieldsTKL_DifferenceGauss.pdf",FolderName);
+    c14TKLGauss->SaveAs(CanvasName);
     
         
         
@@ -822,7 +1217,7 @@ void FitTrainingTKL(Char_t radical[200]){
         
         {
             cTKLCvetan->cd(1);
-                 TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFTKL,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+                 TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFTKL,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
                  fitFcnV2_Cvetan->SetNpx(500);
                  fitFcnV2_Cvetan->SetLineWidth(4);
                  fitFcnV2_Cvetan->SetLineColor(kOrange+3);
@@ -932,7 +1327,7 @@ void FitTrainingTKL(Char_t radical[200]){
         
         {
             cTKLCvetanMe->cd(1);
-                 TF1 *fitFcnV2_CvetanMe = new TF1("fitFcnV2_CvetanMe",CvetanFTKL,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+                 TF1 *fitFcnV2_CvetanMe = new TF1("fitFcnV2_CvetanMe",CvetanFTKL,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
                  fitFcnV2_CvetanMe->SetNpx(500);
                  fitFcnV2_CvetanMe->SetLineWidth(4);
                  fitFcnV2_CvetanMe->SetLineColor(kBlue);
@@ -1041,7 +1436,7 @@ void FitTrainingTKL(Char_t radical[200]){
        
        {
            cZYAMTKL->cd(1);
-                TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAMTKL,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+                TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAMTKL,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
                 fitFcnV2_ZYAM->SetNpx(500);
                 fitFcnV2_ZYAM->SetLineWidth(4);
                 fitFcnV2_ZYAM->SetLineColor(kCyan-7);
@@ -1104,7 +1499,7 @@ void FitTrainingTKL(Char_t radical[200]){
 
            
            V2ZYAMTKL = par[2]/(par[0]+baselineTKL_central);
-           errV2ZYAMTKL = (par[2]/(par[0] + baselineTKL_central)*sqrt(pow(fitFcnV2_ZYAM->GetParError(2)/par[2],2)+pow(fitFcnV2_ZYAM->GetParError(0)/par[0],2)+pow(errbaselineTKL_central/baselineTKL_central,2)));
+           errV2ZYAMTKL = (par[2]/(par[0] + baselineTKL_central)*sqrt(pow(fitFcnV2_ZYAM->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_ZYAM->GetParError(0),2)+pow(errbaselineTKL_central,2))/(par[0] + baselineTKL_central),2)));
            
            
            if(V2ZYAMTKL>0){
@@ -1149,16 +1544,16 @@ void FitTrainingTKL(Char_t radical[200]){
     {
         
         cPRLTemplateTKL->cd(1);
-                 TF1 *fitFcnV2_PRLTemplate = new TF1("fitFcnV2_PRLTemplate",PRLTemplateTKL,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+                 TF1 *fitFcnV2_PRLTemplate = new TF1("fitFcnV2_PRLTemplate",PRLTemplateTKL,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
                  fitFcnV2_PRLTemplate->SetNpx(500);
                  fitFcnV2_PRLTemplate->SetLineWidth(4);
                  fitFcnV2_PRLTemplate->SetLineColor(kRed+1);
-            TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_RidgeAndZeroTKL,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+            TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_RidgeAndZeroTKL,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
             fitFcnV2_PRLTemplate_RidgeAndZero->SetNpx(500);
             fitFcnV2_PRLTemplate_RidgeAndZero->SetLineWidth(2);
             fitFcnV2_PRLTemplate_RidgeAndZero->SetLineStyle(9);
             fitFcnV2_PRLTemplate_RidgeAndZero->SetLineColor(kRed);
-            TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphAndGTKL,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+            TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphAndGTKL,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
             fitFcnV2_PRLTemplate_PeriphAndG->SetNpx(500);
             fitFcnV2_PRLTemplate_PeriphAndG->SetLineWidth(2);
             fitFcnV2_PRLTemplate_PeriphAndG->SetLineStyle(9);
@@ -1301,16 +1696,16 @@ void FitTrainingTKL(Char_t radical[200]){
               
               {
                   cPRLTemplate_PeriphZYAMTKL->cd(1);
-                       TF1 *fitFcnV2_PRLTemplate_PeriphZYAM = new TF1("fitFcnV2_PRLTemplate_PeriphZYAM",PRLTemplate_PeriphZYAMTKL,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+                       TF1 *fitFcnV2_PRLTemplate_PeriphZYAM = new TF1("fitFcnV2_PRLTemplate_PeriphZYAM",PRLTemplate_PeriphZYAMTKL,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
                        fitFcnV2_PRLTemplate_PeriphZYAM->SetNpx(500);
                        fitFcnV2_PRLTemplate_PeriphZYAM->SetLineWidth(4);
                        fitFcnV2_PRLTemplate_PeriphZYAM->SetLineColor(kBlack);
-                      TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_PeriphZYAM_RidgeTKL,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+                      TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_PeriphZYAM_RidgeTKL,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
                       fitFcnV2_PRLTemplate_RidgeAndZero->SetNpx(500);
                       fitFcnV2_PRLTemplate_RidgeAndZero->SetLineWidth(2);
                       fitFcnV2_PRLTemplate_RidgeAndZero->SetLineStyle(9);
                       fitFcnV2_PRLTemplate_RidgeAndZero->SetLineColor(kRed);
-                      TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphZYAM_PeriphAndGTKL,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+                      TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphZYAM_PeriphAndGTKL,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
                       fitFcnV2_PRLTemplate_PeriphAndG->SetNpx(500);
                       fitFcnV2_PRLTemplate_PeriphAndG->SetLineWidth(2);
                       fitFcnV2_PRLTemplate_PeriphAndG->SetLineStyle(9);
@@ -1568,7 +1963,7 @@ void FitTrainingTKL(Char_t radical[200]){
            cout << "Couldn't open syst file" << endl;
        }
     
-    myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << v2ClassiqueTKL << "," << errv2ClassiqueTKL << "," << v2ClassiqueTKL_noZYAM << "," << errv2ClassiqueTKL_noZYAM << "," << v2CvetanTKL << "," << errv2CvetanTKL << "," << v2ZYAMTKL << "," << errv2ZYAMTKL << "," << v2PRLTKL << "," << errv2PRLTKL << "," << v2PRL_PeriphZYAMTKL << "," << errv2PRL_PeriphZYAMTKL << endl;
+    myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << v2ClassiqueTKL << "," << errv2ClassiqueTKL << "," << v2ClassiqueTKL_noZYAM << "," << errv2ClassiqueTKL_noZYAM << "," << v2CvetanTKL << "," << errv2CvetanTKL << "," << v2ZYAMTKL << "," << errv2ZYAMTKL << "," << v2PRLTKL << "," << errv2PRLTKL << "," << v2PRL_PeriphZYAMTKL << "," << errv2PRL_PeriphZYAMTKL << "," << v2ClassiqueTKLV3 << "," << errv2ClassiqueTKLV3 << "," << v2ClassiqueTKLGauss << "," << errv2ClassiqueTKLGauss << endl;
     
     myfiletx.close();
 
@@ -1589,7 +1984,7 @@ void FitTrainingTKL(Char_t radical[200]){
 
 Double_t CvetanFTKL(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+{   int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
   //  double YMinusaprim0 = YieldTkl_Periph->GetBinContent(bintolook+1) - fourierPeriph[0];
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
     return baselineTKL_central*(par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + par[3]*YMinusBp; }
@@ -1615,7 +2010,7 @@ void ChisquareCvetanFTKL(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval,
 
 Double_t ZYAMTKL(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+{   int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
     return baselineTKL_central + (par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + 1*YMinusBp; }
 
@@ -1641,9 +2036,9 @@ Double_t PRLTemplateTKL(Double_t *x,Double_t *par)
 
 {   double integral_Yperiph = YieldTkl_Periph->Integral(1,YieldTkl_Periph->GetNbinsX()+1,"width");
     double integral_Yreal = YieldTkl_Central->Integral(1,YieldTkl_Central->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double Yperiphbin = YieldTkl_Periph->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(TMath::Pi());
     
   //  cout << "G PRL = " << G<<endl;
     
@@ -1671,9 +2066,9 @@ Double_t PRLTemplate_RidgeAndZeroTKL(Double_t *x,Double_t *par)
 
 {   double integral_Yperiph = YieldTkl_Periph->Integral(1,YieldTkl_Periph->GetNbinsX()+1,"width");
     double integral_Yreal = YieldTkl_Central->Integral(1,YieldTkl_Central->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double Yperiphbin = baselineTKL_periph;
-    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(TMath::Pi());
     
     return par[1]*Yperiphbin + (1+2*par[0]*cos(2*x[0]))*G; }
 
@@ -1681,9 +2076,9 @@ Double_t PRLTemplate_PeriphAndGTKL(Double_t *x,Double_t *par)
 
 {   double integral_Yperiph = YieldTkl_Periph->Integral(1,YieldTkl_Periph->GetNbinsX()+1,"width");
     double integral_Yreal = YieldTkl_Central->Integral(1,YieldTkl_Central->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double Yperiphbin = YieldTkl_Periph->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(TMath::Pi());
     
     return par[1]*Yperiphbin + G; }
 
@@ -1691,9 +2086,9 @@ Double_t PRLTemplate_PeriphZYAMTKL(Double_t *x,Double_t *par)
 
 {   double integral_YperiphMinusBp = YieldTkl_Periph_MinusBaseline->Integral(1,YieldTkl_Periph_MinusBaseline->GetNbinsX()+1,"width");
     double integral_Yreal = YieldTkl_Central->Integral(1,YieldTkl_Central->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(TMath::Pi());
     
     //cout << "G PRL ZYAM = " << G<<endl;
     return par[1]*YMinusBp + (1+2*par[0]*cos(2*x[0]))*G; }
@@ -1720,18 +2115,18 @@ Double_t PRLTemplate_PeriphZYAM_RidgeTKL(Double_t *x,Double_t *par)
 
 {   double integral_YperiphMinusBp = YieldTkl_Periph_MinusBaseline->Integral(1,YieldTkl_Periph_MinusBaseline->GetNbinsX()+1,"width");
     double integral_Yreal = YieldTkl_Central->Integral(1,YieldTkl_Central->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(TMath::Pi());
     return (1+2*par[0]*cos(2*x[0]))*G; }
 
 Double_t PRLTemplate_PeriphZYAM_PeriphAndGTKL(Double_t *x,Double_t *par)
 
 {   double integral_YperiphMinusBp = YieldTkl_Periph_MinusBaseline->Integral(1,YieldTkl_Periph_MinusBaseline->GetNbinsX()+1,"width");
     double integral_Yreal = YieldTkl_Central->Integral(1,YieldTkl_Central->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *48));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *24));
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(TMath::Pi());
     
     return par[1]*YMinusBp + G; }
 
@@ -1741,10 +2136,21 @@ Double_t DiffPRL(Double_t *x,Double_t *par)
    return PRLTemplateTKL(x,par)-PRLTemplate_PeriphZYAMTKL(x,&par[2]);
 }
 
+Double_t ConstAndGauss(Double_t *x,Double_t *par)
+
+{ return par[0] + par[2]*TMath::Gaus(abs(x[0]),TMath::Pi(),par[1],kFALSE);}
+
+Double_t FourierAndGauss(Double_t *x,Double_t *par)
+
+{ return par[0] + par[2]*(0+TMath::Gaus(abs(x[0]),TMath::Pi(),par[1],kFALSE)) + 2*par[3]*cos(2*x[0]);}
 
 Double_t FourierV2(Double_t *x,Double_t *par)
 
 { return par[0] + 2*par[2]*cos(2*x[0]) + 2*par[1]*cos(x[0]);}
+
+Double_t FourierV3(Double_t *x,Double_t *par)
+
+{ return par[0] + 2*par[2]*cos(2*x[0]) + 2*par[1]*cos(x[0]) + 2*par[3]*cos(3*x[0]);}
 
 Double_t FourierV5(Double_t *x,Double_t *par)
 
