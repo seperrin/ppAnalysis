@@ -84,14 +84,21 @@ Double_t mJpsi =  3.096916;
  Double_t mPsip =  3.686108;
 // Double_t ratMass = 1.01;
  Double_t ratSigma = 1.05;
+Double_t mDiff = 0.589188;
 Int_t npfits;
 
-double MinInvMass = 2.1;
-double MaxInvMass = 5.1;
+Int_t actuelptbin = 0;
 
-const int NbinsDimuInvMass = 300;
+double MassBins[] = {1.0,1.5,1.9,2.3,2.7,3.0,3.3,3.7,4.1,4.5,5.0};
+const int NbinsInvMass = 10;
+double MinInvMass = 1.;
+double MaxInvMass = 5.;
+double MinInvMassFit = 2; //2
+double MaxInvMassFit = 5.; //4.5
 
-TH1F* hnseg(NULL);
+const int NbinsDimuInvMass = 400; //300
+
+TH1I* hnseg(NULL);
 TH1F* hpool(NULL);
 TH1F* V2JPsiTkl(NULL);
 
@@ -119,10 +126,13 @@ double errbaselineTKL_periph = 1;
 double baselineTKL_central = 9999;
 double errbaselineTKL_central = 1;
 
-double PtBins[] = {0,2,4,6,8,12};
-const int NbPtBins = 5;
+double PtBins[] = {0,2,3,4,6,8,12};
+const int NbPtBins = 6;
 double LowDimuPtCut = 0;
 double HighDimuPtCut = 12;
+
+TH1F* V2JPsiTklPtBinned[NbPtBins]{ NULL };
+TH1 *hPtWrtMassInvSliced[3][NbPtBins]= {NULL};
 
 double V2_Ext1[NbPtBins] = {0};
 double V2_Ext2[NbPtBins] = {0};
@@ -168,14 +178,15 @@ double errbaseline_periphPtBinned[NbPtBins] = {NULL};
 double baseline_centralPtBinned[NbPtBins] = {NULL};
 double errbaseline_centralPtBinned[NbPtBins] = {NULL};
 
-Char_t FitFileName[300];
+Char_t FitFileName[500];
 
 void FitTrainingPtBinned(){
     
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile1_Run2_0-5_40-90_pt0-2-4-6-8-12.root");
-    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/Septembre2021-Run2ReferencesTKLSystematicsStart/FitFile_CrossCheckQGPFrance_Run2_PercentileMethodSPDTracklets_0-5_40-100_pt0-2-4-6-8-12.root");
+    //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/Septembre2021-Run2ReferencesTKLSystematicsStart/FitFile_CrossCheckQGPFrance_Run2_PercentileMethodSPDTracklets_0-5_40-100_pt0-2-4-6-8-12.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_Run2_QGPFrance_0-5_40-100_pt0-2-4-6-8-12.root"); //BEST
-    //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Cvetan16r_V0MPercentile_0-20_40-100_pt0-2-3-4-6-8_MasschangeVerbose10v2.root");
+  //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_V0MPercentile_0-5_40-100_pt0-2-3-4-6-8-12.root");
+    sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysisAllEst_Run2_Eta1.5-5_Q0lin_SBhalfI_V0MPercentile_0-5_40-100_pt0-2-3-4-6-8-12_0612e_pichanged_VWGVarChange_strictcent_rang1.5-4.5_invmassnotinboucle_restrictesSBfit_IAll2.root");
    // sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_NewAnalysis_16h_QGPFrance_0-5_40-100_pt0-4-12_Test.root");
     //sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFiles/FinAvril2021-PUfixedMUTCutsfixedButBadEtaCutsNoPhiSPDCorr/FitFile_GoodPU_Run2_0-5_40-100_pt0-2-4-6-8-12.root");
   //  sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_GoodPU_Gr1_0-5_40-100_pt8-12.root");
@@ -207,12 +218,12 @@ void FitTrainingPtBinned(){
         double LowJPsiMass = 3.0;
         double HighJPsiMass = 3.3;
 
-        const int NbinsInvMass = 10;
-        double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+//        const int NbinsInvMass = 10;
+//        double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
 
-        double MinDeltaPhi = -TMath::Pi()/2;
-        double MaxDeltaPhi = 1.5*TMath::Pi();
-        const int NbinsDeltaPhi = 12;
+    double MinDeltaPhi = 0;//-TMath::Pi()/2;
+    double MaxDeltaPhi = TMath::Pi();;//1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 6;//12;
         double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
         
         double MinDeltaEta = 0;
@@ -227,7 +238,7 @@ void FitTrainingPtBinned(){
         
         const int NbinsDeltaPhiTKL = 24;
         double SizeBinDeltaPhiTKL = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhiTKL;
-        int BinZeroLeftTKL = floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
+    int BinZeroLeftTKL = 1;//floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
         
         const int NbBinsCent = 14;
         const int NbBinsZvtx = 20;
@@ -330,7 +341,7 @@ void FitTrainingPtBinned(){
     TH1F* coefficients1PtBinned[NbPtBins]{ NULL };
     TH1F* coefficients2PtBinned[NbPtBins]{ NULL };
     TH1F* c2b0PtBinned[NbPtBins]{ NULL };
-    TH1F* V2JPsiTklPtBinned[NbPtBins]{ NULL };
+    //TH1F* V2JPsiTklPtBinned[NbPtBins]{ NULL }; CombineFits
     TH1F* V2JPsiTklPtBinned_noZYAM[NbPtBins]{ NULL };
     
 //    TH1F* Yields_Central_1PtBinned[NbPtBins]{ NULL };
@@ -410,8 +421,8 @@ void FitTrainingPtBinned(){
         TH2F* hnseg10(NULL);
         TH1F* hDPhi(NULL);
         TH2F* hPtWrtMassInv[3]{NULL};
-        TH1 *hPtWrtMassInvSliced[3][NbPtBins]= {NULL};
-        TH1 *hPtWrtMassInvSlicedRebinned[3][NbPtBins]= {NULL};
+       // TH1 *hPtWrtMassInvSliced[3][NbPtBins]= {NULL};
+        TH1 *hPtWrtMassInvSlicedRebinned[3][NbPtBins]= {NULL}; //COMBINEFITS
         
         TH1F* CentV0M(NULL);
         TH1F* CentTKL(NULL);
@@ -503,37 +514,37 @@ void FitTrainingPtBinned(){
         
         coefficients0 = new TH1F("coefficients0",
                             "0^{th} Fourier coefficient wrt dimuon mass",
-                            NbinsInvMass,MinInvMass,MaxInvMass);
+                            NbinsInvMass,MassBins);
            coefficients0->SetXTitle("Mass of dimuon (GeV/c^{2})");
            coefficients0->SetYTitle("0^{th} Fourier coefficient");
         coefficients1 = new TH1F("coefficients1",
                                "1^{st} Fourier coefficient wrt dimuon mass",
-                               NbinsInvMass,MinInvMass,MaxInvMass);
+                               NbinsInvMass,MassBins);
               coefficients1->SetXTitle("Mass of dimuon (GeV/c^{2})");
               coefficients1->SetYTitle("1^{st} Fourier coefficient");
         coefficients2 = new TH1F("coefficients2",
                                "2^{nd} Fourier coefficient wrt dimuon mass",
-                               NbinsInvMass,MinInvMass,MaxInvMass);
+                               NbinsInvMass,MassBins);
               coefficients2->SetXTitle("Mass of dimuon (GeV/c^{2})");
               coefficients2->SetYTitle("2^{nd} Fourier coefficient");
         baselines0 = new TH1F("baselines0",
                          "Baseline_{Periph} wrt dimuon mass",
-                         NbinsInvMass,MinInvMass,MaxInvMass);
+                         NbinsInvMass,MassBins);
         baselines0->SetXTitle("Mass of dimuon (GeV/c^{2})");
         baselines0->SetYTitle("Baseline_{Periph}");
         c2b0 = new TH1F("c2b0",
                          "2^{nd} Fourier coefficient + Baseline_{Periph} wrt dimuon mass",
-                         NbinsInvMass,MinInvMass,MaxInvMass);
+                         NbinsInvMass,MassBins);
         c2b0->SetXTitle("Mass of dimuon (GeV/c^{2})");
         c2b0->SetYTitle("2^{nd} Fourier coefficient + Baseline_{Periph}");
         V2JPsiTkl = new TH1F("V2JPsiTkl",
                                "V_{2,J/#psi-tkl} wrt dimuon mass",
-                               NbinsInvMass,MinInvMass,MaxInvMass);
+                               NbinsInvMass,MassBins);
               V2JPsiTkl->SetXTitle("Mass of dimuon (GeV/c^{2})");
               V2JPsiTkl->SetYTitle("V_{2,J/#psi-tkl}");
     V2JPsiTkl_noZYAM = new TH1F("V2JPsiTkl_noZYAM",
                      "V_{2,J/#psi-tkl} wrt dimuon mass - no ZYAM",
-                     NbinsInvMass,MinInvMass,MaxInvMass);
+                     NbinsInvMass,MassBins);
     V2JPsiTkl_noZYAM->SetXTitle("Mass of dimuon (GeV/c^{2})");
     V2JPsiTkl_noZYAM->SetYTitle("V_{2,J/#psi-tkl} - no ZYAM");
         
@@ -542,25 +553,25 @@ void FitTrainingPtBinned(){
         char hname2[200];
         
         for (int j=0; j <NbinsInvMass; j++){
-           sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Central",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
-           sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Central",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+           sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Central",MassBins[j],MassBins[j+1]);
+           sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Central",MassBins[j],MassBins[j+1]);
             Yield_Central_MassBin[j] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
            }
            
            for (int j=0; j <NbinsInvMass; j++){
-        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Periph",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
-           sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Periph",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Periph",MassBins[j],MassBins[j+1]);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Periph",MassBins[j],MassBins[j+1]);
            Yield_Periph_MassBin[j] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
            }
            
            for (int j=0; j <NbinsInvMass; j++){
-               sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Difference",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
-           sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Difference",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+               sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Difference",MassBins[j],MassBins[j+1]);
+               sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Difference",MassBins[j],MassBins[j+1]);
            Yield_Difference_MassBin[j] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
            }
         
-        TH1F* InvMass_Central(NULL);
-        TH1F* InvMass_Periph(NULL);
+        TH1I* InvMass_Central(NULL);
+        TH1I* InvMass_Periph(NULL);
         
     //    TH1F* YieldWrtMass_PhiBin_Central[NbinsDeltaPhi] = { NULL };
     //    TH1F* YieldWrtMass_PhiBin_Periph[NbinsDeltaPhi] = { NULL };
@@ -643,7 +654,7 @@ void FitTrainingPtBinned(){
                    sprintf(hname,"Yields PhiBin %d %d ",i,p);
                    Yields_PhiBin[i][p] = new TH1F(hname,
                                      "Yields Correlation wrt dimuon mass",
-                                     NbinsInvMass,MinInvMass,MaxInvMass);
+                                     NbinsInvMass,MassBins);
                    Yields_PhiBin[i][p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
            }
         }
@@ -654,21 +665,21 @@ void FitTrainingPtBinned(){
                 sprintf(hname,"Yields PhiBin %d All C",p);
                 YieldWrtMass_allC[p] = new TH1F(hname,
                                   "Yields dimuon-tkl wrt dimuon mass, all C",
-                                  NbinsInvMass,MinInvMass,MaxInvMass);
+                                  NbinsInvMass,MassBins);
                 YieldWrtMass_allC[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
             
             sprintf(hname,"Yields PhiBin %d Periph",p);
             sprintf(hname2,"Yields dimuon-tkl wrt wrt dimuon mass, Periph, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
             YieldWrtMass_Periph[p] = new TH1F(hname,
                               hname2,
-                              NbinsInvMass,MinInvMass,MaxInvMass);
+                              NbinsInvMass,MassBins);
             YieldWrtMass_Periph[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
             
             sprintf(hname,"Yields PhiBin %d Central",p);
             sprintf(hname2,"Yields dimuon-tkl wrt wrt dimuon mass, Central, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
             YieldWrtMass_Central[p] = new TH1F(hname,
                               hname2,
-                              NbinsInvMass,MinInvMass,MaxInvMass);
+                              NbinsInvMass,MassBins);
             YieldWrtMass_Central[p]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
         }
             
@@ -700,7 +711,7 @@ void FitTrainingPtBinned(){
             Yield_tampon->SetYTitle("Yields");
         YieldWrtMass_tampon = new TH1F("YieldWrtMass_tampon",
                           "Yields dimuon-tkl wrt dimuon mass",
-                          NbinsInvMass,MinInvMass,MaxInvMass);
+                          NbinsInvMass,MassBins);
         YieldWrtMass_tampon->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
         YieldWrtMass_tampon->SetYTitle("Yields");
         
@@ -757,7 +768,7 @@ void FitTrainingPtBinned(){
         
     char haxis[200];
     sprintf(haxis, "Count within bin of %d MeV/c^{2}", 1000*(MaxInvMass-MinInvMass)/NbinsDimuInvMass);
-        hnseg = new TH1F("hnseg",
+        hnseg = new TH1I("hnseg",
                          "Invariant mass of dimuon",
                          NbinsDimuInvMass,MinInvMass,MaxInvMass);
         hnseg->SetXTitle("Mass of dimuon (GeV/c^{2})");
@@ -797,12 +808,12 @@ void FitTrainingPtBinned(){
                          10000,-TMath::Pi(),TMath::Pi());
         hDPhi->SetXTitle("Tracklet #Delta#Phi (rad)");
         hDPhi->SetYTitle("Count");
-        InvMass_Central = new TH1F("InvMass_Central",
+        InvMass_Central = new TH1I("InvMass_Central",
                          "Invariant mass of dimuon - Central",
                          NbinsDimuInvMass,MinInvMass,MaxInvMass);
         InvMass_Central->SetXTitle("Mass of dimuon (GeV/c^{2})");
         InvMass_Central->SetYTitle(haxis);
-        InvMass_Periph = new TH1F("InvMass_Periph",
+        InvMass_Periph = new TH1I("InvMass_Periph",
                          "Invariant mass of dimuon - Periph",
                          NbinsDimuInvMass,MinInvMass,MaxInvMass);
         InvMass_Periph->SetXTitle("Mass of dimuon (GeV/c^{2})");
@@ -909,20 +920,20 @@ void FitTrainingPtBinned(){
                           100,0,100,100,0,400);
         hnseg10->SetXTitle("V0M Percentile");
         hnseg10->SetYTitle("Tracklet count");
-        Double_t binsPt[7] = {0,2,3,4,6,8,12};
+       // Double_t binsPt[7] = {0,2,3,4,6,8,12};
         hPtWrtMassInv[0] = new TH2F("hPtWrtMassInv_0",
                           "p_{T} wrt dimuon inv mass - All centralities",
-                          NbinsDimuInvMass,MinInvMass,MaxInvMass,6,binsPt);
+                          NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
         hPtWrtMassInv[0]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
         hPtWrtMassInv[0]->SetYTitle("p_{T} (GeV/c)");
         hPtWrtMassInv[1] = new TH2F("hPtWrtMassInv_1",
                           "p_{T} wrt dimuon inv mass - Central",
-                          NbinsDimuInvMass,MinInvMass,MaxInvMass,6,binsPt);
+                          NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
         hPtWrtMassInv[1]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
         hPtWrtMassInv[1]->SetYTitle("p_{T} (GeV/c)");
         hPtWrtMassInv[2] = new TH2F("hPtWrtMassInv_2",
                           "p_{T} wrt dimuon inv mass - Periph",
-                          NbinsDimuInvMass,MinInvMass,MaxInvMass,6,binsPt);
+                          NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
         hPtWrtMassInv[2]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
         hPtWrtMassInv[2]->SetYTitle("p_{T} (GeV/c)");
         
@@ -1029,24 +1040,24 @@ void FitTrainingPtBinned(){
         for (int j=0; j <NbinsInvMass; j++){
         char hname1[200];
         char hname2[200];
-        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Central - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
-        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Central - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),PtBins[ptbin], PtBins[ptbin+1]);
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Central - PtBinned %d",MassBins[j],MassBins[j+1],ptbin);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Central - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MassBins[j],MassBins[j+1],PtBins[ptbin], PtBins[ptbin+1]);
         Yield_Central_MassBinPtBinned[j][ptbin] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         }
         
         for (int j=0; j <NbinsInvMass; j++){
         char hname1[200];
         char hname2[200];
-        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Periph - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
-        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Periph - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),PtBins[ptbin], PtBins[ptbin+1]);
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Periph - PtBinned %d",MassBins[j],MassBins[j+1],ptbin);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Periph - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MassBins[j],MassBins[j+1],PtBins[ptbin], PtBins[ptbin+1]);
         Yield_Periph_MassBinPtBinned[j][ptbin] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         }
         
         for (int j=0; j <NbinsInvMass; j++){
         char hname1[200];
         char hname2[200];
-        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Difference - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
-        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Difference - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),PtBins[ptbin], PtBins[ptbin+1]);
+        sprintf(hname1,"Projected yield in Mass Bin %f GeV to %f GeV - Difference - PtBinned %d",MassBins[j],MassBins[j+1],ptbin);
+        sprintf(hname2,"Projected yield in Mass Bin, #m_{#mu#mu} #in [%.2f,%.2f] GeV/c^{2} - Difference - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",MassBins[j],MassBins[j+1],PtBins[ptbin], PtBins[ptbin+1]);
         Yield_Difference_MassBinPtBinned[j][ptbin] = new TH1F(hname1, hname2,NbinsDeltaPhi,MinDeltaPhi,MaxDeltaPhi);
         }
         
@@ -1056,7 +1067,7 @@ void FitTrainingPtBinned(){
                       sprintf(hname,"Yields PhiBinPtBinned %d %d %d",i,p,ptbin);
                       Yields_PhiBinPtBinned[i][p][ptbin] = new TH1F(hname,
                                         "Yields CorrelationPtBinned wrt mass",
-                                        NbinsInvMass,MinInvMass,MaxInvMass);
+                                        NbinsInvMass,MassBins);
                       Yields_PhiBinPtBinned[i][p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
               }
            }
@@ -1067,21 +1078,21 @@ void FitTrainingPtBinned(){
                    sprintf(hname,"Yields PhiBinPtBinned %d All C %d",p,ptbin);
                    YieldWrtMass_allCPtBinned[p][ptbin] = new TH1F(hname,
                                      "Yields CorrelationPtBinned wrt dimuon mass, all C",
-                                     NbinsInvMass,MinInvMass,MaxInvMass);
+                                     NbinsInvMass,MassBins);
                    YieldWrtMass_allCPtBinned[p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
                
                sprintf(hname,"Yields PhiBinPtBinned %d Periph %d",p,ptbin);
                sprintf(hname2,"Yields CorrelationPtBinned wrt dimuon mass, Periph, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
                YieldWrtMass_PeriphPtBinned[p][ptbin] = new TH1F(hname,
                                  hname2,
-                                 NbinsInvMass,MinInvMass,MaxInvMass);
+                                 NbinsInvMass,MassBins);
                YieldWrtMass_PeriphPtBinned[p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
                
                sprintf(hname,"Yields PhiBinPtBinned %d Central %d",p,ptbin);
                sprintf(hname2,"Yields CorrelationPtBinned wrt dimuon mass, Central, #Delta#phi #in [#frac{%d#pi}{6},#frac{%d#pi}{6}]",p-3, p-2);
                YieldWrtMass_CentralPtBinned[p][ptbin] = new TH1F(hname,
                                  hname2,
-                                 NbinsInvMass,MinInvMass,MaxInvMass);
+                                 NbinsInvMass,MassBins);
                YieldWrtMass_CentralPtBinned[p][ptbin]->SetXTitle("Correlation dimuon Inv Mass (GeV/c^{2})");
            }
         
@@ -1145,7 +1156,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"0^{th} Fourier coefficient - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         coefficients0PtBinned[ptbin] = new TH1F(hname,
                             hname2,
-                            NbinsInvMass,MinInvMass,MaxInvMass);
+                            NbinsInvMass,MassBins);
            coefficients0PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
            coefficients0PtBinned[ptbin]->SetYTitle("0^{th} Fourier coefficient");
         
@@ -1153,7 +1164,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"1^{st} Fourier coefficient - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         coefficients1PtBinned[ptbin] = new TH1F(hname,
                             hname2,
-                            NbinsInvMass,MinInvMass,MaxInvMass);
+                            NbinsInvMass,MassBins);
            coefficients1PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
            coefficients1PtBinned[ptbin]->SetYTitle("1^{st} Fourier coefficient");
         
@@ -1161,7 +1172,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"2^{nd} Fourier coefficient - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         coefficients2PtBinned[ptbin] = new TH1F(hname,
                             hname2,
-                            NbinsInvMass,MinInvMass,MaxInvMass);
+                            NbinsInvMass,MassBins);
            coefficients2PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
            coefficients2PtBinned[ptbin]->SetYTitle("2^{nd} Fourier coefficient");
         
@@ -1169,7 +1180,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"Baseline_{Periph} - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         baselines0PtBinned[ptbin] = new TH1F(hname,
                          hname2,
-                         NbinsInvMass,MinInvMass,MaxInvMass);
+                         NbinsInvMass,MassBins);
         baselines0PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
         baselines0PtBinned[ptbin]->SetYTitle("Baseline_{Periph}");
         
@@ -1177,7 +1188,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"2^{nd} Fourier coefficient + Baseline_{Periph} - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         c2b0PtBinned[ptbin] = new TH1F(hname,
                          hname2,
-                         NbinsInvMass,MinInvMass,MaxInvMass);
+                         NbinsInvMass,MassBins);
         c2b0PtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
         c2b0PtBinned[ptbin]->SetYTitle("2^{nd} Fourier coefficient + Baseline_{Periph}");
         
@@ -1185,7 +1196,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"V_{2,J/#psi-tkl} wrt dimuon mass - PtBinned, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         V2JPsiTklPtBinned[ptbin] = new TH1F(hname,
                                hname2,
-                               NbinsInvMass,MinInvMass,MaxInvMass);
+                               NbinsInvMass,MassBins);
               V2JPsiTklPtBinned[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
               V2JPsiTklPtBinned[ptbin]->SetYTitle("V_{2,J/#psi-tkl}");
         
@@ -1193,7 +1204,7 @@ void FitTrainingPtBinned(){
         sprintf(hname2,"V_{2,J/#psi-tkl} wrt dimuon mass - PtBinned - no ZYAM, p_{T} #in [%.2f,%.2f] GeV/c",PtBins[ptbin], PtBins[ptbin+1]);
         V2JPsiTklPtBinned_noZYAM[ptbin] = new TH1F(hname,
                                hname2,
-                               NbinsInvMass,MinInvMass,MaxInvMass);
+                               NbinsInvMass,MassBins);
               V2JPsiTklPtBinned_noZYAM[ptbin]->SetXTitle("Mass of dimuon (GeV/c^{2})");
               V2JPsiTklPtBinned_noZYAM[ptbin]->SetYTitle("V_{2,J/#psi-tkl} - no ZYAM");
     }
@@ -1250,9 +1261,9 @@ void FitTrainingPtBinned(){
     // Récup histos
     
     TFile *filerec = new TFile(FitFileName);
-    hnseg = (TH1F*)filerec->Get("hnseg");
-    InvMass_Central = (TH1F*)filerec->Get("InvMass_Central");
-    InvMass_Periph = (TH1F*)filerec->Get("InvMass_Periph");
+    hnseg = (TH1I*)filerec->Get("hnseg");
+    InvMass_Central = (TH1I*)filerec->Get("InvMass_Central");
+    InvMass_Periph = (TH1I*)filerec->Get("InvMass_Periph");
     V2JPsiTkl = (TH1F*)filerec->Get("V2JPsiTkl");
     coefficients0 = (TH1F*)filerec->Get("coefficients0");
     coefficients1 = (TH1F*)filerec->Get("coefficients1");
@@ -1278,17 +1289,17 @@ void FitTrainingPtBinned(){
     }
     
     for (int j=0; j <NbinsInvMass; j++){
-    sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Central",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+    sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Central",MassBins[j],MassBins[j+1]);
     Yield_Central_MassBin[j] = (TH1F*)filerec->Get(hname);
     }
     
     for (int j=0; j <NbinsInvMass; j++){
-    sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Periph",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+    sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Periph",MassBins[j],MassBins[j+1]);
     Yield_Periph_MassBin[j] = (TH1F*)filerec->Get(hname);
     }
     
     for (int j=0; j <NbinsInvMass; j++){
-    sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Difference",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1));
+    sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Difference",MassBins[j],MassBins[j+1]);
     Yield_Difference_MassBin[j] = (TH1F*)filerec->Get(hname);
     }
     
@@ -1296,13 +1307,13 @@ void FitTrainingPtBinned(){
     
     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
         for(int j=0; j<NbinsInvMass; j++){
-           sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Central - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
+           sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Central - PtBinned %d",MassBins[j],MassBins[j+1],ptbin);
             Yield_Central_MassBinPtBinned[j][ptbin] = (TH1F*)filerec->Get(hname);
             
-             sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Periph - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
+             sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Periph - PtBinned %d",MassBins[j],MassBins[j+1],ptbin);
                    Yield_Periph_MassBinPtBinned[j][ptbin] = (TH1F*)filerec->Get(hname);
            
-            sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Difference - PtBinned %d",MinInvMass+SizeBinInvMass*j,MinInvMass+SizeBinInvMass*(j+1),ptbin);
+            sprintf(hname,"Projected yield in Mass Bin %f GeV to %f GeV - Difference - PtBinned %d",MassBins[j],MassBins[j+1],ptbin);
             Yield_Difference_MassBinPtBinned[j][ptbin] = (TH1F*)filerec->Get(hname);
 
         }
@@ -1382,7 +1393,7 @@ void FitTrainingPtBinned(){
     TFitResultPtr res;
     TFitResultPtr rescent;
     TFitResultPtr resperiph;
-    TFitResultPtr resu;
+    ROOT::Fit::FitResult resu;
     
    ROOT::Math::Minimizer* minim{NULL};
     
@@ -1425,7 +1436,7 @@ void FitTrainingPtBinned(){
         for(int i=0; i<12; i++){
             params[i] = par[i];
         }
-        TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,2.1,5.1,12);
+        TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,MinInvMassFit,MaxInvMassFit,12);
           fitFcn->SetNpx(500);
           fitFcn->SetLineWidth(4);
           fitFcn->SetLineColor(kMagenta);
@@ -1439,7 +1450,7 @@ void FitTrainingPtBinned(){
         myfiletxt << "POUET" <<endl;
          myfiletxt << "POUET " << hnseg->GetNbinsX() <<endl;
         for(int bin=0; bin<hnseg->GetNbinsX(); bin++){
-            double fit_prediction = fitFcn->Eval(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass);
+            double fit_prediction = fitFcn->Eval(MinInvMass + (MaxInvMassFit-MinInvMassFit)*(0.5+bin)/NbinsDimuInvMass);
             double data = hnseg->GetBinContent(bin+1);
             double error = hnseg->GetBinError(bin+1);
             if(error>0){
@@ -1503,9 +1514,9 @@ void FitTrainingPtBinned(){
         fitV2_2->SetLineWidth(4);
         fitV2_2->SetLineColor(kMagenta);
         fitV2_2->SetParameters(par);
-        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
+        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
         backFcnV2_2->SetLineColor(kRed);
-        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
         signalFcnJPsiV2_2->SetLineColor(kBlue);
         signalFcnJPsiV2_2->SetNpx(500);
         
@@ -1593,9 +1604,9 @@ void FitTrainingPtBinned(){
             fitV2_2->SetLineWidth(4);
             fitV2_2->SetLineColor(kMagenta);
             fitV2_2->SetParameters(par);
-            TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
+            TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
             backFcnV2_2->SetLineColor(kRed);
-            TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+            TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
             signalFcnJPsiV2_2->SetLineColor(kBlue);
             signalFcnJPsiV2_2->SetNpx(500);
             
@@ -1688,9 +1699,9 @@ void FitTrainingPtBinned(){
          fitb0_3->SetLineWidth(4);
          fitb0_3->SetLineColor(kMagenta);
          fitb0_3->SetParameters(par);
-         TF1 *backFcnb0_3 = new TF1("backFcnb0_3",BackFcnV2Poly,2.1,5.1,16);
+         TF1 *backFcnb0_3 = new TF1("backFcnb0_3",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
          backFcnb0_3->SetLineColor(kRed);
-         TF1 *signalFcnJPsib0_3 = new TF1("signalFcnJPsib0_3",SignalFcnJPsiV2,2.1,5.1,16);
+         TF1 *signalFcnJPsib0_3 = new TF1("signalFcnJPsib0_3",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
          signalFcnJPsib0_3->SetLineColor(kBlue);
          signalFcnJPsib0_3->SetNpx(500);
          
@@ -1770,9 +1781,9 @@ void FitTrainingPtBinned(){
              fitc0_3->SetLineWidth(4);
              fitc0_3->SetLineColor(kMagenta);
              fitc0_3->SetParameters(par);
-             TF1 *backFcnc0_3 = new TF1("backFcnc0_3",BackFcnV2Poly,2.1,5.1,16);
+             TF1 *backFcnc0_3 = new TF1("backFcnc0_3",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
              backFcnc0_3->SetLineColor(kRed);
-             TF1 *signalFcnJPsic0_3 = new TF1("signalFcnJPsic0_3",SignalFcnJPsiV2,2.1,5.1,16);
+             TF1 *signalFcnJPsic0_3 = new TF1("signalFcnJPsic0_3",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
              signalFcnJPsic0_3->SetLineColor(kBlue);
              signalFcnJPsic0_3->SetNpx(500);
              
@@ -1852,9 +1863,9 @@ void FitTrainingPtBinned(){
              fitc2_3->SetLineWidth(4);
              fitc2_3->SetLineColor(kMagenta);
              fitc2_3->SetParameters(par);
-             TF1 *backFcnc2_3 = new TF1("backFcnc2_3",BackFcnV2Poly,2.1,5.1,16);
+             TF1 *backFcnc2_3 = new TF1("backFcnc2_3",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
              backFcnc2_3->SetLineColor(kRed);
-             TF1 *signalFcnJPsic2_3 = new TF1("signalFcnJPsic2_3",SignalFcnJPsiV2,2.1,5.1,16);
+             TF1 *signalFcnJPsic2_3 = new TF1("signalFcnJPsic2_3",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
              signalFcnJPsic2_3->SetLineColor(kBlue);
              signalFcnJPsic2_3->SetNpx(500);
              
@@ -1930,7 +1941,7 @@ void FitTrainingPtBinned(){
         c316->cd(4);
         
          Char_t message[80];
-          sprintf(message,"V2_3 J/#psi-tkl = #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",c2_JPsi,c0_JPsi, b0_JPsi,c2_JPsi/(c0_JPsi + b0_JPsi),(c2_JPsi/(c0_JPsi + b0_JPsi)*sqrt(pow(ec2_JPsi/c2_JPsi,2)+pow(ec0_JPsi/c0_JPsi,2)+pow(eb0_JPsi/b0_JPsi,2))));
+          sprintf(message,"V2_3 J/#psi-tkl = #frac{%.4f}{%.4f + %.4f} = %.5f +- %.5f",c2_JPsi,c0_JPsi, b0_JPsi,c2_JPsi/(c0_JPsi + b0_JPsi),(c2_JPsi/(c0_JPsi + b0_JPsi)*sqrt(pow(ec2_JPsi/c2_JPsi,2)+pow(sqrt(pow(ec0_JPsi,2)+pow(eb0_JPsi,2))/(c0_JPsi + b0_JPsi),2))));
         TPaveText *pave = new TPaveText(0.2,0.2,0.8,0.8,"brNDC");
         pave->AddText(message);
         pave->SetTextFont(42);
@@ -1947,6 +1958,11 @@ void FitTrainingPtBinned(){
         cinvmassPtBinned->SetTitle("Inv Mass Fits - Pt Binned");
         // ROOT THAT Inv mass fits
         cinvmassPtBinned->Divide(NbPtBins,3);
+     
+    TCanvas *cinvmassPtBinnedCombine = new TCanvas("cinvmassPtBinnedCombine","Fitting All Phi - Different Centralities - Pt Binned Combine",10,10,700,500);
+    cinvmassPtBinnedCombine->SetTitle("Inv Mass Fits - Pt Binned Combine");
+    // ROOT THAT Inv mass fits
+    cinvmassPtBinnedCombine->Divide(NbPtBins,3);
         
     if(PtBinned){
         TCanvas*cpool = new TCanvas();
@@ -1954,17 +1970,24 @@ void FitTrainingPtBinned(){
         cpool->Divide(2,4);
         
         for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-    
+            cout << "ptbincombine "<< ptbin;
         sprintf(histoname,Form("bin%d_0",ptbin+1)); // ZZZZZZZ
+            if(!CombineFits){
         res = FittingAllInvMassBin(histoname, cinvmassPtBinned, ptbin);
+            }
         double par[16];
         
         // Parameter setting (either from mass fit either start values)
         for(int i=0; i <16; i++){
+            if(!CombineFits){
                 par[i] = res->Parameter(i);
                 if(i>11){
                     par[i] = 1;
                 }
+            }
+            if(CombineFits){
+                par[i] = startvalues[i];
+            }
         }
             
         {
@@ -1976,7 +1999,7 @@ void FitTrainingPtBinned(){
             for(int i=0; i<12; i++){
                 params[i] = par[i];
             }
-            TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,2.1,5.1,12);
+            TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,MinInvMassFit,MaxInvMassFit,12);
               fitFcn->SetNpx(500);
               fitFcn->SetLineWidth(4);
               fitFcn->SetLineColor(kMagenta);
@@ -1988,7 +2011,7 @@ void FitTrainingPtBinned(){
                 // Ajouter le point à un histo
 
             for(int bin=0; bin<histo->GetNbinsX(); bin++){
-                double fit_prediction = fitFcn->Eval(MinInvMass + 3*(0.5+bin)/NbinsDimuInvMass);
+                double fit_prediction = fitFcn->Eval(MinInvMass + (MaxInvMass-MinInvMass)*(0.5+bin)/NbinsDimuInvMass);
                 double data = histo->GetBinContent(bin+1);
                 double error = histo->GetBinError(bin+1);
                 double pool = (data-fit_prediction)/error;
@@ -2035,21 +2058,23 @@ void FitTrainingPtBinned(){
         
         //Definition and design of function on V2 plot
         c16PtBinned->cd(ptbin+1);
-        TF1 *fitV2_2PtBinned = new TF1("fitV2_2PtBinned",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
+        TF1 *fitV2_2PtBinned = new TF1("fitV2_2PtBinned",FourierV2_WrtInvMass,1.,5.,16);
         fitV2_2PtBinned->SetNpx(500);
         fitV2_2PtBinned->SetLineWidth(4);
         fitV2_2PtBinned->SetLineColor(kMagenta);
         fitV2_2PtBinned->SetParameters(par);
-        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
+        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,1.,5.,16);
         backFcnV2_2->SetLineColor(kRed);
-        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,1.,5.,16);
         signalFcnJPsiV2_2->SetLineColor(kBlue);
         signalFcnJPsiV2_2->SetNpx(500);
         
+          if(!CombineFits){
            TVirtualFitter::Fitter(V2JPsiTklPtBinned[ptbin])->SetMaxIterations(10000);
            TVirtualFitter::Fitter(V2JPsiTklPtBinned[ptbin])->SetPrecision();
             for(int i=0; i<=11; i++){
                 fitV2_2PtBinned->FixParameter(i,par[i]);
+            }
             }
            
            fitV2_2PtBinned->SetParName(0,"Norm_{J/#psi}");
@@ -2072,23 +2097,96 @@ void FitTrainingPtBinned(){
         
            double minParams[16];
            double parErrors[16];
+            Double_t para[16];
+            
+            // Combined fit of inv mass and V2_2
+            if(CombineFits){
+                
+                double startvalues2[16] = {100, 3.096916, 0.07,  0.9, 10, 2, 15, 1,    10,      0.01,     100,      1.4,      1,         1,   1,   1};
+                double lowvalues2[16] =   {0.1,    3.05,     0.03, 0.7, 1,  1, 5,  0.001,  0.1,    -20,   0.001,        0.01, -10, -10, -10, -10};
+                double highvalues2[16] = {1000000, 3.15,     0.1,  1.1, 30, 5, 25, 10000, 1000000, 100,      10000000,  100,    10,        10,  10,  10};
+                
+                TBackCompFitter * virminuit = (TBackCompFitter *) TVirtualFitter::Fitter(0,16);
+                   for (int i = 0; i < 16; ++i) {
+                     virminuit->SetParameter(i, fitV2_2PtBinned->GetParName(i), fitV2_2PtBinned->GetParameter(i), startvalues2[i], lowvalues2[i],highvalues2[i]);
+                   }
+                virminuit->FixParameter(1);
+                virminuit->FixParameter(2);
+                virminuit->FixParameter(3);
+                virminuit->FixParameter(4);
+                virminuit->FixParameter(5);
+                virminuit->FixParameter(6);
+                actuelptbin = ptbin;
+                   virminuit->SetFCN(FcnCombinedAllMass);
+
+                   double arglist[100];
+                   arglist[0] = 1;
+                   // set print level
+                   virminuit->ExecuteCommand("SET PRINT",arglist,2);
+
+                   // minimize
+                   arglist[0] = 5000; // number of function calls
+                   arglist[1] = 0.01; // tolerance
+                   virminuit->ExecuteCommand("MIGRAD",arglist,2);
+                
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                
+                   virminuit->ReleaseParameter(1);
+                virminuit->ExecuteCommand("MIGRAD",arglist,2);
+                 virminuit->ReleaseParameter(2);
+                virminuit->ExecuteCommand("MIGRAD",arglist,2);
+                 virminuit->ReleaseParameter(7);
+                virminuit->ExecuteCommand("MIGRAD",arglist,2);
+                virminuit->ExecuteCommand("MIGRAD",arglist,2);
+                resu = virminuit->GetFitResult();
+              //  resu = minuit->GetFitResult();
+                std::cout << "pront";
+              //  resu.GetCovarianceMatrix().Print();
+
+                   //get result
+                   for (int i = 0; i < 16; ++i) {
+                     para[i] = virminuit->GetParameter(i);
+                     parErrors[i] = virminuit->GetParError(i);
+                   }
+                   double chi2, edm, errdef;
+                   int nvpar, nparx;
+                   virminuit->GetStats(chi2,edm,errdef,nvpar,nparx);
+
+                   fitV2_2PtBinned->SetParameters(para);
+                   fitV2_2PtBinned->SetParErrors(parErrors);
+//                fitJustV2_2->SetParameters(&minParams[12]);
+//                fitJustV2_2->SetParErrors(&parErrors[12]);
+                   fitV2_2PtBinned->SetChisquare(chi2);
+                   int ndf = npfits-nvpar;
+                   fitV2_2PtBinned->SetNDF(ndf);
+            }
         
         //Fit of V2
+            if(!CombineFits){
             res = V2JPsiTklPtBinned[ptbin]->Fit("fitV2_2PtBinned","SBMERI+","ep");
-            gStyle->SetOptStat("n");
+            
             gStyle->SetOptFit(1011);
             TPaveStats *st = (TPaveStats*)V2JPsiTklPtBinned[ptbin]->FindObject("stats");
             st->SetX1NDC(0.75); //new x start position
             st->SetY1NDC(0.75); //new x end position
-            Double_t para[16];
             fitV2_2PtBinned->GetParameters(para);
             backFcnV2_2->SetParameters(para);
             signalFcnJPsiV2_2->SetParameters(para);
+            }
         
+            if(CombineFits){
+                backFcnV2_2->SetParameters(para);
+                signalFcnJPsiV2_2->SetParameters(para);
+            }
         
         fitV2_2PtBinned->Draw("same");
+            if(CombineFits){
+              //  V2JPsiTkl->GetListOfFunctions()->Add(fitJustV2_2);
+            }
       //  signalFcnJPsiV2_2->Draw("same");
         backFcnV2_2->Draw("same");
+            gStyle->SetOptFit(1011);
           // draw the legend
           TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
           legend->SetFillColorAlpha(kWhite, 0.);
@@ -2098,13 +2196,24 @@ void FitTrainingPtBinned(){
         Char_t message[80];
         sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitV2_2PtBinned->GetChisquare(),fitV2_2PtBinned->GetNDF());
          legend->AddEntry(fitV2_2PtBinned,message);
-
+            sprintf(message,"V2,2 = %.4e / %.4e",para[12],fitV2_2PtBinned->GetParError(12));
+            legend->AddEntry(fitV2_2PtBinned,message);
+            if(CombineFits){
+                if(resu.CovMatrixStatus() == 3){
+                       sprintf(message,"The fit is a success");
+                }
+                else{
+                       sprintf(message,"The fit is a failure");
+                }
+            }
+            if(!CombineFits){
             if(res->CovMatrixStatus() == 3){
                   // sprintf(message,"The fit is a success");
             }
             else{
                    sprintf(message,"The fit is a failure");
                 legend->AddEntry(fitV2_2PtBinned,message);
+            }
             }
        // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
         legend->AddEntry(backFcnV2_2,"Background");
@@ -2113,6 +2222,98 @@ void FitTrainingPtBinned(){
             
             V2_Ext2[ptbin] = para[12];
             errV2_Ext2[ptbin] = fitV2_2PtBinned->GetParError(12);
+            
+            //Plot of inv mass
+            if(CombineFits){
+                //AEUGGG
+                    cinvmassPtBinnedCombine->cd(ptbin+1);
+                   cinvmassPtBinnedCombine->SetFillColor(33);
+                   cinvmassPtBinnedCombine->SetFrameFillColor(41);
+                   cinvmassPtBinnedCombine->SetGrid();
+                   TH1F *histo = (TH1F*)hPtWrtMassInvSliced[0][ptbin];
+                   // create a TF1 with the range from 0 to 3 and 6 parameters
+                   TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,1.,5.,12);
+                   fitFcn->SetNpx(500);
+                   fitFcn->SetLineWidth(4);
+                   fitFcn->SetLineColor(kMagenta);
+
+                    fitFcn->SetParName(0,"Norm_{JPsi}");
+                    fitFcn->SetParName(1,"M_{JPsi}");
+                    fitFcn->SetParName(2,"Sigma_{JPsi}");
+                    fitFcn->SetParName(3,"a_{1}");
+                    fitFcn->SetParName(4,"n_{1}");
+                    fitFcn->SetParName(5,"a_{2}");
+                    fitFcn->SetParName(6,"n_{2}");
+                    fitFcn->SetParName(7,"Norm_{Psi2S}");
+                    fitFcn->SetParName(8,"Norm_{TailLowM}");
+                    fitFcn->SetParName(9,"Exp_{TailLowM}");
+                    fitFcn->SetParName(10,"Norm_{TailHighM}");
+                    fitFcn->SetParName(11,"Exp_{TailHighM}");
+
+                   // improve the picture:
+                   TF1 *backFcn = new TF1("backFcn",ExpBkg,1.,5.,4);
+                   backFcn->SetLineColor(kRed);
+                   TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,1.,5.,8);
+                   TF1 *signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,1.,5.,8);
+                   TPaveText *pave = new TPaveText(0.15,0.5,0.3,0.65,"brNDC");
+                   signalFcnJPsi->SetLineColor(kBlue);
+                   signalFcnJPsi->SetNpx(500);
+                    signalFcnPsi2S->SetLineColor(kGreen);
+                    signalFcnPsi2S->SetNpx(500);
+                    histo->GetListOfFunctions()->Add(fitFcn);
+                   // writes the fit results into the par array
+                    gStyle->SetOptFit(1011);
+                    fitFcn->SetParameters(para);
+                    fitFcn->SetParErrors(parErrors);
+                   signalFcnJPsi->SetParameters(para);
+                    signalFcnPsi2S->SetParameters(para);
+                 //  auto covMatrix = res->GetCovarianceMatrix();
+                   std::cout << "Covariance matrix from the fit ";
+                  // resu.GetCovarianceMatrix().Print();
+                   Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))/0.01;
+                    std::cout << "STATUS COV " << resu.CovMatrixStatus() <<endl;
+                Double_t integralerror = 0;//(signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), resu.GetCovarianceMatrix().GetSub(0,8,0,8).GetMatrixArray() ))/0.01;
+                  //  std::cout << "Erreur integrale " << integralerror <<endl;
+                    
+                    std::cout << "Fitted " << histoname << std::endl;
+                    std::cout << "Nb JPsi total: " << integral << std::endl;
+                 //   std::cout << "integral error: " << integralerror << std::endl;
+                histo->Draw();
+                fitFcn->Draw("same");
+                   signalFcnJPsi->Draw("same");
+                    signalFcnPsi2S->Draw("same");
+                   backFcn->SetParameters(&para[8]);
+                   backFcn->Draw("same");
+                   // draw the legend
+                    char str[50];
+                    sprintf(str, "N_{JPsi} %f +/- %f", integral, integralerror);
+                   pave->AddText(str);
+                    sprintf(str, "M_{Psi2S} = %f, Sig_{Psi2S} = %f", mPsip, ratSigma*para[2]);
+                    pave->AddText(str);
+                   pave->Draw();
+                   TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
+                   legend->SetTextFont(61);
+                   legend->SetTextSize(0.03);
+                    Char_t message[80];
+                    sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcn->GetChisquare(),fitFcn->GetNDF());
+                     legend->AddEntry(fitFcn,message);
+                    if(resu.CovMatrixStatus() == 3){
+                               sprintf(message,"The fit is a success");
+                           }
+                           else{
+                               sprintf(message,"The fit is a failure");
+                           }
+                           legend->AddEntry(fitFcn,message);
+                   legend->AddEntry(histo,"Data","lpe");
+                   legend->AddEntry(backFcn,"Background fit","l");
+                   legend->AddEntry(signalFcnJPsi,"JPsi Signal fit","l");
+                    legend->AddEntry(signalFcnPsi2S,"Psi2S Signal fit","l");
+                   legend->Draw();
+            }
+            
+            
+            
+            
         }
     }
     
@@ -2146,9 +2347,9 @@ void FitTrainingPtBinned(){
         fitV2_2PtBinned->SetLineWidth(4);
         fitV2_2PtBinned->SetLineColor(kMagenta);
         fitV2_2PtBinned->SetParameters(par);
-        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
+        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
         backFcnV2_2->SetLineColor(kRed);
-        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
         signalFcnJPsiV2_2->SetLineColor(kBlue);
         signalFcnJPsiV2_2->SetNpx(500);
         
@@ -2260,9 +2461,9 @@ void FitTrainingPtBinned(){
              fitb0_3->SetLineWidth(4);
              fitb0_3->SetLineColor(kMagenta);
              fitb0_3->SetParameters(par);
-             TF1 *backFcnb0_3 = new TF1("backFcnb0_3",BackFcnV2Poly,2.1,5.1,16);
+             TF1 *backFcnb0_3 = new TF1("backFcnb0_3",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
              backFcnb0_3->SetLineColor(kRed);
-             TF1 *signalFcnJPsib0_3 = new TF1("signalFcnJPsib0_3",SignalFcnJPsiV2,2.1,5.1,16);
+             TF1 *signalFcnJPsib0_3 = new TF1("signalFcnJPsib0_3",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
              signalFcnJPsib0_3->SetLineColor(kBlue);
              signalFcnJPsib0_3->SetNpx(500);
              
@@ -2341,9 +2542,9 @@ void FitTrainingPtBinned(){
                  fitc0_3->SetLineWidth(4);
                  fitc0_3->SetLineColor(kMagenta);
                  fitc0_3->SetParameters(par);
-                 TF1 *backFcnc0_3 = new TF1("backFcnc0_3",BackFcnV2Poly,2.1,5.1,16);
+                 TF1 *backFcnc0_3 = new TF1("backFcnc0_3",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
                  backFcnc0_3->SetLineColor(kRed);
-                 TF1 *signalFcnJPsic0_3 = new TF1("signalFcnJPsic0_3",SignalFcnJPsiV2,2.1,5.1,16);
+                 TF1 *signalFcnJPsic0_3 = new TF1("signalFcnJPsic0_3",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
                  signalFcnJPsic0_3->SetLineColor(kBlue);
                  signalFcnJPsic0_3->SetNpx(500);
                  
@@ -2423,9 +2624,9 @@ void FitTrainingPtBinned(){
                  fitc2_3->SetLineWidth(4);
                  fitc2_3->SetLineColor(kMagenta);
                  fitc2_3->SetParameters(par);
-                 TF1 *backFcnc2_3 = new TF1("backFcnc2_3",BackFcnV2Poly,2.1,5.1,16);
+                 TF1 *backFcnc2_3 = new TF1("backFcnc2_3",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
                  backFcnc2_3->SetLineColor(kRed);
-                 TF1 *signalFcnJPsic2_3 = new TF1("signalFcnJPsic2_3",SignalFcnJPsiV2,2.1,5.1,16);
+                 TF1 *signalFcnJPsic2_3 = new TF1("signalFcnJPsic2_3",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
                  signalFcnJPsic2_3->SetLineColor(kBlue);
                  signalFcnJPsic2_3->SetNpx(500);
                  
@@ -2501,7 +2702,9 @@ void FitTrainingPtBinned(){
             c316PtBinned->cd(1+ptbin + 3*NbPtBins);
             
             V2_Ext3[ptbin] = c2_JPsiPtBinned[ptbin]/(c0_JPsiPtBinned[ptbin] + b0_JPsiPtBinned[ptbin]);
-            errV2_Ext3[ptbin] = (c2_JPsiPtBinned[ptbin]/(c0_JPsiPtBinned[ptbin] + b0_JPsiPtBinned[ptbin])*sqrt(pow(ec2_JPsiPtBinned[ptbin]/c2_JPsiPtBinned[ptbin],2)+pow(ec0_JPsiPtBinned[ptbin]/c0_JPsiPtBinned[ptbin],2)+pow(eb0_JPsiPtBinned[ptbin]/b0_JPsiPtBinned[ptbin],2)));
+           // errV2_Ext3[ptbin] = (c2_JPsiPtBinned[ptbin]/(c0_JPsiPtBinned[ptbin] + b0_JPsiPtBinned[ptbin])*sqrt(pow(ec2_JPsiPtBinned[ptbin]/c2_JPsiPtBinned[ptbin],2)+pow(ec0_JPsiPtBinned[ptbin]/c0_JPsiPtBinned[ptbin],2)+pow(eb0_JPsiPtBinned[ptbin]/b0_JPsiPtBinned[ptbin],2)));
+            
+            errV2_Ext3[ptbin] = (c2_JPsiPtBinned[ptbin]/(c0_JPsiPtBinned[ptbin] + b0_JPsiPtBinned[ptbin])*sqrt(pow(ec2_JPsiPtBinned[ptbin]/c2_JPsiPtBinned[ptbin],2)+pow(sqrt(pow(ec0_JPsiPtBinned[ptbin],2)+pow(eb0_JPsiPtBinned[ptbin],2))/(c0_JPsiPtBinned[ptbin] + b0_JPsiPtBinned[ptbin]),2)));
             
             V2_Ext3_noZYAM[ptbin] = c2_JPsiPtBinned[ptbin]/(c0_JPsiPtBinned[ptbin]);
             errV2_Ext3_noZYAM[ptbin] = (c2_JPsiPtBinned[ptbin]/(c0_JPsiPtBinned[ptbin])*sqrt(pow(ec2_JPsiPtBinned[ptbin]/c2_JPsiPtBinned[ptbin],2)+pow(ec0_JPsiPtBinned[ptbin]/c0_JPsiPtBinned[ptbin],2)));
@@ -2630,9 +2833,9 @@ void FitTrainingPtBinned(){
             fileLog << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
             fileLog << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
 
-        TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,2.1,5.1,16);
+        TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
         backFcnY_1Central->SetLineColor(kRed);
-        TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
+        TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
           // writes the fit results into the par array
 
             if(t==niterations-1){
@@ -2797,9 +3000,9 @@ void FitTrainingPtBinned(){
                fileLog << "COV status Periph t=" << t << " : " << resperiph->CovMatrixStatus()<<endl;
                fileLog << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
 
-           TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,2.1,5.1,16);
+           TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
            backFcnY_1Periph->SetLineColor(kRed);
-           TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
+           TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
              // writes the fit results into the par array
 
                if(t==niterations-1){
@@ -2823,6 +3026,7 @@ void FitTrainingPtBinned(){
                        baseline_periph += param[12];
                        baseline_periph /= 2;
                        errbaseline_periph = sqrt(pow(errbaseline_periph,2)+pow(fitY_1Periph->GetParError(12),2));
+                       errbaseline_periph /= 2;
                    }
                  Yields_Periph_1->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]);
                  Yields_Periph_1->SetBinError(i+1,fitY_1Periph->GetParError(12));
@@ -2903,7 +3107,7 @@ void FitTrainingPtBinned(){
         Yields_Difference_1->SetStats(kTRUE);
         Yields_Difference_1->DrawCopy();
 
-             TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+        TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
              fitFcnV2_2->SetNpx(500);
              fitFcnV2_2->SetLineWidth(4);
              fitFcnV2_2->SetLineColor(kMagenta);
@@ -2944,7 +3148,7 @@ void FitTrainingPtBinned(){
                Char_t message[80];
                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
                legend->AddEntry(fitFcnV2_2,message);
-        sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline_periph,par[2]/(par[0] + baseline_periph),(par[2]/(par[0] + baseline_periph)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline_periph/baseline_periph,2))));
+        sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline_periph,par[2]/(par[0] + baseline_periph),(par[2]/(par[0] + baseline_periph)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_2->GetParError(0),2)+pow(errbaseline_periph,2))/(par[0] + baseline_periph),2))));
         legend->AddEntry(fitFcnV2_2,message);
         if(res->CovMatrixStatus() == 3){
                  //  sprintf(message,"The fit is a success");
@@ -2975,7 +3179,7 @@ void FitTrainingPtBinned(){
     
     {
         cCvetan->cd(1);
-             TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanF,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+             TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanF,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
              fitFcnV2_Cvetan->SetNpx(500);
              fitFcnV2_Cvetan->SetLineWidth(4);
              fitFcnV2_Cvetan->SetLineColor(kOrange+3);
@@ -3060,7 +3264,7 @@ void FitTrainingPtBinned(){
     
     {
         cCvetanMe->cd(1);
-             TF1 *fitFcnV2_CvetanMe = new TF1("fitFcnV2_CvetanMe",CvetanF,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+             TF1 *fitFcnV2_CvetanMe = new TF1("fitFcnV2_CvetanMe",CvetanF,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
              fitFcnV2_CvetanMe->SetNpx(500);
              fitFcnV2_CvetanMe->SetLineWidth(4);
              fitFcnV2_CvetanMe->SetLineColor(kBlue);
@@ -3147,7 +3351,7 @@ void FitTrainingPtBinned(){
     
     {
         cZYAM->cd(1);
-             TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAM,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+             TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAM,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
              fitFcnV2_ZYAM->SetNpx(500);
              fitFcnV2_ZYAM->SetLineWidth(4);
              fitFcnV2_ZYAM->SetLineColor(kCyan-7);
@@ -3226,16 +3430,16 @@ void FitTrainingPtBinned(){
        
        {
            cPRLTemplate->cd(1);
-                TF1 *fitFcnV2_PRLTemplate = new TF1("fitFcnV2_PRLTemplate",PRLTemplate,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+                TF1 *fitFcnV2_PRLTemplate = new TF1("fitFcnV2_PRLTemplate",PRLTemplate,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
                 fitFcnV2_PRLTemplate->SetNpx(500);
                 fitFcnV2_PRLTemplate->SetLineWidth(4);
                 fitFcnV2_PRLTemplate->SetLineColor(kRed+1);
-           TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_RidgeAndZero,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+           TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_RidgeAndZero,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
            fitFcnV2_PRLTemplate_RidgeAndZero->SetNpx(500);
            fitFcnV2_PRLTemplate_RidgeAndZero->SetLineWidth(2);
            fitFcnV2_PRLTemplate_RidgeAndZero->SetLineStyle(9);
            fitFcnV2_PRLTemplate_RidgeAndZero->SetLineColor(kRed);
-           TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphAndG,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+           TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphAndG,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
            fitFcnV2_PRLTemplate_PeriphAndG->SetNpx(500);
            fitFcnV2_PRLTemplate_PeriphAndG->SetLineWidth(2);
            fitFcnV2_PRLTemplate_PeriphAndG->SetLineStyle(9);
@@ -3324,7 +3528,7 @@ void FitTrainingPtBinned(){
           
           {
               cPRLTemplate_PeriphZYAM->cd(1);
-                   TF1 *fitFcnV2_PRLTemplate_PeriphZYAM = new TF1("fitFcnV2_PRLTemplate_PeriphZYAM",PRLTemplate_PeriphZYAM,-TMath::Pi()/2,1.5*TMath::Pi(),2);
+                   TF1 *fitFcnV2_PRLTemplate_PeriphZYAM = new TF1("fitFcnV2_PRLTemplate_PeriphZYAM",PRLTemplate_PeriphZYAM,0,TMath::Pi(),2);//-TMath::Pi()/2,1.5*TMath::Pi(),2);
                    fitFcnV2_PRLTemplate_PeriphZYAM->SetNpx(500);
                    fitFcnV2_PRLTemplate_PeriphZYAM->SetLineWidth(4);
                    fitFcnV2_PRLTemplate_PeriphZYAM->SetLineColor(kBlack);
@@ -3498,9 +3702,9 @@ void FitTrainingPtBinned(){
                 std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
                 std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
 
-            TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,2.1,5.1,16);
+            TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
             backFcnY_1Central->SetLineColor(kRed);
-            TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
+            TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
               // writes the fit results into the par array
             
                 if(t==niterations-1){
@@ -3646,9 +3850,9 @@ void FitTrainingPtBinned(){
                    std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
                     std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
 
-               TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,2.1,5.1,16);
+               TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,MinInvMass,MaxInvMass,16);
                backFcnY_1Periph->SetLineColor(kRed);
-               TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
+               TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,MinInvMass,MaxInvMass,16);
                  // writes the fit results into the par array
                    
                    if(t==niterations-1){
@@ -3671,6 +3875,7 @@ void FitTrainingPtBinned(){
                            baseline_periphPtBinned[ptbin] += param[12];
                            baseline_periphPtBinned[ptbin] /= 2;
                            errbaseline_periphPtBinned[ptbin] = sqrt(pow(errbaseline_periphPtBinned[ptbin],2)+pow(fitY_1Periph->GetParError(12),2));
+                           errbaseline_periphPtBinned[ptbin] /= 2;
                        }
                    
                      Yields_Periph_1PtBinned[ptbin]->Fill(MinDeltaPhi + (i+0.5)*SizeBinDeltaPhi, param[12]);
@@ -3758,7 +3963,7 @@ void FitTrainingPtBinned(){
                 Yields_Difference_1PtBinned[ptbin]->Add(Yields_Central_1PtBinned[ptbin],Yields_Periph_1PtBinned[ptbin],1,-1);
                 Yields_Difference_1PtBinned[ptbin]->Draw();
             
-                     TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+                     TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
                      fitFcnV2_2->SetNpx(500);
                      fitFcnV2_2->SetLineWidth(4);
                      fitFcnV2_2->SetLineColor(kMagenta);
@@ -3798,7 +4003,7 @@ void FitTrainingPtBinned(){
                        Char_t message[80];
                        sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
                        legend->AddEntry(fitFcnV2_2,message);
-                sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline_periphPtBinned[ptbin],par[2]/(par[0] + baseline_periphPtBinned[ptbin]),(par[2]/(par[0] + baseline_periphPtBinned[ptbin])*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline_periphPtBinned[ptbin]/baseline_periphPtBinned[ptbin],2))));
+                sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline_periphPtBinned[ptbin],par[2]/(par[0] + baseline_periphPtBinned[ptbin]),(par[2]/(par[0] + baseline_periphPtBinned[ptbin])*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_2->GetParError(0),2)+pow(errbaseline_periphPtBinned[ptbin],2))/(par[0] + baseline_periphPtBinned[ptbin]),2))));
                 legend->AddEntry(fitFcnV2_2,message);
                 if(res->CovMatrixStatus() == 3){
                           // sprintf(message,"The fit is a success");
@@ -3812,7 +4017,7 @@ void FitTrainingPtBinned(){
                      legend->Draw();
                 
                 V2_Ext1[ptbin] = par[2]/(par[0] + baseline_periphPtBinned[ptbin]);
-                errV2_Ext1[ptbin] = (par[2]/(par[0] + baseline_periphPtBinned[ptbin])*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)+pow(errbaseline_periphPtBinned[ptbin]/baseline_periphPtBinned[ptbin],2)));
+                errV2_Ext1[ptbin] = (par[2]/(par[0] + baseline_periphPtBinned[ptbin])*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_2->GetParError(0),2)+pow(errbaseline_periphPtBinned[ptbin],2))/(par[0] + baseline_periphPtBinned[ptbin]),2)));
                 
                 V2_Ext1_noZYAM[ptbin] = par[2]/(par[0]);
                 errV2_Ext1_noZYAM[ptbin] = (par[2]/(par[0])*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(fitFcnV2_2->GetParError(0)/par[0],2)));
@@ -3838,7 +4043,7 @@ void FitTrainingPtBinned(){
                 
                {
                     cCvetanPtBinned->cd(1);
-                         TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),5);
+                         TF1 *fitFcnV2_Cvetan = new TF1("fitFcnV2_Cvetan",CvetanFPtBinned,0,TMath::Pi(),5);//-TMath::Pi()/2,1.5*TMath::Pi(),5);
                          fitFcnV2_Cvetan->SetNpx(500);
                          fitFcnV2_Cvetan->SetLineWidth(4);
                          fitFcnV2_Cvetan->SetLineColor(kOrange+3);
@@ -3933,7 +4138,7 @@ void FitTrainingPtBinned(){
                 
                 {
                     cCvetanMePtBinned->cd(1);
-                         TF1 *fitFcnV2_CvetanMe = new TF1("fitFcnV2_CvetanMe",CvetanFPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),5);
+                         TF1 *fitFcnV2_CvetanMe = new TF1("fitFcnV2_CvetanMe",CvetanFPtBinned,0,TMath::Pi(),5);//-TMath::Pi()/2,1.5*TMath::Pi(),5);
                          fitFcnV2_CvetanMe->SetNpx(500);
                          fitFcnV2_CvetanMe->SetLineWidth(4);
                          fitFcnV2_CvetanMe->SetLineColor(kBlue);
@@ -4026,7 +4231,7 @@ void FitTrainingPtBinned(){
             
             {
                 cZYAMPtBinned->cd(1);
-                     TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAMPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),4);
+                     TF1 *fitFcnV2_ZYAM = new TF1("fitFcnV2_ZYAM",ZYAMPtBinned,0,TMath::Pi(),4);//-TMath::Pi()/2,1.5*TMath::Pi(),4);
                      fitFcnV2_ZYAM->SetNpx(500);
                      fitFcnV2_ZYAM->SetLineWidth(4);
                      fitFcnV2_ZYAM->SetLineColor(kCyan-7);
@@ -4091,7 +4296,9 @@ void FitTrainingPtBinned(){
                 
                 
                 V2_ZYAM[ptbin] = par[3]/(par[1]+baseline_centralPtBinned[ptbin]);
-                errV2_ZYAM[ptbin] = (par[3]/(par[1] + baseline_centralPtBinned[ptbin])*sqrt(pow(fitFcnV2_ZYAM->GetParError(3)/par[3],2)+pow(fitFcnV2_ZYAM->GetParError(1)/par[1],2)+pow(errbaseline_centralPtBinned[ptbin]/baseline_centralPtBinned[ptbin],2)));
+              //  errV2_ZYAM[ptbin] = (par[3]/(par[1] + baseline_centralPtBinned[ptbin])*sqrt(pow(fitFcnV2_ZYAM->GetParError(3)/par[3],2)+pow(fitFcnV2_ZYAM->GetParError(1)/par[1],2)+pow(errbaseline_centralPtBinned[ptbin]/baseline_centralPtBinned[ptbin],2)));
+                
+                errV2_ZYAM[ptbin] = (par[3]/(par[1] + baseline_centralPtBinned[ptbin])*sqrt(pow(fitFcnV2_ZYAM->GetParError(3)/par[3],2)+pow(sqrt(pow(fitFcnV2_ZYAM->GetParError(1),2)+pow(errbaseline_centralPtBinned[ptbin],2))/(par[1] + baseline_centralPtBinned[ptbin]),2)));
 
             }
             
@@ -4112,16 +4319,16 @@ void FitTrainingPtBinned(){
                    
                    {
                        cPRLTemplatePtBinned->cd(1);
-                            TF1 *fitFcnV2_PRLTemplate = new TF1("fitFcnV2_PRLTemplate",PRLTemplatePtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+                            TF1 *fitFcnV2_PRLTemplate = new TF1("fitFcnV2_PRLTemplate",PRLTemplatePtBinned,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
                             fitFcnV2_PRLTemplate->SetNpx(500);
                             fitFcnV2_PRLTemplate->SetLineWidth(4);
                             fitFcnV2_PRLTemplate->SetLineColor(kRed+1);
-                       TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_RidgeAndZeroPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+                       TF1 *fitFcnV2_PRLTemplate_RidgeAndZero = new TF1("fitFcnV2_PRLTemplate_RidgeAndZero",PRLTemplate_RidgeAndZeroPtBinned,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
                        fitFcnV2_PRLTemplate_RidgeAndZero->SetNpx(500);
                        fitFcnV2_PRLTemplate_RidgeAndZero->SetLineWidth(2);
                        fitFcnV2_PRLTemplate_RidgeAndZero->SetLineStyle(9);
                        fitFcnV2_PRLTemplate_RidgeAndZero->SetLineColor(kRed);
-                       TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphAndGPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+                       TF1 *fitFcnV2_PRLTemplate_PeriphAndG = new TF1("fitFcnV2_PRLTemplate_PeriphAndG",PRLTemplate_PeriphAndGPtBinned,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
                        fitFcnV2_PRLTemplate_PeriphAndG->SetNpx(500);
                        fitFcnV2_PRLTemplate_PeriphAndG->SetLineWidth(2);
                        fitFcnV2_PRLTemplate_PeriphAndG->SetLineStyle(9);
@@ -4131,7 +4338,7 @@ void FitTrainingPtBinned(){
                             // this results in an ok fit for the polynomial function
                             // however the non-linear part (lorenzian) does not
                             // respond well.
-                             Double_t params[3] = {static_cast<Double_t>(ptbin),0.1,1};
+                             Double_t params[3] = {static_cast<Double_t>(ptbin),0.01,1};
                             fitFcnV2_PRLTemplate->SetParameters(params);
                              TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetMaxIterations(10000);
                              TVirtualFitter::Fitter(Yields_Central_1_PRLTemplatePtBinned[ptbin])->SetPrecision();
@@ -4217,7 +4424,7 @@ void FitTrainingPtBinned(){
                       
                       {
                           cPRLTemplate_PeriphZYAMPtBinned->cd(1);
-                               TF1 *fitFcnV2_PRLTemplate_PeriphZYAM = new TF1("fitFcnV2_PRLTemplate_PeriphZYAM",PRLTemplate_PeriphZYAMPtBinned,-TMath::Pi()/2,1.5*TMath::Pi(),3);
+                               TF1 *fitFcnV2_PRLTemplate_PeriphZYAM = new TF1("fitFcnV2_PRLTemplate_PeriphZYAM",PRLTemplate_PeriphZYAMPtBinned,0,TMath::Pi(),3);//-TMath::Pi()/2,1.5*TMath::Pi(),3);
                                fitFcnV2_PRLTemplate_PeriphZYAM->SetNpx(500);
                                fitFcnV2_PRLTemplate_PeriphZYAM->SetLineWidth(4);
                                fitFcnV2_PRLTemplate_PeriphZYAM->SetLineColor(kBlack);
@@ -4589,20 +4796,37 @@ void FitTrainingPtBinned(){
     
     //Résultats TKL 0-5% 40-100% - Baseline central min Yp unc. PROPAGATED FitFile_NewAnalysis_16hjo10_TKL_0-5_40-100_pt0-12.root
         
-            double v2ClassiqueTKL = 0.0612282;
-            double errv2ClassiqueTKL = 0.000638029;
-            double v2ClassiqueTKL_noZYAM = 0.0702399;
-            double errv2ClassiqueTKL_noZYAM = 0.00144388;
-            double v2CvetanQuentinTKL = 0.0622471;
-            double errv2CvetanQuentinTKL = 0.00187047;
-            double v2CvetanQuentinMeTKL = 0.0611412;
-            double errv2CvetanQuentinMeTKL = 0.000849029;
-            double v2ZYAMTKL = 0.0611414;
-            double errv2ZYAMTKL = 0.00129501;
-            double v2PRLTKL = 0.108204;
-            double errv2PRLTKL = 0.00371707;
-            double v2PRLPeriphZYAMTKL = 0.0628502;
-            double errv2PRLPeriphZYAMTKL = 0.00230936;
+//            double v2ClassiqueTKL = 0.0612282;
+//            double errv2ClassiqueTKL = 0.000638029;
+//            double v2ClassiqueTKL_noZYAM = 0.0702399;
+//            double errv2ClassiqueTKL_noZYAM = 0.00144388;
+//            double v2CvetanQuentinTKL = 0.0622471;
+//            double errv2CvetanQuentinTKL = 0.00187047;
+//            double v2CvetanQuentinMeTKL = 0.0611412;
+//            double errv2CvetanQuentinMeTKL = 0.000849029;
+//            double v2ZYAMTKL = 0.0611414;
+//            double errv2ZYAMTKL = 0.00129501;
+//            double v2PRLTKL = 0.108204;
+//            double errv2PRLTKL = 0.00371707;
+//            double v2PRLPeriphZYAMTKL = 0.0628502;
+//            double errv2PRLPeriphZYAMTKL = 0.00230936;
+    
+    //Résultats TKL 0-5% 40-100% - Baseline central min Yp unc. NewAnalysisAllEst_TKL_16h_V0MPercentile_0-5_40-100_pt0-12_SummationZvtxMethod1c
+    
+        double v2ClassiqueTKL = 0.0524698;
+        double errv2ClassiqueTKL = 0.000302415;
+        double v2ClassiqueTKL_noZYAM = 0.0617702;
+        double errv2ClassiqueTKL_noZYAM = 0.000355983;
+        double v2CvetanQuentinTKL = 0.0509369;
+        double errv2CvetanQuentinTKL = 0.000464702;
+        double v2CvetanQuentinMeTKL = 0.0611412; //no
+        double errv2CvetanQuentinMeTKL = 0.000849029; //no
+        double v2ZYAMTKL = 0.0523923;
+        double errv2ZYAMTKL = 0.000424847;
+        double v2PRLTKL = 0.0636312;
+        double errv2PRLTKL = 0.000484392;
+        double v2PRLPeriphZYAMTKL = 0.0504003;
+        double errv2PRLPeriphZYAMTKL = 0.000501764;
 
 
     //
@@ -4668,7 +4892,7 @@ void FitTrainingPtBinned(){
     }
     
     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-         PtMiddle[ptbin] = (PtBins[ptbin]+PtBins[ptbin+1])/2 - 0.02*3;
+        PtMiddle[ptbin] = (PtBins[ptbin]+PtBins[ptbin+1])/2 - 0.02*1;
          PtErrorSize[ptbin] = (PtBins[ptbin+1]-PtBins[ptbin])/2;
      }
      
@@ -4726,17 +4950,17 @@ void FitTrainingPtBinned(){
 //    PtMiddle[ptbin] += 0.02;
 //    }
     
-    TGraphErrors *grv2_wrt_Pt3 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext3,PtErrorSize,errv2_Ext3);
-         // TGraph *gr3 = new TGraph (n, K3, chi);
-        grv2_wrt_Pt3->SetMarkerColor(kMagenta-7);
-        grv2_wrt_Pt3->SetLineColor(kMagenta-7);
-        grv2_wrt_Pt3->SetLineStyle(9);
-        grv2_wrt_Pt3->SetMarkerStyle(26);
-          grv2_wrt_Pt3->Draw("P");
-
-        for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-        PtMiddle[ptbin] += 0.02;
-        }
+//    TGraphErrors *grv2_wrt_Pt3 = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext3,PtErrorSize,errv2_Ext3);
+//         // TGraph *gr3 = new TGraph (n, K3, chi);
+//        grv2_wrt_Pt3->SetMarkerColor(kMagenta-7);
+//        grv2_wrt_Pt3->SetLineColor(kMagenta-7);
+//        grv2_wrt_Pt3->SetLineStyle(9);
+//        grv2_wrt_Pt3->SetMarkerStyle(26);
+//          grv2_wrt_Pt3->Draw("P");
+//
+//        for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//        PtMiddle[ptbin] += 0.02;
+//        }
     
 //    TGraphErrors *grv2_wrt_Pt3_noZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_Ext3_noZYAM,PtErrorSize,errv2_Ext3_noZYAM);
 //            // TGraph *gr3 = new TGraph (n, K3, chi);
@@ -4749,17 +4973,17 @@ void FitTrainingPtBinned(){
 //           PtMiddle[ptbin] += 0.02;
 //           }
 //     
-     TGraphErrors *grv2_wrt_PtCvetanQuentin = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentin,PtErrorSize,errv2_CvetanQuentin);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-    grv2_wrt_PtCvetanQuentin->SetMarkerColor(kOrange+3);
-     grv2_wrt_PtCvetanQuentin->SetLineColor(kOrange+3);
-     grv2_wrt_PtCvetanQuentin->SetLineStyle(9);
-     grv2_wrt_PtCvetanQuentin->SetMarkerStyle(28);
-       grv2_wrt_PtCvetanQuentin->Draw("P");
-
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
+//     TGraphErrors *grv2_wrt_PtCvetanQuentin = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentin,PtErrorSize,errv2_CvetanQuentin);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//    grv2_wrt_PtCvetanQuentin->SetMarkerColor(kOrange+3);
+//     grv2_wrt_PtCvetanQuentin->SetLineColor(kOrange+3);
+//     grv2_wrt_PtCvetanQuentin->SetLineStyle(9);
+//     grv2_wrt_PtCvetanQuentin->SetMarkerStyle(28);
+//       grv2_wrt_PtCvetanQuentin->Draw("P");
+//
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
 
 //     TGraphErrors *grv2_wrt_PtCvetanQuentinMe = new TGraphErrors(NbPtBins,PtMiddle,v2_CvetanQuentinMe,PtErrorSize,errv2_CvetanQuentinMe);
 //      // TGraph *gr3 = new TGraph (n, K3, chi);
@@ -4772,17 +4996,17 @@ void FitTrainingPtBinned(){
 //     PtMiddle[ptbin] += 0.02;
 //     }
 
-     TGraphErrors *grv2_wrt_PtZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_ZYAM,PtErrorSize,errv2_ZYAM);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-     grv2_wrt_PtZYAM->SetMarkerColor(kCyan-7);
-     grv2_wrt_PtZYAM->SetLineColor(kCyan-7);
-     grv2_wrt_PtZYAM->SetLineStyle(9);
-     grv2_wrt_PtZYAM->SetMarkerStyle(27);
-       grv2_wrt_PtZYAM->Draw("P");
-
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
+//     TGraphErrors *grv2_wrt_PtZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_ZYAM,PtErrorSize,errv2_ZYAM);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//     grv2_wrt_PtZYAM->SetMarkerColor(kCyan-7);
+//     grv2_wrt_PtZYAM->SetLineColor(kCyan-7);
+//     grv2_wrt_PtZYAM->SetLineStyle(9);
+//     grv2_wrt_PtZYAM->SetMarkerStyle(27);
+//       grv2_wrt_PtZYAM->Draw("P");
+//
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
      
      TGraphErrors *grv2_wrt_PtPRL = new TGraphErrors(NbPtBins,PtMiddle,v2_PRL,PtErrorSize,errv2_PRL);
       // TGraph *gr3 = new TGraph (n, K3, chi);
@@ -4808,18 +5032,18 @@ void FitTrainingPtBinned(){
 //    grv2_wrt_PtpPb->SetMarkerStyle(26);
 //      grv2_wrt_PtpPb->Draw("P");
      
-     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
-     PtMiddle[ptbin] += 0.02;
-     }
-
-     TGraphErrors *grv2_wrt_PtPRLPeriphZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_PRLPeriphZYAM,PtErrorSize,errv2_PRLPeriphZYAM);
-      // TGraph *gr3 = new TGraph (n, K3, chi);
-    grv2_wrt_PtPRLPeriphZYAM->SetMarkerColor(kBlack);
-     grv2_wrt_PtPRLPeriphZYAM->SetLineColor(kBlack);
-     grv2_wrt_PtPRLPeriphZYAM->SetLineStyle(9);
-     grv2_wrt_PtPRLPeriphZYAM->SetMarkerStyle(25);
-       grv2_wrt_PtPRLPeriphZYAM->Draw("P");
-     
+//     for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+//     PtMiddle[ptbin] += 0.02;
+//     }
+//
+//     TGraphErrors *grv2_wrt_PtPRLPeriphZYAM = new TGraphErrors(NbPtBins,PtMiddle,v2_PRLPeriphZYAM,PtErrorSize,errv2_PRLPeriphZYAM);
+//      // TGraph *gr3 = new TGraph (n, K3, chi);
+//    grv2_wrt_PtPRLPeriphZYAM->SetMarkerColor(kBlack);
+//     grv2_wrt_PtPRLPeriphZYAM->SetLineColor(kBlack);
+//     grv2_wrt_PtPRLPeriphZYAM->SetLineStyle(9);
+//     grv2_wrt_PtPRLPeriphZYAM->SetMarkerStyle(25);
+//       grv2_wrt_PtPRLPeriphZYAM->Draw("P");
+//
      TLegend *legendov=new TLegend(0.12,0.60,0.40,0.90);
               legendov->SetFillColorAlpha(kWhite, 0.);
               legendov->SetBorderSize(0);
@@ -4829,15 +5053,15 @@ void FitTrainingPtBinned(){
   //  legendov->AddEntry(grv2_wrt_Pt1_noZYAM,"v2_Ext1_noZYAM (pPb-like no ZYAM)");
              legendov->AddEntry(grv2_wrt_Pt2,"v_{2,Ext2} (pPb-like)");
   //  legendov->AddEntry(grv2_wrt_Pt2_noZYAM,"v2_Ext2_noZYAM (pPb-like no ZYAM)");
-            legendov->AddEntry(grv2_wrt_Pt3,"v_{2,Ext3} (pPb-like)");
+      //      legendov->AddEntry(grv2_wrt_Pt3,"v_{2,Ext3} (pPb-like)");
   //  legendov->AddEntry(grv2_wrt_Pt3_noZYAM,"v2_Ext3_noZYAM (pPb-like no ZYAM)");
-            legendov->AddEntry(grv2_wrt_PtZYAM,"v_{2,ZYAM} : (Y_{C}-Y_{C}(0))-(Y_{P}-Y_{P}(0))=a_{0}+2a_{1}cos(#Delta#phi)+2a_{2}cos(2#Delta#phi)");
-             legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v_{2,Template+PeriphZYAM}: Y_{C}-F(Y_{P}-Y_{P}(0))=Y_{C,0}(1+v_{2,2}cos(2#Delta#phi))");
+        //    legendov->AddEntry(grv2_wrt_PtZYAM,"v_{2,ZYAM} : (Y_{C}-Y_{C}(0))-(Y_{P}-Y_{P}(0))=a_{0}+2a_{1}cos(#Delta#phi)+2a_{2}cos(2#Delta#phi)");
+          //   legendov->AddEntry(grv2_wrt_PtCvetanQuentin,"v_{2,Template+PeriphZYAM}: Y_{C}-F(Y_{P}-Y_{P}(0))=Y_{C,0}(1+v_{2,2}cos(2#Delta#phi))");
             // legendov->AddEntry(grv2_wrt_PtCvetanQuentinMe,"v2_CvetanQuentinMe");
              legendov->AddEntry(grv2_wrt_PtPRL,"v_{2,TemplateATLAS}: Y_{C}-F(Y_{P}-Y_{P}(0))=G(1+v_{2,2}cos(2#Delta#phi))");
 //    legendov->AddEntry(grv2_wrt_PtPbPb,"Pb-Pb, 5.02 TeV, 5-20%");
 //    legendov->AddEntry(grv2_wrt_PtpPb,"p-Pb, 5.02-8.16 TeV, y>0 direction");
-             legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v_{2,TemplateATLAS+ZYAM}: (Y_{C}-Y_{C}(0))-F(Y_{P}-Y_{P}(0))=G(1+v_{2,2}cos(2#Delta#phi))");
+             //legendov->AddEntry(grv2_wrt_PtPRLPeriphZYAM,"v_{2,TemplateATLAS+ZYAM}: (Y_{C}-Y_{C}(0))-F(Y_{P}-Y_{P}(0))=G(1+v_{2,2}cos(2#Delta#phi))");
               legendov->Draw();
      
      cv2Pt->Update();
@@ -5104,7 +5328,8 @@ void FitTrainingPtBinned(){
 
 Double_t CvetanF(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+{   //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
     return baseline_central*(par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + par[3]*YMinusBp; }
 
@@ -5128,7 +5353,8 @@ void ChisquareCvetanF(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Do
 
 Double_t CvetanFPtBinned(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+{   //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     int ptbin = par[0];
     double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bintolook+1);
     return baseline_centralPtBinned[ptbin]*(par[1] + 2*par[2]*cos(x[0]) + 2*par[3]*cos(2*x[0])) + par[4]*YMinusBp; }
@@ -5153,13 +5379,15 @@ void ChisquareCvetanFPtBinned(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &
 
 Double_t CvetanFTKL(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12)); //OBSOLETE
+{   //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double YMinusBp = YieldTkl_Periph_MinusBaseline->GetBinContent(bintolook+1);
     return baselineTKL_central*(par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + par[3]*YMinusBp; }
 
 Double_t ZYAM(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+{   //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
     return baseline_central + (par[0] + 2*par[1]*cos(x[0]) + 2*par[2]*cos(2*x[0])) + 1*YMinusBp; }
 
@@ -5183,7 +5411,8 @@ void ChisquareZYAM(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Doubl
 
 Double_t ZYAMPtBinned(Double_t *x,Double_t *par)
 
-{   int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+{   //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     int ptbin = par[0];
     double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bintolook+1);
     return baseline_centralPtBinned[ptbin] + (par[1] + 2*par[2]*cos(x[0]) + 2*par[3]*cos(2*x[0])) + 1*YMinusBp; }
@@ -5210,9 +5439,10 @@ Double_t PRLTemplate(Double_t *x,Double_t *par)
 
 {   double integral_Yperiph = Yields_Periph_1->Integral(1,Yields_Periph_1->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1->Integral(1,Yields_Central_1->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double Yperiphbin = Yields_Periph_1->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(TMath::Pi());//factor 2 deno
     
     return par[1]*Yperiphbin + (1+2*par[0]*cos(2*x[0]))*G; }
 
@@ -5239,9 +5469,10 @@ Double_t PRLTemplatePtBinned(Double_t *x,Double_t *par)
 {   int ptbin = par[0];
     double integral_Yperiph = Yields_Periph_1PtBinned[ptbin]->Integral(1,Yields_Periph_1PtBinned[ptbin]->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1PtBinned[ptbin]->Integral(1,Yields_Central_1PtBinned[ptbin]->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double Yperiphbin = Yields_Periph_1PtBinned[ptbin]->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[2]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[2]*integral_Yperiph))/(TMath::Pi());//deno x2
     
     return par[2]*Yperiphbin + (1+2*par[1]*cos(2*x[0]))*G; }
 
@@ -5267,9 +5498,10 @@ Double_t PRLTemplate_RidgeAndZero(Double_t *x,Double_t *par)
 
 {   double integral_Yperiph = Yields_Periph_1->Integral(1,Yields_Periph_1->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1->Integral(1,Yields_Central_1->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double Yperiphbin = baseline_periph;
-    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(TMath::Pi());//deno x2
     
     return par[1]*Yperiphbin + (1+2*par[0]*cos(2*x[0]))*G; }
 
@@ -5278,9 +5510,10 @@ Double_t PRLTemplate_RidgeAndZeroPtBinned(Double_t *x,Double_t *par)
 {   int ptbin = par[0];
     double integral_Yperiph = Yields_Periph_1PtBinned[ptbin]->Integral(1,Yields_Periph_1PtBinned[ptbin]->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1PtBinned[ptbin]->Integral(1,Yields_Central_1PtBinned[ptbin]->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double Yperiphbin = baseline_periphPtBinned[ptbin];
-    double G = (integral_Yreal-(par[2]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[2]*integral_Yperiph))/(TMath::Pi());//deno x2
     
     return par[2]*Yperiphbin + (1+2*par[1]*cos(2*x[0]))*G; }
 
@@ -5288,9 +5521,10 @@ Double_t PRLTemplate_PeriphAndG(Double_t *x,Double_t *par)
 
 {   double integral_Yperiph = Yields_Periph_1->Integral(1,Yields_Periph_1->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1->Integral(1,Yields_Central_1->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double Yperiphbin = Yields_Periph_1->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_Yperiph))/(TMath::Pi());//deno x2
     
     return par[1]*Yperiphbin + G; }
 
@@ -5299,9 +5533,10 @@ Double_t PRLTemplate_PeriphAndGPtBinned(Double_t *x,Double_t *par)
 {   int ptbin = par[0];
     double integral_Yperiph = Yields_Periph_1PtBinned[ptbin]->Integral(1,Yields_Periph_1PtBinned[ptbin]->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1PtBinned[ptbin]->Integral(1,Yields_Central_1PtBinned[ptbin]->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double Yperiphbin = Yields_Periph_1PtBinned[ptbin]->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[2]*integral_Yperiph))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[2]*integral_Yperiph))/(TMath::Pi());//deno x2
     
     return par[2]*Yperiphbin + G; }
 
@@ -5309,9 +5544,10 @@ Double_t PRLTemplate_PeriphZYAM(Double_t *x,Double_t *par)
 
 {   double integral_YperiphMinusBp = Yields_Periph_1_MinusBaseline->Integral(1,Yields_Periph_1_MinusBaseline->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1->Integral(1,Yields_Central_1->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double YMinusBp = Yields_Periph_1_MinusBaseline->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[1]*integral_YperiphMinusBp))/(TMath::Pi());//deno x2
     
     return par[1]*YMinusBp + (1+2*par[0]*cos(2*x[0]))*G; }
 
@@ -5339,9 +5575,10 @@ Double_t PRLTemplate_PeriphZYAMPtBinned(Double_t *x,Double_t *par)
 {   int ptbin = par[0];
     double integral_YperiphMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->Integral(1,Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetNbinsX()+1,"width");
     double integral_Yreal = Yields_Central_1PtBinned[ptbin]->Integral(1,Yields_Central_1PtBinned[ptbin]->GetNbinsX()+1,"width");
-    int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    //int bintolook = floor((   (  (x[0]+(TMath::Pi()/2))  /   (2*TMath::Pi())  )    *12));
+    int bintolook = floor((   (  (x[0])  /   (TMath::Pi())  )    *6));
     double YMinusBp = Yields_Periph_1_MinusBaselinePtBinned[ptbin]->GetBinContent(bintolook+1);
-    double G = (integral_Yreal-(par[2]*integral_YperiphMinusBp))/(2*TMath::Pi());
+    double G = (integral_Yreal-(par[2]*integral_YperiphMinusBp))/(TMath::Pi());//deno x2
     
     return par[2]*YMinusBp + (1+2*par[1]*cos(2*x[0]))*G; }
 
@@ -5366,16 +5603,32 @@ void ChisquarePRLTemplate_PeriphZYAMPtBinned(Int_t & /*nPar*/, Double_t * /*grad
 
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par)
 // Par 0->7: signal, 8->11 Bkg, 12: v2 JPsi, 13->15: V2 bkg
-{ return (JPsiCrystalBallExtended(x,par)*par[12] + (ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*x[0]*x[0] + par[14]*x[0] + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+//{ return (JPsiCrystalBallExtended(x,par)*par[12] + (ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*(x[0]-mJpsi)*(x[0]-mJpsi) + par[14]*(x[0]-mJpsi) + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+{   Double_t xx = x[0];
+    Double_t iBin = V2JPsiTkl->FindBin(xx);
+    Double_t binLow = V2JPsiTkl->GetXaxis()->GetBinLowEdge(iBin);
+    Double_t binHigh = V2JPsiTkl->GetXaxis()->GetBinUpEdge(iBin);
+    
+    TF1 *jpsi = new TF1("jpsi", JPsiCrystalBallExtended, 1,5,8);
+    jpsi->SetParameters(par);
+    TF1 *psip = new TF1("psip", Psi2SCrystalBallExtended, 1,5,8);
+    psip->SetParameters(par);
+    TF1 *bkg = new TF1("bkg", ExpBkg, 1,5,4);
+    bkg->SetParameters(&par[8]);
+    
+    return (jpsi->Integral(binLow,binHigh)*par[12] + (bkg->Integral(binLow,binHigh)+psip->Integral(binLow,binHigh))*(par[13]*(x[0]-mJpsi)*(x[0]-mJpsi) + par[14]*(x[0]-mJpsi) + par[15]))/(jpsi->Integral(binLow,binHigh)+psip->Integral(binLow,binHigh)+bkg->Integral(binLow,binHigh)) ;}
+    //return (jpsi->Integral(binLow,binHigh)*par[12] + (bkg->Integral(binLow,binHigh))*(par[13]*(x[0]-mJpsi)*(x[0]-mJpsi) + par[14]*(x[0]-mJpsi) + par[15]))/(jpsi->Integral(binLow,binHigh)+bkg->Integral(binLow,binHigh)) ;}
 
 Double_t BackFcnV2(Double_t *x,Double_t *par)
-{return ((ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*x[0]*x[0] + par[14]*x[0] + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+{return ((ExpBkg(x,&par[8])+Psi2SCrystalBallExtended(x,par))*(par[13]*(x[0]-mJpsi)*(x[0]-mJpsi) + par[14]*(x[0]-mJpsi) + par[15]))/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+//{return ((ExpBkg(x,&par[8]))*(par[13]*(x[0]-mJpsi)*(x[0]-mJpsi) + par[14]*(x[0]-mJpsi) + par[15]))/(JPsiCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
 
 Double_t BackFcnV2Poly(Double_t *x,Double_t *par)
-{return (par[13]*x[0]*x[0] + par[14]*x[0] + par[15]) ;}
+{return (par[13]*(x[0]-mJpsi)*(x[0]-mJpsi) + par[14]*(x[0]-mJpsi) + par[15]) ;}
 
 Double_t SignalFcnJPsiV2(Double_t *x,Double_t *par)
 {return (JPsiCrystalBallExtended(x,par)*par[12])/(JPsiCrystalBallExtended(x,par)+Psi2SCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
+//{return (JPsiCrystalBallExtended(x,par)*par[12])/(JPsiCrystalBallExtended(x,par)+ExpBkg(x,&par[8])) ;}
 
 Double_t FourierV2(Double_t *x,Double_t *par)
 
@@ -5388,9 +5641,12 @@ Double_t FourierV5(Double_t *x,Double_t *par)
 Double_t TwoCBE2E(Double_t *x,Double_t *par)
 
 { return JPsiCrystalBallExtended(x,par) + Psi2SCrystalBallExtended(x,par) + ExpBkg(x,&par[8]);}
+//{ return JPsiCrystalBallExtended(x,par) + ExpBkg(x,&par[8]);}
 
 Double_t ExpBkg(Double_t *x,Double_t *par)
 
+//{ double sigma = par[2] + par[3]*((x[0]-par[1])/par[1]);
+//return par[0]*exp(-1.0*pow(x[0]-par[1],2)/(2*pow(sigma,2))); }
 { return par[0]*(exp(x[0]*par[1]*(-1))) + par[2]*(exp(x[0]*par[3]*(-1))); }
 
 Double_t JPsiCrystalBallExtended(Double_t *x,Double_t *par)
@@ -5430,7 +5686,7 @@ Double_t Psi2SCrystalBallExtended(Double_t *x,Double_t *par)
 {
       Double_t sum = 0;
     
-    Double_t t = (x[0]-(par[1]*mPsip/mJpsi))/(par[2]*ratSigma);
+    Double_t t = (x[0]-(par[1]+mDiff))/(par[2]);
   if (par[3] < 0) t = -t;
   
   Double_t absAlpha = fabs((Double_t)par[3]);
@@ -5441,18 +5697,18 @@ Double_t Psi2SCrystalBallExtended(Double_t *x,Double_t *par)
       Double_t a =  TMath::Power(par[4]/absAlpha,par[4])*exp(-0.5*absAlpha*absAlpha);
       Double_t b = par[4]/absAlpha - absAlpha;
       
-      sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(a/TMath::Power(b - t, par[4]));
+      sum += (par[7]/(par[2]*sqrt(2*TMath::Pi())))*(a/TMath::Power(b - t, par[4]));
   }
   else if (t >= -absAlpha && t < absAlpha2) // gaussian core
   {
-      sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(exp(-0.5*t*t));
+      sum += (par[7]/(par[2]*sqrt(2*TMath::Pi())))*(exp(-0.5*t*t));
   }
   else if (t >= absAlpha2) //right tail
   {
       Double_t c =  TMath::Power(par[6]/absAlpha2,par[6])*exp(-0.5*absAlpha2*absAlpha2);
       Double_t d = par[6]/absAlpha2 - absAlpha2;
       
-      sum += (par[7]/(par[2]*ratSigma*sqrt(2*TMath::Pi())))*(c/TMath::Power(d + t, par[6]));
+      sum += (par[7]/(par[2]*sqrt(2*TMath::Pi())))*(c/TMath::Power(d + t, par[6]));
   } else
       sum += 0;
     
@@ -5492,7 +5748,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
    cinvmass->SetGrid();
    TH1F *histo = (TH1F*)file0->Get(histoname);
    // create a TF1 with the range from 0 to 3 and 6 parameters
-   TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,2.1,5.1,12);
+   TF1 *fitFcn = new TF1("fitFcn",TwoCBE2E,MinInvMassFit,MaxInvMassFit,12);
    fitFcn->SetNpx(500);
    fitFcn->SetLineWidth(4);
    fitFcn->SetLineColor(kMagenta);
@@ -5517,8 +5773,8 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->SetParLimits(6,5,25);
     fitFcn->SetParLimits(7,0.001,1000000);
     fitFcn->SetParLimits(8,0.1,10000000);
-    fitFcn->SetParLimits(9,0.01,20);
-    fitFcn->SetParLimits(10,0.01,10000000);
+    fitFcn->SetParLimits(9,-20,20);
+    fitFcn->SetParLimits(10,0.01,100000000);
     fitFcn->SetParLimits(11,0.01,50);
     
 //   fitFcn->FixParameter(1,3.096916); // Mean x core
@@ -5539,8 +5795,9 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     fitFcn->FixParameter(5,1.832);
     fitFcn->FixParameter(6,15.323);
     fitFcn->SetParameter(7,100);
-    fitFcn->SetParameter(8,1000);
-    fitFcn->SetParameter(9,0.5);
+    fitFcn->FixParameter(8,1);
+    fitFcn->SetParameter(9,0.01);
+    fitFcn->SetParameter(10,100);
     fitFcn->SetParameter(11,10);
 
     
@@ -5585,10 +5842,10 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     
    // improve the picture:
    // histo->SetStats(kTRUE);
-   TF1 *backFcn = new TF1("backFcn",ExpBkg,2.1,5.1,4);
+   TF1 *backFcn = new TF1("backFcn",ExpBkg,MinInvMass,MaxInvMass,4);
    backFcn->SetLineColor(kRed);
-   TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,2.1,5.1,8);
-   TF1 *signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,2.1,5.1,8);
+   TF1 *signalFcnJPsi = new TF1("signalFcnJPsi",JPsiCrystalBallExtended,MinInvMass,MaxInvMass,8);
+   TF1 *signalFcnPsi2S = new TF1("signalFcnPsi2S",Psi2SCrystalBallExtended,MinInvMass,MaxInvMass,8);
    TPaveText *pave = new TPaveText(0.5,0.5,0.7,0.6,"brNDC");
    signalFcnJPsi->SetLineColor(kBlue);
    signalFcnJPsi->SetNpx(500);
@@ -5604,7 +5861,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
 //   auto covMatrix = res->GetCovarianceMatrix();
 //   std::cout << "Covariance matrix from the fit ";
 //   covMatrix.Print();
-   Double_t integral = (signalFcnJPsi->Integral(2.1,3.45))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+   Double_t integral = (signalFcnJPsi->Integral(0,5))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     auto covtot = res->GetCovarianceMatrix();
     auto covsgn = covtot.GetSub(0,7,0,7);
     std::cout << "Matrice totale" <<endl;
@@ -5612,7 +5869,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     std::cout << "Matrice réduite" <<endl;
     covsgn.Print();
     std::cout << "STATUS COV " << res->CovMatrixStatus() <<endl;
-   Double_t integralerror = (signalFcnJPsi->IntegralError(2.1,3.45,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,7,0,7).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
+   Double_t integralerror = (signalFcnJPsi->IntegralError(0,5,signalFcnJPsi->GetParameters(), res->GetCovarianceMatrix().GetSub(0,7,0,7).GetMatrixArray() ))*NbinsDimuInvMass/(MaxInvMass-MinInvMass);
     std::cout << "Erreur integrale " << integralerror <<endl;
     
     std::cout << "Fitted " << histoname << std::endl;
@@ -5630,7 +5887,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
     pave->SetTextSize(0.04);
     pave->SetBorderSize(0);
     pave->SetFillStyle(0);
-    sprintf(str, "M_{#Psi(2S)} = %f, Sig_{#Psi(2S)} = %f", int(mPsip*1000)/1000., int(ratSigma*par[2]*1000)/1000.);
+    sprintf(str, "M_{#Psi(2S)} = %f, Sig_{#Psi(2S)} = %f", int((mJpsi+mDiff)*1000)/1000., ratSigma*par[2]);
   //  pave->AddText(str);
    pave->Draw();
    TLegend *legend=new TLegend(0.4,0.6,0.6,0.8);
@@ -5664,11 +5921,12 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
 
 void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, Double_t *p, Int_t /*iflag */  )
 {
-  TAxis *xaxis1  = hnseg->GetXaxis();
-  TAxis *xaxis2  = V2JPsiTkl->GetXaxis();
+   // cout << "acutelptbin " << actuelptbin<<endl;
+  TAxis *xaxis1  = hPtWrtMassInvSliced[0][actuelptbin]->GetXaxis();
+  TAxis *xaxis2  = V2JPsiTklPtBinned[actuelptbin]->GetXaxis();
 
-  int nbinX1 = hnseg->GetNbinsX();
-  int nbinX2 = V2JPsiTkl->GetNbinsX();
+  int nbinX1 = hPtWrtMassInvSliced[0][actuelptbin]->GetNbinsX();
+  int nbinX2 = V2JPsiTklPtBinned[actuelptbin]->GetNbinsX();
 
   double chi2 = 0;
   double x[1];
@@ -5676,16 +5934,22 @@ void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, 
   npfits = 0;
   for (int ix = 1; ix <= nbinX1; ++ix) {
     x[0] = xaxis1->GetBinCenter(ix);
-      if ( hnseg->GetBinError(ix) > 0 ) {
-        tmp = (hnseg->GetBinContent(ix) - TwoCBE2E(x,p))/hnseg->GetBinError(ix);
+//      if(x[0]<1.5 || x[0]>4.5){
+//          continue;
+//      }
+      if ( hPtWrtMassInvSliced[0][actuelptbin]->GetBinError(ix) > 0 ) {
+        tmp = (hPtWrtMassInvSliced[0][actuelptbin]->GetBinContent(ix) - TwoCBE2E(x,p))/hPtWrtMassInvSliced[0][actuelptbin]->GetBinError(ix);
         chi2 += tmp*tmp;
         npfits++;
       }
   }
   for (int ix = 1; ix <= nbinX2; ++ix) {
      x[0] = xaxis2->GetBinCenter(ix);
-      if ( V2JPsiTkl->GetBinError(ix) > 0 ) {
-        tmp = (V2JPsiTkl->GetBinContent(ix) - FourierV2_WrtInvMass(x,p))/V2JPsiTkl->GetBinError(ix);
+//      if(x[0]<1.5 || x[0]>4.5){
+//          continue;
+//      }
+      if ( V2JPsiTklPtBinned[actuelptbin]->GetBinError(ix) > 0 ) {
+        tmp = (V2JPsiTklPtBinned[actuelptbin]->GetBinContent(ix) - FourierV2_WrtInvMass(x,p))/V2JPsiTklPtBinned[actuelptbin]->GetBinError(ix);
         chi2 += tmp*tmp;
         npfits++;
       }
@@ -5697,40 +5961,53 @@ int GetCent(double cent){
     if(cent <= 1){
         return 0;
     }
-    else if(cent <= 10){
+    else if(cent <= 3){
         return 1;
     }
-    else if(cent <= 20){
+    else if(cent <= 5){
         return 2;
     }
-    else if(cent <= 40){
+    else if(cent <= 10){
         return 3;
     }
-    else if(cent <= 100){
+    else if(cent <= 15){
         return 4;
     }
-//    else if(cent <= 30){
-//        return 6;
+    else if(cent <= 20){
+        return 5;
+    }
+    else if(cent <= 30){
+        return 6;
+    }
+    else if(cent <= 40){
+        return 7;
+    }
+    else if(cent <= 50){
+        return 8;
+    }
+    else if(cent <= 60){
+        return 9;
+    }
+    else if(cent <= 70){
+        return 10;
+    }
+    else if(cent <= 80){
+        return 11;
+    }
+    else if(cent <= 90){
+        return 12;
+    }
+    else{
+        return 13;
+    }
+    
+//    if(cent<=20){
+//        return 0;
 //    }
-//    else if(cent <= 40){
-//        return 7;
-//    }
-//    else if(cent <= 50){
-//        return 8;
-//    }
-//    else if(cent <= 60){
-//        return 9;
-//    }
-//    else if(cent <= 70){
-//        return 10;
-//    }
-//    else if(cent <= 80){
-//        return 11;
-//    }
-//    else if(cent <= 90){
-//        return 12;
+//    else if(cent<=40){
+//        return 1;
 //    }
 //    else{
-//        return 13;
+//        return 2;
 //    }
 }
