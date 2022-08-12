@@ -1,10 +1,10 @@
 #!/bin/bash
 
-FOLDER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/*/"
+FOLDER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022aoutPYTHIA/*/"
 SCRIPTDIR="${pwd}"
-prefix="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/"
+prefix="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022aoutPYTHIA/"
 suffix="/"
-for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/NewAnalysisAllEst_Run2_SPDTracklets*_pt0-1-12*/ 
+for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2022aoutPYTHIA/NewAnalysisAllEstMCATLASCentBvrNospe_TKL_16h_*/ 
 	do
 	echo "Looking into folder ${fo}"
 	focsv="${fo}SystematicsFile.csv"
@@ -20,8 +20,8 @@ for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/NewAnalysi
 		echo ${foo}
 		root -b -l <<-EOF
 		.L ${SCRIPTDIR}../AliAnalysisTaskMyMuonTree_AOD.cxx++
-		.L ${SCRIPTDIR}../../FitTrainingPtBinned.C
-		Runner("${foo}")
+		.L ${SCRIPTDIR}../../FitTrainingTKL.C
+		FitTrainingTKL("${foo}")
 		EOF
 	fi
 	done

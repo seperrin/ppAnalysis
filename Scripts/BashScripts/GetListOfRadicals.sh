@@ -9,11 +9,11 @@ fi
 touch "${pwd}ListRadicals.txt"
 
 declare -a ZvtxCutArray=("8" "10" "12")
-declare -a DPhiCutArray=("1mrad" "2mrad" "5mrad" "10mrad" "No")
+declare -a DPhiCutArray=("5mrad")
 declare -a EtaGapArray=("1.0" "1.2" "1.4" "1.6" "1.8" "2.0")
-declare -a CentralityEstimatorArray=("PercentileMethodSPDTracklets" "SPDTrackletsPercentile" "SPDClustersPercentile" "V0MPercentile")
-declare -a CentralClassArray=("0-1" "0-3" "0-5" "0-10")
-declare -a PeriphClassArray=("20-100" "40-100" "60-100" "20-80" "40-80" "60-80" "0-100")
+declare -a CentralityEstimatorArray=("V0MPercentile" "SPDTrackletsPercentile" "SPDClustersPercentile")
+declare -a CentralClassArray=("0-3" "0-5" "0-10")
+declare -a PeriphClassArray=("30-100" "40-100" "40-80" "50-100")
 declare -a EMNormArray=("Method1" "Method2" "Method3" "Method4")
 declare -a EMMaxArray=("50" "100" "500")
 declare -a EMThresholdArray=("5" "10" "50")
@@ -26,21 +26,21 @@ DefaultEtaGap="1.2"
 DefaultCentralClass="0-5"
 DefaultPeriphClass="40-100"
 DefaultEMNorm="Method1"
-DefaultEMMax="100"
+DefaultEMMax="30"
 DefaultEMThreshold="10"
 DefaultPeriphScaling="1"
-DefaultSummationZvtx="Method2"
+DefaultSummationZvtx="Method1c"
 
 
 
 
 
 
-DefaultDataUsed="16h25"
-declare -a SystematicsFocusArray=("ZvtxCut")
+DefaultDataUsed="Run2"
+declare -a SystematicsFocusArray=("CentralClass")
 
 
-Radical="NewAnalysisAllEst_TKL_"
+Radical="NewAnalysisAllEst_"
 Radical="${Radical}${DefaultDataUsed}"
 
 
@@ -54,15 +54,15 @@ contains() {
 addParamMaybe(){
 	if [[ "${SystematicsFocusArray[*]}" =~ "$1" ]]
 		then echo "Trouve dans la liste des focus à faire"
-		addParam $@
+		addParam "$@"
 	fi
 }
  
 addParam() {
 	if [[ "${SystematicsFocusArray[*]}" =~ "$1" ]]
-		then addVariable $2 $3 ${@:4}
+		then addVariable "$2" "$3" "${@:4}"
 	else
-		addDefault $2 $3
+		addDefault "$2" "$3"
 	fi
 }
 
@@ -99,7 +99,7 @@ addVariable() {
 addVariable "" "" "${CentralityEstimatorArray[@]}"
 addParam "CentralClass" "" ${DefaultCentralClass} "${CentralClassArray[@]}"
 addParam "PeriphClass" "" ${DefaultPeriphClass} "${PeriphClassArray[@]}"
-addDefault "pt" "0-12"
+addDefault "pt" "0-1-12"
 
 addParamMaybe "ZvtxCut" "Zvtx" ${DefaultZvtxCut} "${ZvtxCutArray[@]}"
 addParamMaybe "DPhiCut" "DPhiCut" ${DefaultDPhiCut} "${DPhiCutArray[@]}"

@@ -40,8 +40,8 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
   // Set the run mode (can be "full", "test", "offline", "submit" or
   // "terminate") plugin->SetRunMode("submit");
   // plugin->SetRunMode("offline");
-  plugin->SetRunMode("test");
- // plugin->SetRunMode("full");
+// plugin->SetRunMode("test");
+  plugin->SetRunMode("full");
  // plugin->SetRunMode("terminate");
   plugin->SetMergeViaJDL(kFALSE); // send jobs to merge the output
                                  // Set versions of used packages
@@ -55,16 +55,18 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
 #endif
   std::vector<int> fRunList; // input run list
 
-  ReadIntegers("../../RunLists/RunList_Group6_LHC18m.txt", fRunList, kTRUE);
+  ReadIntegers("../../RunLists/RunList_Group1_LHC16hMCB.txt", fRunList, kTRUE);
   // Declare input data to be processed.
 
   // Method 1: Create automatically XML collections using alien 'find' command.
   // Define production directory LFN
-  plugin->SetGridDataDir("/alice/data/2018/LHC18m");
+  //plugin->SetGridDataDir("/alice/data/2016/LHC16h");
+    plugin->SetGridDataDir("/alice/sim/2017/LHC17f5");
   // Set data search pattern
   //  plugin->SetDataPattern("muon_calo_pass3/AOD225/*AliAOD.root");
   // plugin->SetDataPattern("muon_calo_pass1/*AliAOD.Muons.root");
-  plugin->SetDataPattern("muon_calo_pass1/AOD/*AliAOD.Muons.root");
+  plugin->SetDataPattern("AOD235/*AliAOD.root");
+ //   plugin->SetDataPattern("muon_calo_pass2/AOD/*AliAOD.Muons.root");
   //	plugin->SetDataPattern("AliMUONESDs.root");  // simulated, tags
   // not used 	if (!bSig) plugin->SetDataPattern(Form("p40/*ESDs.root"));
   // // real data check reco pass and data base directory 	else
@@ -72,14 +74,14 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
   // data check reco pass and data base directory
 
   if (runno) {
-    plugin->SetRunPrefix("000"); // real data
+    plugin->SetRunPrefix(""); // real data 000
     //   plugin->SetDataPattern("*tag.root");  // Use ESD tags (same
     //   applies for AOD's)
     // ...then add run numbers to be considered
     //   plugin->AddRunNumber(125020);    // simulated
     plugin->AddRunNumber(runno); // real data
   } else {
-    plugin->SetRunPrefix("000");
+    plugin->SetRunPrefix("");//000
 
     for (std::vector<int>::const_iterator it = fRunList.begin();
          it != fRunList.end(); ++it) {
@@ -101,7 +103,7 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
 
   // Define alien work directory where all files will be copied. Relative to
   // alien $HOME.
-  plugin->SetGridWorkingDir("ppwrk/MA_Group6_LHC18m_mcp1_MuTrackCuts_PSn_CINT");
+  plugin->SetGridWorkingDir("ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose");
   //	if (!bSig)
   //		plugin->SetGridWorkingDir("data/2011/LHC11h/pass2embupsi/emb");
   //	else
@@ -135,7 +137,7 @@ AliAnalysisGrid *CreateAlienHandler(Int_t runno = 0, Bool_t bSig = kFALSE,
   // ignore). The optimum for an analysis is correlated with the run time -
   // count few hours TTL per job, not minutes !
   //  plugin->SetSplitMaxInputFileNumber(300);
-  plugin->SetSplitMaxInputFileNumber(50);
+  plugin->SetSplitMaxInputFileNumber(30);
   // Optionally modify the executable name (default analysis.sh)
   plugin->SetExecutable("AMMT.sh");
   // Optionally set number of failed jobs that will trigger killing waiting

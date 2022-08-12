@@ -237,6 +237,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
       AliError("No MC Array, but MC Data required");
       return;
     }
+      Printf("LOLILOL1 - MC Analysis\n");
   }
   Int_t runNumber = fAOD->GetRunNumber();
   Bool_t isPhysSelected =
@@ -297,6 +298,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
   //	Bool_t isTriggerSelected = (triggerCMULB || triggerCMLLB) ? 1 : 0;
 
   if (triggerCINT7CENT) {
+      Printf("LOLILOL-triggerCINT7CENT is true\n");
     fEventCounters->Count(
         Form("evt:%s/trgtype:%s/trgcluster:%s/run:%d/v0cent:%d",
              (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
@@ -309,6 +311,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
     clusterCENTNOTRD = 1;
   }
   if (triggerCINT7) {
+      Printf("LOLILOL-triggerCINT7 is true\n");
     fEventCounters->Count(
         Form("evt:%s/trgtype:%s/trgcluster:%s/run:%d/v0cent:%d",
              (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
@@ -321,6 +324,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
     clusterMUFAST = 1;
   }
   if (triggerCMUL7) {
+      Printf("LOLILOL-triggerCMUL7 is true\n");
     fEventCounters->Count(
         Form("evt:%s/trgtype:%s/trgcluster:%s/run:%d/v0cent:%d",
              (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
@@ -333,6 +337,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
     clusterMUFAST = 1;
   }
   if (triggerCMLL7) {
+      Printf("LOLILOL-triggerCMLL7 is true\n");
     fEventCounters->Count(
         Form("evt:%s/trgtype:%s/trgcluster:%s/run:%d/v0cent:%d",
              (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
@@ -345,6 +350,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
     clusterMUFAST = 1;
   }
   if (triggerCMSL7) {
+      Printf("LOLILOL-triggerCMSL7 is true\n");
     fEventCounters->Count(
         Form("evt:%s/trgtype:%s/trgcluster:%s/run:%d/v0cent:%d",
              (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
@@ -357,6 +363,7 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
     clusterMUFAST = 1;
   }
   if (triggerCMSH7) {
+      Printf("LOLILOL-triggerCMSH7 is true\n");
     fEventCounters->Count(
         Form("evt:%s/trgtype:%s/trgcluster:%s/run:%d/v0cent:%d",
              (((AliInputEventHandler *)(AliAnalysisManager::GetAnalysisManager()
@@ -395,25 +402,25 @@ void AliAnalysisTaskMyMuonTree_AOD::UserExec(Option_t *) {
 //    Printf("clusterMUFAST: %d",clusterMUFAST );
 //    Printf("Number of events built: %d",buildno );
 //    Printf("newlyremoved: %d",newlyremoved );
-  if (!isPhysSelected)
+  if (!isPhysSelectedINT7CENT) //isPhysSelectedINT7CENT isPhysSelectedMUL <<<<
   {
-//      Printf("Event !isPhysSelected\n");
+    //  Printf("Event !isPhysSelectedINT7CENT\n");
     fHistEvents->Fill(0);
   }
   else
   {
     fHistEvents->Fill(1);
-//    Printf("Event isPhysSelected\n");
+  //  Printf("Event isPhysSelectedINT7CENT\n");
   }
 
-  //  if (isPhysSelectedMUFAST && isTriggerSelected && (clusterMUFAST)) {
- // >>>>> if (isPhysSelectedMUFAST && triggerCMUL7 && clusterMUFAST) {
- if (isPhysSelectedINT7CENT && triggerCINT7CENT) { // >>> CINT7 ou CINT7CENT ?
-//     Printf("Run build\n");
+ //   if (isPhysSelectedINT7CENT) {
+// if (isPhysSelectedMUL && triggerCMUL7 && clusterMUFAST) {//isPhysSelectedMUFAST && triggerCMUL7 && clusterMUFAST) {
+//if (isPhysSelectedINT7CENT && triggerCINT7CENT) { // >>> CINT7 ou CINT7CENT ?
+    // Printf("LOLILOL will build fEvent and fill muon tree\n");
      buildno++;
-    fEvent->Build(fAOD, isPhysSelectedINT7CENT, fMuonTrackCuts, fMC); //>>>>> isPhysSelectedMUFAST or isPhysSelectedINT7CENT ou INT7MUFAST
+    fEvent->Build(fAOD, isPhysSelectedINT7CENT, fMuonTrackCuts, fMC); //>>>>> isPhysSelectedMUL isPhysSelectedMUFAST or isPhysSelectedINT7CENT ou INT7MUFAST
     fMyMuonTree->Fill();
-  }
+ // }
 
   Int_t islot = 1;
   PostData(islot++, fOutputList);
@@ -492,7 +499,7 @@ CorrelationLight::CorrelationLight()
 //_______________________________________________________________________
 MyEventLight::MyEventLight()
     : TObject(), fNTracklets(0), fNDimuons(0), fNMCDimuons(0), fNCorrelations(0), fRunNumber(0),
-    fNPileupVtx(0), fIsPileupFromSPDMultBins(0), fVertexZ(0), fVertexXSPD(0), fVertexYSPD(0), fVertexZSPD(0), fVertexSigmaZ(0), fSPDVertexSigmaZ(0), fVertexNC(0), fSPDVertexNC(0), fCentralityV0M(0), fCentralityTKL(0), fCentralityZNAC(0), fCentralitySPDTracklets(0), fCentralitySPDClusters(0), fV0MValue(0), fADMValue(0), fADAValue(0), fADCValue(0), fTKLValue(0), fZNACValue(0), fSPDTrackletsValue(0), fSPDClustersValue(0), fPassPhysicsSelection(0), fV0AValue(0), fV0CValue(0), fZNAValue(0), fZNCValue(0), fCentralityV0A(0), fCentralityV0C(0), fCentralityADA(0), fCentralityADC(0), fCentralityADM(0), fCentralityZNA(0), fCentralityZNC(0),
+    fNPileupVtx(0), fIsPileupFromSPDMultBins(0),fIsPileupClustVsTkl(0) ,fIsPileupReimplemented(0), fVertexZ(0), fVertexXSPD(0), fVertexYSPD(0), fVertexZSPD(0), fVertexSigmaZ(0), fSPDVertexSigmaZ(0), fVertexNC(0), fSPDVertexNC(0), fIsFromVertexerZ(0), fCentralityV0M(0), fCentralityTKL(0), fCentralityZNAC(0), fCentralitySPDTracklets(0), fCentralitySPDClusters(0), fV0MValue(0), fADMValue(0), fADAValue(0), fADCValue(0), fTKLValue(0), fZNACValue(0), fSPDTrackletsValue(0), fSPDClustersValue(0), fPassPhysicsSelection(0), fV0AValue(0), fV0CValue(0), fZNAValue(0), fZNCValue(0), fCentralityV0A(0), fCentralityV0C(0), fCentralityADA(0), fCentralityADC(0), fCentralityADM(0), fCentralityZNA(0), fCentralityZNC(0), fTriggerAnalysis(new AliTriggerAnalysis()),
       fTracklets(new TClonesArray("TrackletLight", 0)),
       fDimuons(new TClonesArray("DimuonLight", 0)),
       fCorrelations(new TClonesArray("CorrelationLight", 0)),
@@ -531,12 +538,14 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
   // save current object count
   Int_t ObjectNumber = TProcessID::GetObjectCount();
   Clear();
+    
+   // printf("BUILD CALLED: Event starts building\n");
 
   fNTracklets = fNDimuons = fNMCDimuons = fNCorrelations = 0;
   //  Double_t sigma[3];
   fRunNumber = aod->GetRunNumber();
 
-  fNPileupVtx = aod->GetNumberOfPileupVerticesSPD(); //FIXME
+  fNPileupVtx = aod->GetNumberOfPileupVerticesSPD(); //FIXME ok
 
 
   const AliAODVertex *primVtx = aod->GetPrimaryVertex();
@@ -557,14 +566,20 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
     fSPDVertexSigmaZ = sqrt(covMatrixSPD[5]);
   fVertexNC = primVtx->GetNContributors();
     fSPDVertexNC = SPDVtx->GetNContributors();
+    fIsFromVertexerZ = SPDVtx->IsFromVertexerZ();
 //    primVtx->GetSigmaXYZ(sigma);
 //    fVertexResZ = sigma[2];
 //  fVertexNC = -1;
 
-  if (!isPhysSelected)
+   // printf("PASS PHYSICS SELECTION:\n");
+    if (!isPhysSelected){
     fPassPhysicsSelection = 0; // not passing physics selection
-  else
+   // printf("NO\n");
+    }
+    else{
     fPassPhysicsSelection = 1; // pass physics selection
+   // printf("YES\n");
+    }
 
   const Char_t *trigNames[6] = {"CINT7-B-NOPF-MUFAST", "CMSL7-B-NOPF-MUFAST",
                                 "CMSH7-B-NOPF-MUFAST", "CMUL7-B-NOPF-MUFAST",
@@ -577,7 +592,7 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
   fTriggerCMSH7 = (fFiredTriggerClass.Contains(trigNames[2])) ? 1 : 0;
   fTriggerCMUL7 = (fFiredTriggerClass.Contains(trigNames[3])) ? 1 : 0;
   fTriggerCMLL7 = (fFiredTriggerClass.Contains(trigNames[4])) ? 1 : 0;
-  fTriggerCINT7CENT = (fFiredTriggerClass.Contains(trigNames[0])) ? 1 : 0;
+  fTriggerCINT7CENT = (fFiredTriggerClass.Contains(trigNames[5])) ? 1 : 0;
 
   fClusterMUFAST = 1;
   fClusterCENT = 0;
@@ -586,11 +601,16 @@ void MyEventLight::Build(AliAODEvent *aod, Bool_t isPhysSelected,
   //	if(fTriggerCINTB || fTriggerCMSLB || fTriggerCMSHB || fTriggerCMULB ||
   // fTriggerCMLLB)
   //  if(fTriggerCMUL7 || fTriggerCMLL7)
-// >>>>> if (fTriggerCMUL7)
-if (fTriggerCINT7CENT)
+//<<<<< if (fTriggerCMUL7)
+   // printf("PASS TRIGGER CINT7CENT:\n");
+    if (fTriggerCINT7CENT){
     fPassTriggerSelection = 1;
-  else
+   // printf("NO\n");
+    }
+    else{
     fPassTriggerSelection = 0;
+  //  printf("YES\n");
+    }
 
   AliMultSelection *MultSelection =
       (AliMultSelection *)aod->FindListObject("MultSelection");
@@ -598,38 +618,40 @@ if (fTriggerCINT7CENT)
   fCentralityV0M = MultSelection->GetMultiplicityPercentile("V0M");
     fCentralityV0A = MultSelection->GetMultiplicityPercentile("V0A");
     fCentralityV0C = MultSelection->GetMultiplicityPercentile("V0C");
-    fCentralityADM = MultSelection->GetMultiplicityPercentile("ADM");
-    fCentralityADA = MultSelection->GetMultiplicityPercentile("ADA");
-    fCentralityADC = MultSelection->GetMultiplicityPercentile("ADC");
-    fCentralityZNA = MultSelection->GetMultiplicityPercentile("ZNApp");
-    fCentralityZNC = MultSelection->GetMultiplicityPercentile("ZNCpp");
-    fCentralityZNAC = MultSelection->GetMultiplicityPercentile("ZNACpp");
+    fCentralityADM = 0; //MultSelection->GetMultiplicityPercentile("ADM");
+    fCentralityADA = 0; //MultSelection->GetMultiplicityPercentile("ADA");
+    fCentralityADC = 0; //MultSelection->GetMultiplicityPercentile("ADC");
+    fCentralityZNA = 0; //MultSelection->GetMultiplicityPercentile("ZNApp");
+    fCentralityZNC = 0; //MultSelection->GetMultiplicityPercentile("ZNCpp");
+    fCentralityZNAC = 0; //MultSelection->GetMultiplicityPercentile("ZNACpp");
     fCentralitySPDTracklets = MultSelection->GetMultiplicityPercentile("SPDTracklets"); // >>>>>>>> ,true);
     fCentralitySPDClusters = MultSelection->GetMultiplicityPercentile("SPDClusters");
     AliMultEstimator *AliMuEst = MultSelection->GetEstimator("SPDTracklets");
     fSPDTrackletsValue = AliMuEst->GetValue();
     AliMultEstimator *AliMuEst2 = MultSelection->GetEstimator("SPDClusters");
-    fSPDClustersValue = AliMuEst2->GetValue();
-    AliMultEstimator *AliMuEst5 = MultSelection->GetEstimator("ZNCpp");
-    fZNCValue = AliMuEst5->GetValue();
-    AliMultEstimator *AliMuEst6 = MultSelection->GetEstimator("ZNApp");
-    fZNAValue = AliMuEst6->GetValue();
-    AliMultEstimator *AliMuEst7 = MultSelection->GetEstimator("ZNACpp");
-    fZNACValue = AliMuEst7->GetValue();
+    fSPDClustersValue = aod->GetNumberOfITSClusters(0)+aod->GetNumberOfITSClusters(1); //aod->GetNumberOfITSClusters(0)+aod->GetNumberOfITSClusters(1)
+   // AliMultEstimator *AliMuEst5 = MultSelection->GetEstimator("ZNCpp");
+    fZNCValue = 0;//AliMuEst5->GetValue();
+   // AliMultEstimator *AliMuEst6 = MultSelection->GetEstimator("ZNApp");
+    fZNAValue = 0;//AliMuEst6->GetValue();
+   // AliMultEstimator *AliMuEst7 = MultSelection->GetEstimator("ZNACpp");
+    fZNACValue = 0;//AliMuEst7->GetValue();
     AliMultEstimator *AliMuEst8 = MultSelection->GetEstimator("V0C");
     fV0CValue = AliMuEst8->GetValue();
     AliMultEstimator *AliMuEst9 = MultSelection->GetEstimator("V0A");
     fV0AValue = AliMuEst9->GetValue();
     AliMultEstimator *AliMuEst10 = MultSelection->GetEstimator("V0M");
     fV0MValue = AliMuEst10->GetValue();
-    AliMultEstimator *AliMuEst11 = MultSelection->GetEstimator("ADC");
-    fADCValue = AliMuEst11->GetValue();
-    AliMultEstimator *AliMuEst12 = MultSelection->GetEstimator("ADA");
-    fADAValue = AliMuEst12->GetValue();
-    AliMultEstimator *AliMuEst13 = MultSelection->GetEstimator("ADM");
-    fADMValue = AliMuEst13->GetValue();
+  //  AliMultEstimator *AliMuEst11 = MultSelection->GetEstimator("ADC");
+    fADCValue = 0;//AliMuEst11->GetValue();
+   // AliMultEstimator *AliMuEst12 = MultSelection->GetEstimator("ADA");
+    fADAValue = 0;//AliMuEst12->GetValue();
+ //   AliMultEstimator *AliMuEst13 = MultSelection->GetEstimator("ADM");
+    fADMValue = 0;//AliMuEst13->GetValue();
 //    fCentralitySPDClusters = MultSelection->GetMultiplicityPercentile("SPDClusters");
 //    fCentralityTKLvsV0M = MultSelection->GetMultiplicityPercentile("TKLvsV0M");
+    
+    
 
   AliAODTrack *track;
   TrackletLight *tracklet;
@@ -644,22 +666,155 @@ if (fTriggerCINT7CENT)
   trklets->Print("t");
  // fNTracklets = trklets->GetNumberOfTracklets();
   for (Int_t itrklt = 0; itrklt < trklets->GetNumberOfTracklets(); itrklt++) {
-    if (!IsSelectedTracklet(trklets, itrklt))
-      continue;
-
+//    if (!IsSelectedTracklet(trklets, itrklt))
+//      continue;
+      if(kFALSE){ //<<
      tracklet = AddTracklet();
      tracklet->fEta = (Float_t)-TMath::Log(TMath::Tan(trklets->GetTheta(itrklt) / 2));
      tracklet->fPhi = (Float_t)trklets->GetPhi(itrklt);
      tracklet->fDPhi = (Float_t)trklets->GetDeltaPhi(itrklt);
      tracklet->fLabel = (Float_t)trklets->GetLabel(itrklt, 0);
+      }
   }
     Int_t nTracklets = trklets->GetNumberOfTracklets();
+    
+    fIsPileupFromSPDMultBins= aod->IsPileupFromSPDInMultBins();
+    
     if(nTracklets<40){
         fIsPileupFromSPDMultBins = aod->IsPileupFromSPD(3,0.8);
     }
     else{
         fIsPileupFromSPDMultBins = aod->IsPileupFromSPD(5,0.8);
-    }
+    } //<<<
+    
+   // printf("SPDClusters=%i nTracklets=%i et %i ",int(fSPDClustersValue),int(nTracklets),int(100+(4*nTracklets)));
+//    if(fSPDClustersValue>(100+(4*fNTracklets))){
+//        fIsPileupClustVsTkl = 1;
+//       // printf("This is PU mi boi");
+//    }
+//    else{
+//        fIsPileupClustVsTkl = 0;
+//      //  printf("Not PU");
+//    }
+    
+//    AliOADBTriggerAnalysis *triggerAnalysisOADB = new AliOADBTriggerAnalysis();
+//    fTriggerAnalysis->SetParameters(triggerAnalysisOADB);
+//    
+//    double fV0MOnVsOfA = fTriggerAnalysis->GetV0MOnVsOfA();
+//    double fV0MOnVsOfB = fTriggerAnalysis->GetV0MOnVsOfB();
+//    
+//    int isV0MOnVsOfPileup = 0;
+//    {
+//      AliVVZERO* vzero = aod->GetVZEROData();
+//      if (!vzero) {
+//          isV0MOnVsOfPileup = 3;
+//      }
+//      if (!vzero->TestBit(AliVVZERO::kTriggerChargeBitsFilled)){
+//          isV0MOnVsOfPileup = 3;
+//      }
+//      // V0A0 excluded from online V0A charge sum => excluding also from offline sum for consistency
+//      Float_t on = vzero->GetTriggerChargeA()+vzero->GetTriggerChargeC();
+//      Float_t of = vzero->GetMTotV0A()-vzero->GetMRingV0A(0)+vzero->GetMTotV0C();
+//    if(isV0MOnVsOfPileup == 0){
+//        if(on < fV0MOnVsOfA + fV0MOnVsOfB*of){
+//            isV0MOnVsOfPileup = 1;
+//        }
+//        else{
+//            isV0MOnVsOfPileup = 0;
+//        }
+//    }
+//    else if(isV0MOnVsOfPileup == 3){
+//        isV0MOnVsOfPileup = 0;
+//    }
+//    }
+//    
+//    double fSPDOnVsOfA = fTriggerAnalysis->GetSPDOnVsOfA();
+//    double fSPDOnVsOfB = fTriggerAnalysis->GetSPDOnVsOfB();
+//    
+//    int isSPDOnVsOfPileup = 0;
+//    {
+//      AliVMultiplicity* mult = aod->GetMultiplicity();
+//      if (!mult) {
+//        isSPDOnVsOfPileup = 3;
+//      }
+//      TBits onMap = mult->GetFastOrFiredChips();
+//      TBits ofMap = mult->GetFiredChipMap();
+//      Int_t on = onMap.CountBits(0);
+//      Int_t of = ofMap.CountBits(0);
+//    if(isSPDOnVsOfPileup == 0){
+//        if(on < fSPDOnVsOfA + fSPDOnVsOfB*of){
+//            isSPDOnVsOfPileup = 1;
+//        }
+//        else{
+//            isSPDOnVsOfPileup = 0;
+//        }
+//    }
+//    else if(isSPDOnVsOfPileup == 3){
+//        isSPDOnVsOfPileup = 0;
+//    }
+//    }
+//    
+//    double fVIRBBAflags = fTriggerAnalysis->GetVIRBBAflags();
+//    double fVIRBBCflags = fTriggerAnalysis->GetVIRBBCflags();
+//    double fVIRBGAflags = fTriggerAnalysis->GetVIRBGAflags();
+//    double fVIRBGCflags = fTriggerAnalysis->GetVIRBGCflags();
+//    double fNBCsPast = fTriggerAnalysis->GetNBCsPast();
+//    double fNBCsFuture = fTriggerAnalysis->GetNBCsFuture();
+//    int isV0PFPileup = 0;
+//    {
+//      AliVVZERO* vzero = aod->GetVZEROData();
+//      if (!vzero) {
+//        isV0PFPileup = 3;
+//      }
+//      if (!vzero->TestBit(AliVVZERO::kPastFutureFlagsFilled)){
+//        isV0PFPileup = 3;
+//      }
+//    if(isV0PFPileup == 0){
+//      Bool_t vir[21] = {0};
+//      UChar_t bcMod4 = aod->GetBunchCrossNumber()%4;
+//
+//      for (Int_t bc=0;bc<=20;bc++) {
+//        UChar_t nBBA=0;
+//        UChar_t nBBC=0;
+//        UChar_t nBGA=0;
+//        UChar_t nBGC=0;
+//        if (fVIRBBAflags<33) for (Int_t i=0;i<32;i++) nBBA+=vzero->GetPFBBFlag(i+32,bc);
+//        if (fVIRBBCflags<33) for (Int_t i=0;i<32;i++) nBBC+=vzero->GetPFBBFlag(i   ,bc);
+//        if (fVIRBGAflags<33) for (Int_t i=0;i<32;i++) nBGA+=vzero->GetPFBGFlag(i+32,bc);
+//        if (fVIRBGCflags<33) for (Int_t i=0;i<32;i++) nBGC+=vzero->GetPFBGFlag(i   ,bc);
+//        vir[bc] |= nBBA>=fVIRBBAflags;
+//        vir[bc] |= nBBC>=fVIRBBCflags;
+//        vir[bc] |= nBGA>=fVIRBGAflags;
+//        vir[bc] |= nBGC>=fVIRBGCflags;
+//      }
+//      
+//      // clock index is counting from future to past
+//      Int_t bcMin = 10 - fNBCsFuture + bcMod4;
+//      Int_t bcMax = 10 + fNBCsPast   + bcMod4;
+//      for (Int_t bc=bcMin;bc<=bcMax;bc++) {
+//        if (bc==10) continue; // skip current bc
+//        if (bc < 0) continue;
+//        if (bc >20) continue;
+//        if (vir[bc]){
+//            isV0PFPileup = 1;
+//        }
+//      }
+//    }
+//    else if(isV0PFPileup == 3){
+//        isV0PFPileup = 0;
+//    }
+//    }
+//    
+//    if(isV0MOnVsOfPileup == 1 || isSPDOnVsOfPileup == 1 || isV0PFPileup == 1){
+//        fIsPileupReimplemented = 1;
+//    }
+//    else{
+//        fIsPileupReimplemented = 0;
+//    }
+//    
+//    
+//    delete triggerAnalysisOADB;
+    
   //  for(Int_t itrack = 0; itrack<(aod->GetNumberOfTracks()) ; itrack ++){
   //    track = (AliAODTrack*)aod->GetTrack(itrack);
   //    if(!track) {
@@ -754,6 +909,7 @@ if (fTriggerCINT7CENT)
           if (dimuonL.M() < 1.0)
             continue;
         
+        if(kFALSE){//<<
           dimuon = AddDimuon();
           dimuon->fCharge = track1->Charge() + track2->Charge();
           dimuon->fInvMass = dimuonL.M();
@@ -762,15 +918,16 @@ if (fTriggerCINT7CENT)
           dimuon->fY = dimuonL.Rapidity();
           dimuon->fPhi = TMath::Pi() + TMath::ATan2(-dimuonL.Py(), -dimuonL.Px()); // dimuonL.Phi();
           dimuon->fLabel = track1->GetLabel() * track2->GetLabel();
+        }
         
         printf("trklets %p has %d \n", trklets, trklets->GetNumberOfTracklets());
         if (!trklets)
           AliFatal("AliAODTracklets not found");
         trklets->Print("t");
         for (Int_t itrklt = 0; itrklt < trklets->GetNumberOfTracklets(); itrklt++) {
-          if (!IsSelectedTracklet(trklets, itrklt))
-            continue;
-            
+//          if (!IsSelectedTracklet(trklets, itrklt))
+//            continue;
+            if(kFALSE){//<<
            correlation = AddCorrelation();
            correlation->fDeltaPhi = (Float_t)trklets->GetPhi(itrklt) - dimuon->fPhi;
            correlation->fDeltaEta = (Float_t)-TMath::Log(TMath::Tan(trklets->GetTheta(itrklt) / 2)) - dimuonL.Eta();
@@ -785,6 +942,7 @@ if (fTriggerCINT7CENT)
             correlation->fDimuonPhi = TMath::Pi() + TMath::ATan2(-dimuonL.Py(), -dimuonL.Px()); // dimuonL.Phi();
             correlation->fTrackletEta = (Float_t)-TMath::Log(TMath::Tan(trklets->GetTheta(itrklt) / 2));
             correlation->fTrackletDPhi = (Float_t)trklets->GetDeltaPhi(itrklt);
+            }
         }
 
     } // second muon
@@ -815,7 +973,8 @@ if (fTriggerCINT7CENT)
       // TParticle *mcPart = stack->Particle(itrack);
       //      printf("mcTrack->GetMother() %i \n",mcTrack->GetMother());
       // only primaries
-      if (mcTrack->GetMother() == -1) {
+        if ((mcTrack->IsPhysicalPrimary()) && (mcTrack->Charge()!=0)) { //(TMath::Abs(mcTrack->PdgCode())==211 || TMath::Abs(mcTrack->PdgCode())==321 || TMath::Abs(mcTrack->PdgCode())==2212)
+     // if ((mcTrack->GetMother() == -1)) {
         mcdimuon = AddMCDimuon();
         mcdimuon->fPDG = mcTrack->PdgCode();
         mcdimuon->fInvMass = mcTrack->M();
@@ -823,6 +982,7 @@ if (fTriggerCINT7CENT)
         mcdimuon->fEta = mcTrack->Eta();
         mcdimuon->fY = mcTrack->Y();
         mcdimuon->fPhi = mcTrack->Phi();
+        mcdimuon->fCharge = mcTrack->Charge();
         mcdimuon->fLabel = mcTrack->GetLabel();
         //        printf("fNMCDimuonLights %i out of %i
         //        mcParticles\n",fNMCDimuonLights,nTracks);
@@ -855,7 +1015,7 @@ Bool_t MyEventLight::IsSelected(AliAODTrack *track) {
       TMath::Abs(track->GetRAtAbsorberEnd()) < 17.6)
     return kFALSE;
   // cut on match trigger
-  if (track->GetMatchTrigger() < 1)
+  if (track->GetMatchTrigger() < 2)
     return kFALSE;
 
   return kTRUE;
@@ -872,7 +1032,7 @@ Bool_t MyEventLight::IsSelectedTracklet(AliAODTracklets *trklets,
   Float_t eta = -TMath::Log(TMath::Tan(trklets->GetTheta(itrklt) / 2));
   printf("traclet %d, eta = %f\n");
   // cut on eta
-  if (eta > 2.0 || eta < -2.0)
+  if (eta > 1.0 || eta < -1.0)
     return kFALSE;
 
   return kTRUE;

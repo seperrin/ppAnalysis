@@ -42,7 +42,7 @@
 
 // FUNCTIONS
 
-void PlotFromTreePtBinned(Char_t radical[200]);
+void PlotFromTreePtBinnedCentBvr(Char_t radical[200]);
 Double_t FourierV2_WrtInvMass(Double_t *x,Double_t *par);
 Double_t FourierV2_WrtInvMassIntegrated(Double_t *x,Double_t *par);
 Double_t BackFcnV2(Double_t *x,Double_t *par);
@@ -393,6 +393,8 @@ Double_t mJpsi =  3.096916;
 // Double_t ratMass = 1.01;
  Double_t ratSigma = 1.05;
 Int_t npfits;
+int lessCentralNum;
+int mostCentralNum;
 
 TH1F* hnseg(NULL);
 TH1F* V2JPsiTkl(NULL);
@@ -405,13 +407,14 @@ double errV2_Ext2[10] = {0};
 double DeltaEtaDimuCut = 1.5;//1.5
 
 //Function called to do the Jpsi/tkl analysis
-void PlotFromTreePtBinned(Char_t radical[200]){
+void PlotFromTreePtBinnedCentBvr(Char_t radical[200]){
     
      sprintf(RadicalInfo,"%s",radical);
 
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
     bool doTracklets = kFALSE; //Do tracklet-tracklet analysis ? Obsolete now
+    bool isCentralityBehaviour = kFALSE;
     bool isCMSMethod = kFALSE; //Do CMS way of getting to the V2 ?
     bool doMixedEvents = kTRUE; //Do event mixing ?
     bool KeepOnlyOne = kFALSE; //Useless
@@ -470,7 +473,7 @@ void PlotFromTreePtBinned(Char_t radical[200]){
     int BinZeroLeftTKL = floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
     
     //Define the number of centrality bins and z_vtx bins used in the analysis
-    const int NbBinsCent = 14;//14
+    const int NbBinsCent = 4;//14
     int NbBinsZvtx = 20;
     
     //Define bounds on DeltaEta in the CMS approach to separate long range and short range
@@ -532,8 +535,6 @@ void PlotFromTreePtBinned(Char_t radical[200]){
     Char_t mostCentral[5];
     Char_t lessPeriph[5];
     Char_t mostPeriph[5];
-    int lessCentralNum;
-    int mostCentralNum;
     int lessPeriphNum;
     int mostPeriphNum;
     Char_t minpt[5];
@@ -545,7 +546,7 @@ void PlotFromTreePtBinned(Char_t radical[200]){
     double DeltaEtaGapMaxNum;
     double ZvtxCutNum;
     
-    sscanf(radical, "NewAnalysisAllEst_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
+    sscanf(radical, "NewAnalysisAllEstCentBvr_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
     
     cout << "Radical is: "<< radical<<endl;
     cout << "dataUsed is: "<< dataUsed<<endl;
@@ -902,7 +903,7 @@ void PlotFromTreePtBinned(Char_t radical[200]){
    
     //Define the location and name of the folder storing the .pdf plots
     
-    sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/%s",RadicalName);
+    sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/%s",RadicalName);
     
     int rc = mkdir(FolderName, 0777);
     cout << "rc " <<rc<<endl;
@@ -1141,6 +1142,8 @@ void PlotFromTreePtBinned(Char_t radical[200]){
     TH2F* hnseg10(NULL);
     TH1F* hDPhi(NULL);
     TH2F* hPtWrtMassInv[3]{NULL};
+    TH2F* hPtWrtMassInv_CentBin[NbBinsCent];
+    memset( hPtWrtMassInv_CentBin, 0, NbBinsCent*sizeof(TH2F*));
     TH1D *hPtWrtMassInvSliced[3][NbPtBins];
     memset( hPtWrtMassInvSliced, 0, 3*NbPtBins*sizeof(TH1D*));
     TH1D *hPtWrtMassInvSlicedRebinned[3][NbPtBins];
@@ -1264,6 +1267,8 @@ void PlotFromTreePtBinned(Char_t radical[200]){
        }
     
     TH1I* InvMass_Central(NULL);
+    TH1I* InvMass_CentBin[NbBinsCent];//
+    memset( InvMass_CentBin, 0, NbBinsCent*sizeof(TH1I*));
     TH1I* InvMass_Periph(NULL);
     TH1I* InvMass_Neither(NULL);
     
@@ -1664,6 +1669,26 @@ void PlotFromTreePtBinned(Char_t radical[200]){
                       NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
     hPtWrtMassInv[2]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
     hPtWrtMassInv[2]->SetYTitle("p_{T} (GeV/c)");
+    
+    
+    for(int i=0; i<NbBinsCent; i++){
+           
+                   char hname[200];
+        
+        sprintf(hname,"InvMass_CentBin %d",i);
+        InvMass_CentBin[i] = new TH1I(hname,
+                         "Invariant mass of dimuon - Centrality binned",
+                         NbinsDimuInvMass,MinInvMass,MaxInvMass);
+        InvMass_CentBin[i]->SetXTitle("Mass of dimuon (GeV/c^{2})");
+        InvMass_CentBin[i]->SetYTitle(haxis);
+        
+        sprintf(hname,"hPtWrtMassInv_CentBin %d",i);
+        hPtWrtMassInv_CentBin[i] = new TH2F(hname,
+                          "p_{T} wrt dimuon inv mass - Centrality binned",
+                          NbinsDimuInvMass,MinInvMass,MaxInvMass,NbPtBins,PtBins);
+        hPtWrtMassInv_CentBin[i]->SetXTitle("Dimuon inv mass (GeV/c^{2})");
+        hPtWrtMassInv_CentBin[i]->SetYTitle("p_{T} (GeV/c)");
+    }
     
     
     CentV0M = new TH1F("CentV0M",
@@ -2330,6 +2355,8 @@ void PlotFromTreePtBinned(Char_t radical[200]){
                 hnseg->Fill(dimu->fInvMass);
                   hPtWrtMassInv[0]->Fill(dimu->fInvMass, dimu->fPt);
                 //  if(fEvent->fCentralitySPDTracklets<=CentSPDTrackletsCentral){
+                InvMass_CentBin[centint]->Fill(dimu->fInvMass);
+                hPtWrtMassInv_CentBin[centint]->Fill(dimu->fInvMass, dimu->fPt);
                   if(isCentral(centint)){
                       InvMass_Central->Fill(dimu->fInvMass);
                       hPtWrtMassInv[1]->Fill(dimu->fInvMass, dimu->fPt);
@@ -4126,7 +4153,7 @@ if(strncmp (EMChangeText,"Phi",10) == 0){ // phi Pooling
         ctestemichTkl1D->SaveAs(CanvasName);
     }
     
-    
+    if(!isCentralityBehaviour){
     
     if(doMixedEvents){
     
@@ -7686,6 +7713,3732 @@ if(strncmp (EMChangeText,"Phi",10) == 0){ // phi Pooling
         }
 
     }
+    }
+    
+    else if(isCentralityBehaviour){
+        
+        //loop on central class
+        
+        int CentralClasses[8] = {0,1,3,5,10,15,20,30};
+        
+        for(int index_class = 0; index_class<7; index_class++){
+        
+            sscanf(radical, "NewAnalysisAllEstCentBvr_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
+            
+        //Change most central, less central
+        
+        sprintf(RadicalName,"NewAnalysisAllEstCentBvr_%s_%s_%i-%i_%s-%s_pt%s-%s", dataUsed, estimator, CentralClasses[index_class], CentralClasses[index_class+1], lessPeriph, mostPeriph, minpt, rest);
+            
+            CentralLowBound = GetCent(CentralClasses[index_class]+0.1);
+            CentralHighBound = GetCent(CentralClasses[index_class+1]);
+
+            sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_%s.root",RadicalName);
+         
+            sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/%s",RadicalName);
+            
+            int rc = mkdir(FolderName, 0777);
+            cout << "rc " <<rc<<endl;
+        
+                        
+                        InvMass_Central->Reset();
+                        hPtWrtMassInv[1]->Reset();
+                       for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                           InvMass_Central->Add(InvMass_CentBin[i]);
+                           hPtWrtMassInv[1]->Add(hPtWrtMassInv_CentBin[i]);
+                       }
+                        
+                        InvMass_Periph->Reset();
+                        hPtWrtMassInv[2]->Reset();
+                        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                            InvMass_Periph->Add(InvMass_CentBin[i]);
+                            hPtWrtMassInv[2]->Add(hPtWrtMassInv_CentBin[i]);
+                        }
+                        
+                        InvMass_Neither->Reset();
+                        hPtWrtMassInv[0]->Reset();
+                        for(int i=0; i<NbBinsCent; i++){
+                            hPtWrtMassInv[0]->Add(hPtWrtMassInv_CentBin[i]);
+                            if((i<CentralLowBound || i>=CentralHighBound+1) && (i<PeripheralLowBound || i>=PeripheralHighBound+1)){
+                            InvMass_Neither->Add(InvMass_CentBin[i]);
+                            }
+                        }
+            
+            
+        if(doMixedEvents){
+        
+            TCanvas*cteste0before = new TCanvas();
+               cteste0before->SetTitle("Test on norm before, CorrelationsME[0][10][3]");
+            cteste0before->cd();
+            CorrelationsME[preciseCentFocus][preciseZbinFocus][3]->DrawCopy("colz");
+            sprintf(CanvasName,"%s/CorrelationsME[0][10][3].pdf",FolderName);
+            cteste0before->SaveAs(CanvasName);
+            
+            
+            cout << "Normalisation of CorrelationsME based on max of Eta projected applied" <<endl;//Fixme alternatives NormME
+        // Mixed events normalisation
+        //        float max = 0;
+        //        int maxindex = 0;
+            
+    
+            
+            if(strncmp (EMNormText,"Method1",10) == 0){
+                
+                for(int i=0; i<NbBinsCent; i++){
+                    for(int j=0; j<NbBinsZvtx; j++){
+                        for(int k=0; k<NbinsInvMass; k++){
+                            float maxME = 0;
+                            int maxindexME = 0;
+                            hnseg8ME_proj_tampon = (TH1F*)(CorrelationsME[i][j][k]->ProjectionY("hnseg8ME_proj",1,NbinsDeltaPhi,"e")); //Change underflow
+                            for(int l=1; l<hnseg8ME_proj->GetNbinsX()+1; l++){
+                                float valueME = hnseg8ME_proj_tampon->GetBinContent(l);
+                               // cout << "valueME " << valueME <<endl;
+                                if (valueME > maxME){
+                                    maxME = valueME;
+                                    maxindexME = l;
+                                }
+                            }
+                            if(maxME>0){
+                                NormME[i][j][k] = 1/maxME;
+                            }
+        //                    hnseg8_proj_tampon = (TH1F*)(Correlations[i][j][k]->ProjectionY("hnseg8_proj",0,-1,"e"));
+        //                    for(int l=1; l<hnseg8_proj->GetNbinsX()+1; l++){
+        //                        float value = hnseg8_proj_tampon->GetBinContent(l);
+        //                       // cout << "value " << value <<endl;
+        //                        if (value > max){
+        //                            max = value;
+        //                            maxindex = l;
+        //                        }
+        //                    }
+                        }
+                    }
+                }
+                
+            }
+            
+            if(strncmp (EMNormText,"Method2",10) == 0){ //Normalize over integral ijk
+                    
+                    for(int i=0; i<NbBinsCent; i++){
+                        for(int j=0; j<NbBinsZvtx; j++){
+                            for(int k=0; k<NbinsInvMass; k++){
+                                int integ = 0;
+                                for(int c=1; c<CorrelationsME[i][j][k]->GetNbinsX()+1; c++){
+                                    for(int l=1; l<CorrelationsME[i][j][k]->GetNbinsY()+1; l++){
+                                        integ+=CorrelationsME[i][j][k]->GetBinContent(c,l);
+                                    }
+                                }
+                                if(integ>0){
+                                    NormME[i][j][k] = 1./integ;
+                                }
+            //                    hnseg8_proj_tampon = (TH1F*)(Correlations[i][j][k]->ProjectionY("hnseg8_proj",0,-1,"e"));
+            //                    for(int l=1; l<hnseg8_proj->GetNbinsX()+1; l++){
+            //                        float value = hnseg8_proj_tampon->GetBinContent(l);
+            //                       // cout << "value " << value <<endl;
+            //                        if (value > max){
+            //                            max = value;
+            //                            maxindex = l;
+            //                        }
+            //                    }
+                            }
+                        }
+                    }
+                    
+                }
+            
+            if(strncmp (EMNormText,"Method3",10) == 0){ //Normalize over integral ijk summed on j
+                    
+                    for(int i=0; i<NbBinsCent; i++){
+                        for(int k=0; k<NbinsInvMass; k++){
+                            int integ = 0;
+                            for(int j=0; j<NbBinsZvtx; j++){
+                                for(int c=1; c<CorrelationsME[i][j][k]->GetNbinsX()+1; c++){
+                                    for(int l=1; l<CorrelationsME[i][j][k]->GetNbinsY()+1; l++){
+                                        integ+=CorrelationsME[i][j][k]->GetBinContent(c,l);
+                                    }
+                                }
+            //                    hnseg8_proj_tampon = (TH1F*)(Correlations[i][j][k]->ProjectionY("hnseg8_proj",0,-1,"e"));
+            //                    for(int l=1; l<hnseg8_proj->GetNbinsX()+1; l++){
+            //                        float value = hnseg8_proj_tampon->GetBinContent(l);
+            //                       // cout << "value " << value <<endl;
+            //                        if (value > max){
+            //                            max = value;
+            //                            maxindex = l;
+            //                        }
+            //                    }
+                            }
+                            for(int j=0; j<NbBinsZvtx; j++){
+                                if(integ>0){
+                                    NormME[i][j][k] = 1./integ;
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+        
+            
+                //Scaling all CorrelationsME
+                
+                for(int i=0; i<NbBinsCent; i++){
+                       for(int j=0; j<NbBinsZvtx; j++){
+                           for(int k=0; k<NbinsInvMass; k++){
+                              // CorrelationsME[i][j][k]->Scale(NormME[i][j][k]);
+                               if(NormME[i][j][k]>0){
+                                   for(int binx=1; binx<(1+CorrelationsME[i][j][k]->GetNbinsX()); binx++){
+                                       for(int biny=1; biny<(1+CorrelationsME[i][j][k]->GetNbinsY()); biny++){
+                                           CorrelationsMEScaled[i][j][k]->SetBinContent(binx,biny, (CorrelationsME[i][j][k]->GetBinContent(binx,biny))*NormME[i][j][k]);
+                                           CorrelationsMEScaled[i][j][k]->SetBinError(binx,biny,0); //(CorrelationsME[i][j][k]->GetBinError(binx,biny))*NormME[i][j][k]); MEChange
+                                       }
+                                   }
+                               }
+                               
+                           }
+                       }
+                }
+            
+            
+        
+    //   TCanvas*cteste0after = new TCanvas();
+    //       cteste0after->SetTitle("Test on norm after");
+    //    cteste0after->cd();
+    //    CorrelationsME[0][0][3]->DrawCopy("colz");
+        
+            cout << "Normalisation of CorrelationsTklME based on max of Eta projected  applied" <<endl;
+        // Mixed events normalisation Tkl
+    //        float maxTkl = 0;
+    //        int maxindexTkl = 0;
+    //        for(int i=0; i<NbBinsCent; i++){
+    //            for(int j=0; j<NbBinsZvtx; j++){
+    //                float maxMETkl = 0;
+    //                int maxindexMETkl = 0;
+    //                    hnseg8TklME_proj_tampon = (TH1F*)(CorrelationsTklME[i][j]->ProjectionY("hnseg8TklME_proj",0,-1,"e"));
+    //                    for(int l=1; l<hnseg8TklME_proj->GetNbinsX()+1; l++){
+    //                        float valueMETkl = hnseg8TklME_proj_tampon->GetBinContent(l);
+    //                       // cout << "valueME " << valueME <<endl;
+    //                        if (valueMETkl > maxMETkl){
+    //                            maxMETkl = valueMETkl;
+    //                            maxindexMETkl = l;
+    //                        }
+    //                    }
+    //                    if(maxMETkl>0){
+    //                        NormMETkl[i][j] = 1/maxMETkl;
+    //                    }
+        //                hnseg8Tkl_proj_tampon = (TH1F*)(CorrelationsTkl[i][j]->ProjectionY("hnseg8Tkl_proj",0,-1,"e"));
+        //                for(int l=1; l<hnseg8Tkl_proj->GetNbinsX()+1; l++){
+        //                    float valueTkl = hnseg8Tkl_proj_tampon->GetBinContent(l);
+        //                   // cout << "value " << value <<endl;
+        //                    if (valueTkl > maxTkl){
+        //                        maxTkl = valueTkl;
+        //                        maxindexTkl = l;
+        //                    }
+        //                }
+    //            }
+    //        }
+            
+            
+        //    if(maxMETkl > 0){
+        //        NormMETkl = maxTkl/maxMETkl;
+        //        cout << "NormMETkl " << NormMETkl <<endl;
+        //    }
+            
+            //Scaling all CorrelationsMETkl
+            cout << "Scaling CorrelationsMETkl" <<endl;
+            
+            if(doTracklets){
+            for(int i=0; i<NbBinsCent; i++){
+                   for(int j=0; j<NbBinsZvtx; j++){
+                     //  cout << i << " " << j <<endl;
+                    //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
+                       if(NormMETkl[i][j]>0){
+                            // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                           for(int binx=1; binx<(1+CorrelationsTklME[i][j]->GetNbinsX()); binx++){
+                               for(int biny=1; biny<(1+CorrelationsTklME[i][j]->GetNbinsY()); biny++){
+                                   CorrelationsTklMEScaled[i][j]->SetBinContent(binx,biny, (CorrelationsTklME[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                                    CorrelationsTklMEScaled[i][j]->SetBinError(binx,biny, (CorrelationsTklME[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                               }
+                           }
+                       }
+                       
+                   }
+            }
+            }
+            
+            if(doTracklets && isCMSMethod){
+            for(int i=0; i<NbBinsCent; i++){
+                   for(int j=0; j<NbBinsZvtx; j++){
+                     //  cout << i << " " << j <<endl;
+                    //   cout << "NormMETkl[i][j]:" << NormMETkl[i][j] <<endl;
+                       if(NormMETkl[i][j]>0){
+                            // CorrelationsTklME[i][j]->Scale(1./NormMETkl[i][j]);
+                           for(int binx=1; binx<(1+CorrelationsTklMEShortCMS[i][j]->GetNbinsX()); binx++){
+                               for(int biny=1; biny<(1+CorrelationsTklMEShortCMS[i][j]->GetNbinsY()); biny++){
+                                   CorrelationsTklMEScaledShortCMS[i][j]->SetBinContent(binx,biny, (CorrelationsTklMEShortCMS[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                                    CorrelationsTklMEScaledShortCMS[i][j]->SetBinError(binx,biny, (CorrelationsTklMEShortCMS[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                               }
+                           }
+                           for(int binx=1; binx<(1+CorrelationsTklMELongCMS[i][j]->GetNbinsX()); binx++){
+                               for(int biny=1; biny<(1+CorrelationsTklMELongCMS[i][j]->GetNbinsY()); biny++){
+                                   CorrelationsTklMEScaledLongCMS[i][j]->SetBinContent(binx,biny, (CorrelationsTklMELongCMS[i][j]->GetBinContent(binx,biny))/NormMETkl[i][j]);
+                                    CorrelationsTklMEScaledLongCMS[i][j]->SetBinError(binx,biny, (CorrelationsTklMELongCMS[i][j]->GetBinError(binx,biny))/NormMETkl[i][j]);
+                               }
+                           }
+                       }
+
+                   }
+            }
+            }
+    }
+        
+        if(doMixedEvents && PtBinned){
+            for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+            
+                cout << "Normalisation of CorrelationsME based on max of Eta projected applied" <<endl;
+                    for(int i=0; i<NbBinsCent; i++){
+                        for(int j=0; j<NbBinsZvtx; j++){
+                            for(int k=0; k<NbinsInvMass; k++){
+                                NormMEPtBinned[i][j][k][ptbin] = 0;
+                                float maxME = 0;
+                                int maxindexME = 0;
+                                hnseg8ME_proj_tampon = (TH1F*)(CorrelationsMEPtBinned[i][j][k][ptbin]->ProjectionY("hnseg8ME_proj",1,NbinsDeltaPhi,"e")); //Change underflow
+                                for(int l=1; l<hnseg8ME_proj->GetNbinsX()+1; l++){
+                                    float valueME = hnseg8ME_proj_tampon->GetBinContent(l);
+                                   // cout << "valueME " << valueME <<endl;
+                                    if (valueME > maxME){
+                                        maxME = valueME;
+                                        maxindexME = l;
+                                    }
+                                }
+                                if(maxME>0){
+                                    NormMEPtBinned[i][j][k][ptbin] = 1/maxME;
+                                }
+                            }
+                        }
+                    }
+            
+                
+                    //Scaling all CorrelationsME CVETANSCALE
+                    
+                    for(int i=0; i<NbBinsCent; i++){
+                           for(int j=0; j<NbBinsZvtx; j++){
+                               for(int k=0; k<NbinsInvMass; k++){
+                                   CorrelationsMEScaledPtBinned[i][j][k][ptbin]->Reset();
+                                   if(NormMEPtBinned[i][j][k][ptbin]>0){
+                                       for(int binx=1; binx<(1+CorrelationsMEPtBinned[i][j][k][ptbin]->GetNbinsX()); binx++){
+                                           for(int biny=1; biny<(1+CorrelationsMEPtBinned[i][j][k][ptbin]->GetNbinsY()); biny++){
+                                               CorrelationsMEScaledPtBinned[i][j][k][ptbin]->SetBinContent(binx,biny, (CorrelationsMEPtBinned[i][j][k][ptbin]->GetBinContent(binx,biny))*NormMEPtBinned[i][j][k][ptbin]);
+                                               CorrelationsMEScaledPtBinned[i][j][k][ptbin]->SetBinError(binx,biny,0); //(CorrelationsMEPtBinned[i][j][k][ptbin]->GetBinError(binx,biny))*NormMEPtBinned[i][j][k][ptbin]); MEChange
+                                           }
+                                       }
+                                   }
+                                   
+                               }
+                           }
+                    }
+            }
+                
+        }
+        
+
+        cout << "Calculation of DimuonCOunterZint[Cent][mass]" <<endl;
+        for(int i=0; i<NbBinsCent; i++){
+                  for(int k=0; k<NbinsInvMass; k++){
+                      
+                      DimuonCounterZint[i][k]=0;
+                      
+                      for(int j=0; j<NbBinsZvtx; j++){
+                          DimuonCounterZint[i][k] += DimuonCounter[i][j][k];
+                          if((j>8) && (j<14)){
+                          cout << "DimuonCounter[cent i =" << i << "][zvint j = " << j << "][mass k =" << k << "]: " << DimuonCounter[i][j][k]<<endl;
+                          }
+                      }
+                  }
+        }
+        if(PtBinned){
+            for(int i=0; i<NbBinsCent; i++){
+                      for(int k=0; k<NbinsInvMass; k++){
+                          for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                              DimuonCounterZintPtBinned[i][k][ptbin] = 0;
+                          for(int j=0; j<NbBinsZvtx; j++){
+                                  DimuonCounterZintPtBinned[i][k][ptbin] += DimuonCounterPtBinned[i][j][k][ptbin];
+    //                              if((j>8) && (j<14)){
+    //                              cout << "DimuonCounter[cent i =" << i << "][zvint j = " << j << "][mass k =" << k << "]: " << DimuonCounter[i][j][k]<<endl;
+    //                              }
+                              }
+                          }
+                      }
+            }
+            
+            
+            //Summation sur Centralité BigClasses
+            for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                for(int j=0; j<NbBinsZvtx; j++){
+                    for(int k=0; k<NbinsInvMass; k++){
+                        
+                        DimuonCounterPtBinnedBigClasses[0][j][k][ptbin]=0;
+                       for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                           DimuonCounterPtBinnedBigClasses[0][j][k][ptbin]+=DimuonCounterPtBinned[i][j][k][ptbin];
+                       }
+                        
+                        DimuonCounterPtBinnedBigClasses[1][j][k][ptbin]=0;
+                        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                            DimuonCounterPtBinnedBigClasses[1][j][k][ptbin]+=DimuonCounterPtBinned[i][j][k][ptbin];
+                        }
+                        
+                        DimuonCounterPtBinnedBigClasses[2][j][k][ptbin]=0;
+                        for(int i=0; i<NbBinsCent; i++){
+                            DimuonCounterPtBinnedBigClasses[2][j][k][ptbin]+=DimuonCounterPtBinned[i][j][k][ptbin];
+                        }
+                        
+                    }
+                }
+            }
+            
+            
+            for(int i=0; i<3; i++){ //BigClasses
+                              for(int k=0; k<NbinsInvMass; k++){
+                                  for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                                      DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] =0;
+                                  for(int j=0; j<NbBinsZvtx; j++){
+                                      
+                                          DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] += DimuonCounterPtBinnedBigClasses[i][j][k][ptbin];
+            //                              if((j>8) && (j<14)){
+            //                              cout << "DimuonCounter[cent i =" << i << "][zvint j = " << j << "][mass k =" << k << "]: " << DimuonCounter[i][j][k]<<endl;
+            //                              }
+                                      }
+                                  }
+                              }
+                    }
+            //Summation sur Centralité BigClasses
+            for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                for(int j=0; j<NbBinsZvtx; j++){
+                    for(int k=0; k<NbinsInvMass; k++){
+                        CorrelationsPtBinnedBigClasses[0][j][k][ptbin]->Reset();
+                        CorrelationsMEPtBinnedBigClasses[0][j][k][ptbin]->Reset();
+                        
+                       for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                           CorrelationsPtBinnedBigClasses[0][j][k][ptbin]->Add(CorrelationsPtBinned[i][j][k][ptbin]);
+                           CorrelationsMEPtBinnedBigClasses[0][j][k][ptbin]->Add(CorrelationsMEPtBinned[i][j][k][ptbin]);
+                       }
+                        
+                        CorrelationsPtBinnedBigClasses[0][j][k][ptbin]->Sumw2();
+                        CorrelationsMEPtBinnedBigClasses[0][j][k][ptbin]->Sumw2();
+                        
+                        CorrelationsPtBinnedBigClasses[1][j][k][ptbin]->Reset();
+                        CorrelationsMEPtBinnedBigClasses[1][j][k][ptbin]->Reset();
+                        
+                        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                            CorrelationsPtBinnedBigClasses[1][j][k][ptbin]->Add(CorrelationsPtBinned[i][j][k][ptbin]);
+                            CorrelationsMEPtBinnedBigClasses[1][j][k][ptbin]->Add(CorrelationsMEPtBinned[i][j][k][ptbin]);
+                        }
+                        
+                        CorrelationsPtBinnedBigClasses[1][j][k][ptbin]->Sumw2();
+                        CorrelationsMEPtBinnedBigClasses[1][j][k][ptbin]->Sumw2();
+                        
+                        CorrelationsPtBinnedBigClasses[2][j][k][ptbin]->Reset();
+                        CorrelationsMEPtBinnedBigClasses[2][j][k][ptbin]->Reset();
+                        
+                        for(int i=0; i<NbBinsCent; i++){
+                            CorrelationsPtBinnedBigClasses[2][j][k][ptbin]->Add(CorrelationsPtBinned[i][j][k][ptbin]);
+                            CorrelationsMEPtBinnedBigClasses[2][j][k][ptbin]->Add(CorrelationsMEPtBinned[i][j][k][ptbin]);
+                        }
+                        
+                        CorrelationsPtBinnedBigClasses[2][j][k][ptbin]->Sumw2();
+                        CorrelationsMEPtBinnedBigClasses[2][j][k][ptbin]->Sumw2();
+                        
+                        
+                    }
+                }
+            }
+            
+            if(doMixedEvents){
+                for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                
+                    cout << "Normalisation of CorrelationsME based on max of Eta projected applied" <<endl;
+                        for(int i=0; i<3; i++){ //BigClasses
+                            for(int j=0; j<NbBinsZvtx; j++){
+                                for(int k=0; k<NbinsInvMass; k++){
+                                    NormMEPtBinnedBigClasses[i][j][k][ptbin] = 0;
+                                    float maxME = 0;
+                                    int maxindexME = 0;
+                                    hnseg8ME_proj_tampon = (TH1F*)(CorrelationsMEPtBinnedBigClasses[i][j][k][ptbin]->ProjectionY("hnseg8ME_proj",1,NbinsDeltaPhi,"e")); //Change underflow
+                                    for(int l=1; l<hnseg8ME_proj->GetNbinsX()+1; l++){
+                                        float valueME = hnseg8ME_proj_tampon->GetBinContent(l);
+                                       // cout << "valueME " << valueME <<endl;
+                                        if (valueME > maxME){
+                                            maxME = valueME;
+                                            maxindexME = l;
+                                        }
+                                    }
+                                    if(maxME>0){
+                                        NormMEPtBinnedBigClasses[i][j][k][ptbin] = 1/maxME;
+                                    }
+                                }
+                            }
+                        }
+                
+                    
+                        //Scaling all CorrelationsME CVETANSCALE (line2987 was 0)
+                        
+                        for(int i=0; i<3; i++){
+                               for(int j=0; j<NbBinsZvtx; j++){
+                                   for(int k=0; k<NbinsInvMass; k++){
+                                       CorrelationsMEScaledPtBinnedBigClasses[i][j][k][ptbin]->Reset();
+                                       if(NormMEPtBinnedBigClasses[i][j][k][ptbin]>0){
+                                           for(int binx=1; binx<(1+CorrelationsMEPtBinnedBigClasses[i][j][k][ptbin]->GetNbinsX()); binx++){
+                                               for(int biny=1; biny<(1+CorrelationsMEPtBinnedBigClasses[i][j][k][ptbin]->GetNbinsY()); biny++){
+                                                   double error = CorrelationsMEScaledPtBinnedBigClasses[i][j][k][ptbin]->GetBinError(binx,biny);
+                                                   CorrelationsMEScaledPtBinnedBigClasses[i][j][k][ptbin]->SetBinContent(binx,biny, (CorrelationsMEPtBinnedBigClasses[i][j][k][ptbin]->GetBinContent(binx,biny))*NormMEPtBinnedBigClasses[i][j][k][ptbin]);
+                                                   CorrelationsMEScaledPtBinnedBigClasses[i][j][k][ptbin]->SetBinError(binx,biny,error*NormMEPtBinnedBigClasses[i][j][k][ptbin]); //(CorrelationsMEPtBinnedBigClasses[i][j][k][ptbin]->GetBinError(binx,biny))*NormMEPtBinnedBigClasses[i][j][k][ptbin]); MEchange
+                                               }
+                                           }
+                                       }
+                                       
+                                   }
+                               }
+                        }
+                }
+                    
+            }
+            
+            
+            
+            
+        }
+
+        {
+        
+        TCanvas*cteste = new TCanvas();
+        cteste->SetTitle("SE Projected, ME projected and division Dimu-Tkl");
+        cteste->Divide(1,3);
+            
+            TCanvas*ctestesum = new TCanvas();
+            ctestesum->SetTitle("Sommation des yields selon z");
+            ctestesum->Divide(5,2);
+            
+            TCanvas*ctestefin = new TCanvas();
+            ctestefin->SetTitle("Yield[0][3] final sommé selon z");
+            
+            TCanvas*ctesteproj = new TCanvas();
+            ctesteproj->SetTitle("Projction SE et ME Dimu-Tkl");
+            ctesteproj->Divide(2,2);
+        
+            cout << "Converting count histograms into yields, by dividing by the number of dimuons seen in each case and Mixed Event and summing on Z" <<endl;
+            cout << "Calculation of Yields[Cent][mass]" <<endl;
+        for(int i=0; i<NbBinsCent; i++){
+               for(int k=0; k<NbinsInvMass; k++){
+                   SoverMik->Reset();
+                 //  SoverMik->Sumw2();
+                   for(int j=0; j<NbBinsZvtx; j++){
+                       SoverMijk->Reset();
+                    //   SoverMijk->Sumw2();
+                       ProjCopy->Reset();
+                       ProjCopy2->Reset();
+                       if(doMixedEvents){
+                           ME_proj_tampon = (TH1F*)(CorrelationsMEScaled[i][j][k]->ProjectionX("ME_proj",1,NbinsDeltaEta,"e")); //Change underflow
+                       }
+                       if(i ==preciseCentFocus && k==3 && j==preciseZbinFocus){
+                           ctesteproj->cd(1);
+                           Correlations[i][j][k]->DrawCopy("colz");
+                           ctesteproj->cd(2);
+                           if(doMixedEvents){
+                               CorrelationsMEScaled[i][j][k]->DrawCopy("colz");
+                           }
+                           
+                       }
+                       SE_proj_tampon = (TH1F*)(Correlations[i][j][k]->ProjectionX("SE_proj",1,NbinsDeltaEta,"e")); //Change underflow
+                       ProjCopy->Add(SE_proj_tampon);
+                    //   ProjCopy->Sumw2();
+                       if(doMixedEvents){
+                           ProjCopy2->Add(ME_proj_tampon);
+                       }
+                    //   ProjCopy2->Sumw2();
+                       if(doMixedEvents){
+                           SoverMijk->Divide(ProjCopy,ProjCopy2);
+                       }
+                       else if(!doMixedEvents){
+                           SoverMijk->Add(ProjCopy);
+                       }
+                       if(i ==preciseCentFocus && k==3 && j==preciseZbinFocus){
+                           ctesteproj->cd(3);
+                           ProjCopy->DrawCopy();
+                           ctesteproj->cd(4);
+                            if(doMixedEvents){
+                                ProjCopy2->DrawCopy();
+                            }
+                           cteste->cd(1);
+                           ProjCopy->DrawCopy();
+                           cout << "Relative error on SE bin 4 is: " << ProjCopy->GetBinError(4)/ProjCopy->GetBinContent(4) << endl;
+                           cteste->cd(2);
+                           if(doMixedEvents){
+                               ProjCopy2->DrawCopy();
+                               cout << "Relative error on ME bin 4 is: " << ProjCopy2->GetBinError(4)/ProjCopy2->GetBinContent(4) << endl;
+                           }
+                           cteste->cd(3);
+                           SoverMijk->DrawCopy();
+                           cout << "Relative error on SE/ME bin 4 is: " << SoverMijk->GetBinError(4)/SoverMijk->GetBinContent(4) << endl;
+                       }
+                       if(i ==preciseCentFocus && k==3 && j<5){
+                           ctestesum->cd(j+1);
+                           SoverMijk->DrawCopy();
+                           cout << "Entries in histo: " << ProjCopy->GetEntries() << endl;
+                           cout << "Relative error on Mijk " << j << ", bin 4 is: " << SoverMijk->GetBinError(4)/SoverMijk->GetBinContent(4) << endl;
+                           cout << "Error on Mijk " << j << ", bin 4 is: " << SoverMijk->GetBinError(4) << endl;
+                       }
+                       SoverMik->Add(SoverMijk);
+                       if(i ==preciseCentFocus && k==3 && j<5){
+                           ctestesum->cd(5+j+1);
+                           SoverMik->DrawCopy();
+                           cout << "Relative error on Mik " << j << ", bin 4 is: " << SoverMik->GetBinError(4)/SoverMik->GetBinContent(4) << endl;
+                           cout << "Error on Mik " << j << ", bin 4 is: " << SoverMik->GetBinError(4) << endl;
+                       }
+                       DimuSeenMassCut+=DimuonCounter[i][j][k];
+                   }
+                  // Yields[i][k]->Sumw2();
+                   Yields[i][k]->Add(SoverMik);
+        }
+       }
+            
+            sprintf(CanvasName,"%s/DimuTkl SE ME Division.pdf",FolderName);
+            cteste->SaveAs(CanvasName);
+            sprintf(CanvasName,"%s/Z_SummationCheck.pdf",FolderName);
+            ctestesum->SaveAs(CanvasName);
+            sprintf(CanvasName,"%s/Yields[0][3].pdf",FolderName);
+            ctestefin->SaveAs(CanvasName);
+            sprintf(CanvasName,"%s/DimuTkl SE ME.pdf",FolderName);
+            ctesteproj->SaveAs(CanvasName);
+            
+            cout << "Reorganisaton of Yields[Cent][mass] to create Yields_PhiBin wrt inv mass and calculation them bor all C, periph, central" <<endl;
+            //TRUC A PLOT
+            TCanvas*cTestPhiToMass = new TCanvas();
+            cTestPhiToMass->Divide(4,NbinsDeltaPhi/2);
+            
+                for(int i=0; i<NbBinsCent; i++){
+                    for(int k=0; k<NbinsInvMass; k++){
+                        Yield_tampon->Reset();
+                        Yield_tampon->Add(Yields[i][k]);
+                     //   Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                        if(i==0){
+                            cTestPhiToMass->cd(k+1);
+                            Yield_tampon->DrawCopy();
+                        }
+                        for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                            Yields_PhiBin[i][deltaphibin]->SetBinContent(k+1,Yield_tampon->GetBinContent(deltaphibin+1));
+                            Yields_PhiBin[i][deltaphibin]->SetBinError(k+1,Yield_tampon->GetBinError(deltaphibin+1));
+                        }
+                    }
+                    if(i==0){
+                        for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                            cTestPhiToMass->cd(NbinsDeltaPhi+deltaphibin+1);
+                            Yields_PhiBin[i][deltaphibin]->DrawCopy();
+                        }
+                    }
+
+                }
+            
+            sprintf(CanvasName,"%s/FromPhiToMassDpd.pdf",FolderName);
+            cTestPhiToMass->SaveAs(CanvasName);
+            
+            for(int i=0; i<NbBinsCent; i++){
+                for(int k=0; k<NbinsInvMass; k++){
+                    if(DimuonCounterZint[i][k] >0){
+                              if(i==0 && k==3){
+                                  cout << "BEFORE" <<endl;
+                                  cout << "Yields[i][k]->GetBinContent(10,10): " << Yields[i][k]->GetBinContent(10,10) <<endl;
+                                  cout << "Yields[i][k]->GetBinError(10,10): " << Yields[i][k]->GetBinError(10,10) <<endl;
+                                  cout << "DimuonCounterZint[i][k]: " << DimuonCounterZint[i][k] <<endl;
+                              }
+                          //    Yields[i][k]->Scale(1./DimuonCounterZint[i][k]); //IL FAUDRAIT ATTACHER UNE ERREUR ICI
+                              
+                              for(int binx=1; binx<(1+Yields[i][k]->GetNbinsX()); binx++){
+                                      double oldContent = Yields[i][k]->GetBinContent(binx);
+                                      double oldError = Yields[i][k]->GetBinError(binx);
+                                      Yields[i][k]->SetBinContent(binx, (Yields[i][k]->GetBinContent(binx))/DimuonCounterZint[i][k]);
+                                  Yields[i][k]->SetBinError(binx, (Yields[i][k]->GetBinError(binx))/DimuonCounterZint[i][k]);
+    //                                  double newContent = Yields[i][k]->GetBinContent(binx);  TRYING
+    //                                  double newError;
+    //                                  if(oldContent == 0 || newContent == 0){
+    //                                      double newError = 0;
+    //                                  }
+    //                                  else{
+    //                                   double newError = newContent*sqrt(pow(oldError/oldContent,2)+(1./DimuonCounterZint[i][k]));
+    //                                  Yields[i][k]->SetBinError(binx, newError);
+    //                                  }
+                                  
+                              }
+                          }
+                          if(i==preciseCentFocus && k==3){
+                          ctestefin->cd();
+                          Yields[i][k]->DrawCopy("colz");
+                          }
+                }
+            }
+            
+        }
+        
+        if(PtBinned){
+            if(strncmp (SummationText,"Method2",10) == 0){ //Summation 2
+            for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                DimuSeenMassCutPtBinned[ptbin] = 0;
+             cout << "Converting count histograms into yields, by dividing by the number of dimuons seen in each case and Mixed Event and summing on Z" <<endl;
+             cout << "Calculation of Yields[Cent][mass]" <<endl;
+         for(int i=0; i<3; i++){
+                for(int k=0; k<NbinsInvMass; k++){
+                    YieldsPtBinned[i][k][ptbin]->Reset();
+                    SoverMik->Reset();
+                  //  SoverMik->Sumw2();
+                    for(int j=0; j<NbBinsZvtx; j++){
+                        SoverMijk->Reset();
+                     //   SoverMijk->Sumw2();
+                        ProjCopy->Reset();
+                        ProjCopy2->Reset();
+                        if(doMixedEvents){
+                            ME_proj_tampon = (TH1F*)(CorrelationsMEScaledPtBinnedBigClasses[i][j][k][ptbin]->ProjectionX("ME_proj",1,NbinsDeltaEta,"e")); //Change underflow
+                        }
+                        SE_proj_tampon = (TH1F*)(CorrelationsPtBinnedBigClasses[i][j][k][ptbin]->ProjectionX("SE_proj",1,NbinsDeltaEta,"e")); //Change underflow
+                        ProjCopy->Add(SE_proj_tampon);
+                     //   ProjCopy->Sumw2();
+                        if(doMixedEvents){
+                            ProjCopy2->Add(ME_proj_tampon);
+                        }
+                     //   ProjCopy2->Sumw2();
+                        if(doMixedEvents){
+                            SoverMijk->Divide(ProjCopy,ProjCopy2);
+                        }
+                        else if(!doMixedEvents){
+                            SoverMijk->Add(ProjCopy);
+                        }
+                        SoverMik->Add(SoverMijk);
+                        DimuSeenMassCutPtBinned[ptbin]+=DimuonCounterPtBinnedBigClasses[i][j][k][ptbin];
+                    }
+                   // Yields[i][k]->Sumw2();
+                    YieldsPtBinned[i][k][ptbin]->Add(SoverMik);
+         }
+        }
+             
+             cout << "Reorganisaton of Yields[Cent][mass] to create Yields_PhiBin wrt inv mass and calculation them bor all C, periph, central" <<endl;
+             //TRUC A PLOT
+                
+                
+                for(int i=0; i<3; i++){
+                    for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                        Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->Reset();
+                    }
+                }
+             
+                 for(int i=0; i<3; i++){
+                     for(int k=0; k<NbinsInvMass; k++){
+                         Yield_tampon->Reset();
+                         Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
+                      //   Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                         for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                             Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->SetBinContent(k+1,Yield_tampon->GetBinContent(deltaphibin+1));
+                             Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->SetBinError(k+1,Yield_tampon->GetBinError(deltaphibin+1));
+                            // Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->Scale(1./DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+                         }
+                     }
+                 }
+             
+             for(int i=0; i<3; i++){
+                 for(int k=0; k<NbinsInvMass; k++){
+                     if(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] == 0){
+                         cout<< "ALERT DimuonCounterZintPtBinned is 0 for cent: " << i << " mass: " << k << " ptbin: " <<ptbin<<endl;
+                     }
+                     if(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] >0){
+                         YieldsPtBinned[i][k][ptbin]->Scale(1./DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+    //                           for(int binx=1; binx<(1+YieldsPtBinned[i][k][ptbin]->GetNbinsX()); binx++){
+    //                                   double oldContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);
+    //                                   double oldError = YieldsPtBinned[i][k][ptbin]->GetBinError(binx);
+    //                                   YieldsPtBinned[i][k][ptbin]->SetBinContent(binx, (YieldsPtBinned[i][k][ptbin]->GetBinContent(binx))/DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+    //                               YieldsPtBinned[i][k][ptbin]->SetBinError(binx, (YieldsPtBinned[i][k][ptbin]->GetBinError(binx))/DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+    ////                                   double newContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);  TRYING
+    ////                               double newError;
+    ////                               if(oldContent == 0 || newContent == 0){
+    ////                                   double newError = 0;
+    ////                               }
+    ////                               else{
+    ////                                    double newError = newContent*sqrt(pow(oldError/oldContent,2)+(1./DimuonCounterZintPtBinned[i][k][ptbin]));
+    ////                                   YieldsPtBinned[i][k][ptbin]->SetBinError(binx, newError);
+    ////                               }
+    //
+    //                           }
+                           }
+                 }
+             }
+                
+                
+            }
+            }
+            if(strncmp (SummationText,"Method1a",10) == 0){ // Summation 1a
+                        char hname2[200];
+                        for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                                for(int i=0; i<3; i++){//BigClasses
+                                    for(int k=0; k<NbinsInvMass; k++){
+                                        
+                                        YieldsPtBinned[i][k][ptbin]->Reset();
+                                        YieldsPtBinned1a[i][k][ptbin]->Reset();
+                                
+                                    for(int binEta=1; binEta<=NbinsDeltaEta; binEta++){
+                                        
+                                    for(int binPhi=1; binPhi<=NbinsDeltaPhi; binPhi++){
+                                        sprintf(hname2,"htemp_pt%i_cent%i_mass%i_eta%i_phi%i",ptbin,i,k,binEta-1,binPhi-1);
+                                        TH1D *htemp = new TH1D(hname2,hname2,NbBinsZvtx,0,1);
+                                        sprintf(hname2,"htempMix_pt%i_cent%i_mass%i_eta%i_phi%i",ptbin,i,k,binEta-1,binPhi-1);
+                                        TH1D *htempMix = new TH1D(hname2,hname2,NbBinsZvtx,0,1);
+                                      for(int binZvtx=1; binZvtx<=NbBinsZvtx; binZvtx++) {
+                            htemp->SetBinContent(binZvtx,CorrelationsPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinContent(binPhi,binEta));
+                                          
+                            if(CorrelationsPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinContent(binPhi, binEta) == 0){
+                                      htemp->SetBinError(binZvtx, 1);
+                                  }
+                                else{
+                                    htemp->SetBinError(binZvtx, CorrelationsPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinError(binPhi, binEta));
+                                }
+                            htempMix->SetBinContent(binZvtx,DimuonCounterPtBinnedBigClasses[i][binZvtx-1][k][ptbin]*CorrelationsMEScaledPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinContent(binPhi,binEta));
+                                          
+                                htempMix->SetBinError(binZvtx, CorrelationsMEScaledPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinError(binPhi, binEta)*DimuonCounterPtBinnedBigClasses[i][binZvtx-1][k][ptbin]);
+                                          
+                                      }
+                                      Double_t err1;
+                                      Double_t cont1 = htemp->IntegralAndError(1,NbBinsZvtx,err1);
+                                      Double_t err2;
+                                      Double_t cont2 = htempMix->IntegralAndError(1,NbBinsZvtx,err2);
+                                        cout << hname2<<endl;
+                                      if (htempMix->Integral() > 0) {
+                                    TF1 *fPoissonLL = new TF1("fPoissonLL",fitPLL,0,1,1);
+                                    hStatic3 = htempMix;
+                                    htemp->Fit(fPoissonLL,"SMBRI");
+    //                                      if(ptbin==0 && i==0 && k > NbinsInvMass-3){
+    //                                          //cout << "Potential FISHY 1 !!"<<endl;
+    //                                          TCanvas* cAAAfish1 = new TCanvas;
+    //                                          cAAAfish1->Divide(1,2);
+    //                                          cAAAfish1->cd(1);
+    //                                          htemp->DrawCopy();
+    //                                          cAAAfish1->cd(2);
+    //                                          htempMix->DrawCopy();
+    //                                          cAAAfish1->Update();
+    //                                      }
+                    //                chi2 += fPoissonLL->GetChisquare()/fPoissonLL->GetNDF();
+                    //                nchi2++;
+                            YieldsPtBinned1a[i][k][ptbin]->SetBinContent(binPhi,binEta,fPoissonLL->GetParameter(0));
+                            YieldsPtBinned1a[i][k][ptbin]->SetBinError(binPhi,binEta,fPoissonLL->GetParError(0));
+                                    delete fPoissonLL;
+                                      }
+                                      delete htemp;
+                                      delete htempMix;
+                                    }
+                                    }
+                                        
+    //                                    if(ptbin==0 && i==0 && k > NbinsInvMass-3){
+    //                                        cout << "DRAWTIME"<<endl;
+    //                                        TCanvas* cAAAfish2 = new TCanvas;
+    //                                        cAAAfish2->cd();
+    //                                        YieldsPtBinned1a[i][k][ptbin]->DrawCopy("colz");
+    //                                        cAAAfish2->Update();
+    //                                    }
+                                    
+                                        char hname1[200];
+                                    bool kWasFail1a = kFALSE;
+                                                    for (int binPhi = 1; binPhi<=NbinsDeltaPhi; binPhi++){
+                                                        sprintf(hname1,"ME_proj_tampon_pt%i_cent%i_mass%i_phi%",ptbin,i,k,binPhi-1);
+                                                                        ME_proj_tampon = (TH1F*)(YieldsPtBinned1a[i][k][ptbin]->ProjectionY(hname1,binPhi,binPhi));//TestErr
+                                                    //                    for(int binEta=1; binEta<=(NbinsDeltaEtaTKL/2); binEta++){
+                                                    //                        ME_proj_Tkl_tamponEta->SetBinContent(NbinsDeltaEtaTKL-binEta+1, (ME_proj_Tkl_tamponEta->GetBinContent(binEta)+ME_proj_Tkl_tamponEta->GetBinContent(NbinsDeltaEtaTKL-binEta+1))/2);
+                                                    //                        ME_proj_Tkl_tamponEta->SetBinError(NbinsDeltaEtaTKL-binEta+1, sqrt(pow(ME_proj_Tkl_tamponEta->GetBinContent(binEta),2)+pow(ME_proj_Tkl_tamponEta->GetBinContent(NbinsDeltaEtaTKL-binEta+1),2))/2);
+                                                    //                    }
+                                                    //                    for(int binEta=(NbinsDeltaEtaTKL/2)+1; binEta<=NbinsDeltaEtaTKL; binEta++){
+                                                    //                        ME_proj_Tkl_tamponEta->SetBinContent(NbinsDeltaEtaTKL-binEta+1, 0);
+                                                    //                    }
+                                                        if(ME_proj_tampon->GetEntries() == 0){
+                                                            continue;
+                                                        }
+                                                                        TF1 *fLinear = new TF1("fLinear", fitLin, DeltaEtaDimuCut ,MaxDeltaEta,2);
+                                                                          Double_t paramslin[] = {0.01,1.};
+                                                                          fLinear->SetParameters(paramslin);
+                                                                           TVirtualFitter::Fitter(ME_proj_tampon)->SetMaxIterations(100000);
+                                                                           TVirtualFitter::Fitter(ME_proj_tampon)->SetPrecision();
+
+                                                                                   fLinear->SetParName(0,"b");
+                                                                                   fLinear->SetParName(1,"a");
+                                                                              //  fLinear->SetParLimits(0,0,20);
+
+                                                                                  TFitResultPtr res = ME_proj_tampon->Fit("fLinear","SQ0","ep");
+                                                                        if(res->CovMatrixStatus() == 3){
+                                                                            cout<<"Linear fit for summation binPhi= "<<binPhi<< "is a success"<<endl;
+                                                                        }
+                                                                        else{
+                                                                            cout<<"Linear fit for summation binPhi= "<<binPhi<< "is a failure"<<endl;
+                                                                            kWasFail1a = kTRUE;
+                                                                        }
+                                                                            Double_t parlin[2];
+                                                                            fLinear->GetParameters(parlin);
+                                                                            fLinear->SetParameters(parlin);
+                                                                            cout<<"a = "<<parlin[1]<< " b = "<<parlin[0]<<endl;
+                                                        cout << "Chi2/ndf = " << fLinear->GetChisquare()/fLinear->GetNDF()<<endl;
+                                                        
+    //                                                    if(fLinear->GetChisquare()/fLinear->GetNDF()>2){
+    //                                                        cout << "FISHY !!"<<endl;
+    //                                                        TCanvas* cAAAfish = new TCanvas;
+    //                                                        cAAAfish->cd();
+    //                                                        ME_proj_tampon->DrawCopy();
+    //                                                        cAAAfish->Update();
+    //                                                    }
+                                                        TFile *f = new TFile(FitFileName,"UPDATE");
+                                                        ME_proj_tampon->Write();
+                                                        f->Close();
+            //CVETANSCALE ?
+                                                                            double integral = fLinear->Integral(DeltaEtaDimuCut,MaxDeltaEta);
+                                                                            double integralerror = fLinear->IntegralError(DeltaEtaDimuCut,MaxDeltaEta, fLinear->GetParameters(), res->GetCovarianceMatrix().GetMatrixArray());
+
+                                                                            cout << "Integral = " <<integral << " error = " <<integralerror<<endl;
+                                                                            YieldsPtBinned[i][k][ptbin]->SetBinContent(binPhi, integral);
+                                                                            YieldsPtBinned[i][k][ptbin]->SetBinError(binPhi, integralerror);
+
+                                                                    }
+
+                                                    if(kWasFail1a){
+                                                        cout << "Summation Method1a did not execute properly"<<endl;
+                                                    }
+
+                                                    TFile *f = new TFile(FitFileName,"UPDATE");
+                                                    YieldsPtBinned[i][k][ptbin]->Write();
+                                                    YieldsPtBinned1a[i][k][ptbin]->Write();
+                                                    f->Close();
+                                    
+                                }
+                        }
+                                
+                                cout << "Reorganisaton of Yields[Cent][mass] to create Yields_PhiBin wrt inv mass and calculation them bor all C, periph, central" <<endl;
+                                //TRUC A PLOT
+                            
+                            for(int i=0; i<3; i++){
+                                for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                                    Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->Reset();
+                                }
+                            }
+                                
+                                    for(int i=0; i<3; i++){//BigClasses
+                                        for(int k=0; k<NbinsInvMass; k++){
+                                            Yield_tampon->Reset();
+                                            Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
+                                          //  Yield_tampon->Scale(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+                                            for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                                                Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->SetBinContent(k+1,Yield_tampon->GetBinContent(deltaphibin+1));
+                                                Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->SetBinError(k+1,Yield_tampon->GetBinError(deltaphibin+1));
+                                            }
+                                        }
+                                    }
+            //                        for(int i=0; i<3; i++){//BigClasses
+            //                                     for(int k=0; k<NbinsInvMass; k++){
+            //                                         if(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] == 0){
+            //                                             cout<< "ALERT DimuonCounterZintPtBinned is 0 for cent: " << i << " mass: " << k << " ptbin: " <<ptbin<<endl;
+            //                                         }
+            //                                         if(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] >0){
+            //
+            //                                                   for(int binx=1; binx<(1+YieldsPtBinned[i][k][ptbin]->GetNbinsX()); binx++){
+            //                                                           double oldContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);
+            //                                                           double oldError = YieldsPtBinned[i][k][ptbin]->GetBinError(binx);
+            //                                                           YieldsPtBinned[i][k][ptbin]->SetBinContent(binx, (YieldsPtBinned[i][k][ptbin]->GetBinContent(binx))/DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+            //                                                       YieldsPtBinned[i][k][ptbin]->SetBinError(binx, (YieldsPtBinned[i][k][ptbin]->GetBinError(binx))/DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+            //                        //                                   double newContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);  TRYING
+            //                        //                               double newError;
+            //                        //                               if(oldContent == 0 || newContent == 0){
+            //                        //                                   double newError = 0;
+            //                        //                               }
+            //                        //                               else{
+            //                        //                                    double newError = newContent*sqrt(pow(oldError/oldContent,2)+(1./DimuonCounterZintPtBinned[i][k][ptbin]));
+            //                        //                                   YieldsPtBinned[i][k][ptbin]->SetBinError(binx, newError);
+            //                        //                               }
+            //
+            //                                                   }
+            //                                               }
+            //                                     }
+            //                                 }
+                                                   
+                                
+                            }
+                    }
+            
+            if(strncmp (SummationText,"Method1c",10) == 0){ // Summation 1c
+                char hname2[200];
+                for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                        for(int i=0; i<3; i++){//BigClasses
+                            for(int k=0; k<NbinsInvMass; k++){
+                                
+                                YieldsPtBinned1a[i][k][ptbin]->Reset();
+                                YieldsPtBinned[i][k][ptbin]->Reset();
+                        
+                            for(int binEta=1; binEta<=NbinsDeltaEta; binEta++){
+                                
+                            for(int binPhi=1; binPhi<=NbinsDeltaPhi; binPhi++){
+                                sprintf(hname2,"htemp_pt%i_cent%i_mass%i_eta%i_phi%i",ptbin,i,k,binEta-1,binPhi-1);
+                                TH1D *htemp = new TH1D(hname2,hname2,NbBinsZvtx,0,1);
+                                sprintf(hname2,"htempMix_pt%i_cent%i_mass%i_eta%i_phi%i",ptbin,i,k,binEta-1,binPhi-1);
+                                TH1D *htempMix = new TH1D(hname2,hname2,NbBinsZvtx,0,1);
+                              for(int binZvtx=1; binZvtx<=NbBinsZvtx; binZvtx++) {
+                    htemp->SetBinContent(binZvtx,CorrelationsPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinContent(binPhi,binEta));
+                    htempMix->SetBinContent(binZvtx,DimuonCounterPtBinnedBigClasses[i][binZvtx-1][k][ptbin]*CorrelationsMEScaledPtBinnedBigClasses[i][binZvtx-1][k][ptbin]->GetBinContent(binPhi,binEta));
+                                  
+                              }
+                              Double_t err1;
+                              Double_t cont1 = htemp->IntegralAndError(1,NbBinsZvtx,err1);
+                              Double_t err2;
+                              Double_t cont2 = htempMix->IntegralAndError(1,NbBinsZvtx,err2);
+                                cout << hname2<<endl;
+                              if (htempMix->Integral() > 0) {
+                            TF1 *fPoissonLL = new TF1("fPoissonLL",fitPLL,0,1,1);
+                            hStatic3 = htempMix;
+                            htemp->Fit(fPoissonLL,"LOS");
+    //                              if(ptbin==0 && i==0 && k > NbinsInvMass-3){
+    //                                  cout << "Potential FISHY 1 !!"<<endl;
+    //                                  TCanvas* cAAAfish1 = new TCanvas;
+    //                                  cAAAfish1->Divide(1,2);
+    //                                  cAAAfish1->cd(1);
+    //                                  htemp->DrawCopy();
+    //                                  cAAAfish1->cd(2);
+    //                                  htempMix->DrawCopy();
+    //                                  cAAAfish1->Update();
+    //                              }
+            //                chi2 += fPoissonLL->GetChisquare()/fPoissonLL->GetNDF();
+            //                nchi2++;
+                    YieldsPtBinned1a[i][k][ptbin]->SetBinContent(binPhi,binEta,fPoissonLL->GetParameter(0));
+                    YieldsPtBinned1a[i][k][ptbin]->SetBinError(binPhi,binEta,fPoissonLL->GetParError(0));
+                            delete fPoissonLL;
+                              }
+                              delete htemp;
+                              delete htempMix;
+                            }
+                            }
+                                
+    //                            if(ptbin==0 && i==0 && k > NbinsInvMass-3){
+    //                                cout << "DRAWTIME"<<endl;
+    //                                TCanvas* cAAAfish2 = new TCanvas;
+    //                                cAAAfish2->cd();
+    //                                YieldsPtBinned1a[i][k][ptbin]->DrawCopy("colz");
+    //                                cAAAfish2->Update();
+    //                            }
+                            
+                                char hname1[200];
+                            bool kWasFail1a = kFALSE;
+                                            for (int binPhi = 1; binPhi<=NbinsDeltaPhi; binPhi++){
+                                                sprintf(hname1,"ME_proj_tampon_pt%i_cent%i_mass%i_phi%",ptbin,i,k,binPhi-1);
+                                                                ME_proj_tampon = (TH1F*)(YieldsPtBinned1a[i][k][ptbin]->ProjectionY(hname1,binPhi,binPhi));//TestErr
+                                            //                    for(int binEta=1; binEta<=(NbinsDeltaEtaTKL/2); binEta++){
+                                            //                        ME_proj_Tkl_tamponEta->SetBinContent(NbinsDeltaEtaTKL-binEta+1, (ME_proj_Tkl_tamponEta->GetBinContent(binEta)+ME_proj_Tkl_tamponEta->GetBinContent(NbinsDeltaEtaTKL-binEta+1))/2);
+                                            //                        ME_proj_Tkl_tamponEta->SetBinError(NbinsDeltaEtaTKL-binEta+1, sqrt(pow(ME_proj_Tkl_tamponEta->GetBinContent(binEta),2)+pow(ME_proj_Tkl_tamponEta->GetBinContent(NbinsDeltaEtaTKL-binEta+1),2))/2);
+                                            //                    }
+                                            //                    for(int binEta=(NbinsDeltaEtaTKL/2)+1; binEta<=NbinsDeltaEtaTKL; binEta++){
+                                            //                        ME_proj_Tkl_tamponEta->SetBinContent(NbinsDeltaEtaTKL-binEta+1, 0);
+                                            //                    }
+                                                if(ME_proj_tampon->GetEntries() == 0){
+                                                    continue;
+                                                }
+                                                                TF1 *fLinear = new TF1("fLinear", fitLin, DeltaEtaDimuCut ,MaxDeltaEta,2);
+                                                                  Double_t paramslin[] = {0.01,1.};
+                                                                  fLinear->SetParameters(paramslin);
+                                                                   TVirtualFitter::Fitter(ME_proj_tampon)->SetMaxIterations(100000);
+                                                                   TVirtualFitter::Fitter(ME_proj_tampon)->SetPrecision();
+
+                                                                           fLinear->SetParName(0,"b");
+                                                                           fLinear->SetParName(1,"a");
+                                                                      //  fLinear->SetParLimits(0,0,20);
+
+                                                                          TFitResultPtr res = ME_proj_tampon->Fit("fLinear","SQ0","ep");
+                                                                if(res->CovMatrixStatus() == 3){
+                                                                    cout<<"Linear fit for summation binPhi= "<<binPhi<< "is a success"<<endl;
+                                                                }
+                                                                else{
+                                                                    cout<<"Linear fit for summation binPhi= "<<binPhi<< "is a failure"<<endl;
+                                                                    kWasFail1a = kTRUE;
+                                                                }
+                                                                    Double_t parlin[2];
+                                                                    fLinear->GetParameters(parlin);
+                                                                    fLinear->SetParameters(parlin);
+                                                                    cout<<"a = "<<parlin[1]<< " b = "<<parlin[0]<<endl;
+                                                cout << "Chi2/ndf = " << fLinear->GetChisquare()/fLinear->GetNDF()<<endl;
+                                                
+    //                                            if(fLinear->GetChisquare()/fLinear->GetNDF()>2){
+    //                                                cout << "FISHY !!"<<endl;
+    //                                                TCanvas* cAAAfish = new TCanvas;
+    //                                                cAAAfish->cd();
+    //                                                ME_proj_tampon->DrawCopy();
+    //                                                cAAAfish->Update();
+    //                                            }
+                                                TFile *f = new TFile(FitFileName,"UPDATE");
+                                                ME_proj_tampon->Write();
+                                                f->Close();
+    //CVETANSCALE ?
+                                                                    double integral = fLinear->Integral(DeltaEtaDimuCut,MaxDeltaEta);
+                                                                    double integralerror = fLinear->IntegralError(DeltaEtaDimuCut,MaxDeltaEta, fLinear->GetParameters(), res->GetCovarianceMatrix().GetMatrixArray());
+
+                                                                    cout << "Integral = " <<integral << " error = " <<integralerror<<endl;
+                                                                    YieldsPtBinned[i][k][ptbin]->SetBinContent(binPhi, integral);
+                                                                    YieldsPtBinned[i][k][ptbin]->SetBinError(binPhi, integralerror);
+
+                                                            }
+
+                                            if(kWasFail1a){
+                                                cout << "Summation Method1c did not execute properly"<<endl;
+                                            }
+
+                                            TFile *f = new TFile(FitFileName,"UPDATE");
+                                            YieldsPtBinned[i][k][ptbin]->Write();
+                                            YieldsPtBinned1a[i][k][ptbin]->Write();
+                                            f->Close();
+                            
+                        }
+                }
+                        
+                        cout << "Reorganisaton of Yields[Cent][mass] to create Yields_PhiBin wrt inv mass and calculation them bor all C, periph, central" <<endl;
+                        //TRUC A PLOT
+                    for(int i=0; i<3; i++){
+                        for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                            Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->Reset();
+                        }
+                    }
+                        
+                            for(int i=0; i<3; i++){//BigClasses
+                                for(int k=0; k<NbinsInvMass; k++){
+                                    Yield_tampon->Reset();
+                                    Yield_tampon->Add(YieldsPtBinned[i][k][ptbin]);
+                                  //  Yield_tampon->Scale(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+                                    for(int deltaphibin=0; deltaphibin<NbinsDeltaPhi; deltaphibin++){
+                                        Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->SetBinContent(k+1,Yield_tampon->GetBinContent(deltaphibin+1));
+                                        Yields_PhiBinPtBinned[i][deltaphibin][ptbin]->SetBinError(k+1,Yield_tampon->GetBinError(deltaphibin+1));
+                                    }
+                                }
+                            }
+    //                        for(int i=0; i<3; i++){//BigClasses
+    //                                     for(int k=0; k<NbinsInvMass; k++){
+    //                                         if(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] == 0){
+    //                                             cout<< "ALERT DimuonCounterZintPtBinned is 0 for cent: " << i << " mass: " << k << " ptbin: " <<ptbin<<endl;
+    //                                         }
+    //                                         if(DimuonCounterZintPtBinnedBigClasses[i][k][ptbin] >0){
+    //
+    //                                                   for(int binx=1; binx<(1+YieldsPtBinned[i][k][ptbin]->GetNbinsX()); binx++){
+    //                                                           double oldContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);
+    //                                                           double oldError = YieldsPtBinned[i][k][ptbin]->GetBinError(binx);
+    //                                                           YieldsPtBinned[i][k][ptbin]->SetBinContent(binx, (YieldsPtBinned[i][k][ptbin]->GetBinContent(binx))/DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+    //                                                       YieldsPtBinned[i][k][ptbin]->SetBinError(binx, (YieldsPtBinned[i][k][ptbin]->GetBinError(binx))/DimuonCounterZintPtBinnedBigClasses[i][k][ptbin]);
+    //                        //                                   double newContent = YieldsPtBinned[i][k][ptbin]->GetBinContent(binx);  TRYING
+    //                        //                               double newError;
+    //                        //                               if(oldContent == 0 || newContent == 0){
+    //                        //                                   double newError = 0;
+    //                        //                               }
+    //                        //                               else{
+    //                        //                                    double newError = newContent*sqrt(pow(oldError/oldContent,2)+(1./DimuonCounterZintPtBinned[i][k][ptbin]));
+    //                        //                                   YieldsPtBinned[i][k][ptbin]->SetBinError(binx, newError);
+    //                        //                               }
+    //
+    //                                                   }
+    //                                               }
+    //                                     }
+    //                                 }
+                                           
+                        
+                    }
+            }
+            
+         }
+    //    for(int i=0; i<NbBinsCent; i++){
+    //        for(int k=0; k<10; k++){
+    //            for(int p=0; p<12; p++){
+    //                Yields[i][k]->SetBinError(p+1, sqrt(Yields[i][k]->GetBinContent(p+1))/DimuonCounterZint[i][k]);
+    //            }
+    //        }
+    //    }
+       
+      
+        cout << "DimuSeenMassCut " << DimuSeenMassCut <<endl;
+        cout << "Calculation of Yields in all C, central, periph and difference" <<endl;
+        
+        Yield_allC->Reset();
+        
+        for(int i=0; i<NbBinsCent; i++){
+            for(int k=0; k<NbinsInvMass; k++){
+                if(DimuonCounterZint[i][k]>0){
+                    Yield_tampon->Reset();
+                    Yield_tampon->Add(Yields[i][k]);
+                    Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                    Yield_allC->Add(Yield_tampon);
+                }
+            }
+        }
+        Yield_allC->Scale(1./DimuSeenMassCut);
+        
+        int DimuCnt=0;
+        Yield_Central->Reset();
+        for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+            Yield_tampon->Reset();
+            Yield_tampon->Add(Yields[i][3]);
+            Yield_tampon->Scale(DimuonCounterZint[i][3]);
+            Yield_Central->Add(Yield_tampon);
+            DimuCnt += DimuonCounterZint[i][3];
+        }
+         Yield_Central->Scale(1./DimuCnt);
+        DimuCnt=0;
+        Yield_Periph->Reset();
+        for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+            Yield_tampon->Reset();
+            Yield_tampon->Add(Yields[i][3]);
+            Yield_tampon->Scale(DimuonCounterZint[i][3]);
+            Yield_Periph->Add(Yield_tampon);
+            DimuCnt += DimuonCounterZint[i][3];
+        }
+        Yield_Periph->Scale(1./DimuCnt);
+        Yield_Difference->Reset();
+        Yield_Difference->Add(Yield_Central,Yield_Periph,1,-1);
+        
+        
+        TCanvas*cYi = new TCanvas();
+        cYi->SetTitle("Yields 3.0-3.3 GeV");
+        cYi->Divide(2,2);
+        cYi->cd(1);
+        Yield_allC->Draw("same");
+        cYi->cd(2);
+        Yield_Difference->Draw("same");
+        cYi->cd(3);
+        Yield_Central->Draw("same");
+        cYi->cd(4);
+        Yield_Periph->Draw("same");
+        sprintf(CanvasName,"%s/YieldJPsi.pdf",FolderName);
+        cYi->SaveAs(CanvasName);
+        
+        cout << "Calculation of Yields_MassBin[mass]" <<endl;
+        for(int k=0; k<NbinsInvMass; k++){
+            DimuCnt=0;
+            Yield_Central_MassBin[k]->Reset();
+            for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                if(DimuonCounterZint[i][k]>0){
+                    Yield_tampon->Reset();
+                    Yield_tampon->Add(Yields[i][k]);
+                    Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                    Yield_Central_MassBin[k]->Add(Yield_tampon);
+                    DimuCnt += DimuonCounterZint[i][k];
+                }
+            }
+            cout << " Massbin: " << k << " DimuCnt Central: " <<DimuCnt<<endl;
+            if(DimuCnt>0){
+             Yield_Central_MassBin[k]->Scale(1./DimuCnt);
+            }
+            DimuCnt=0;
+            Yield_Periph_MassBin[k]->Reset();
+            for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                if(DimuonCounterZint[i][k]>0){
+                    Yield_tampon->Reset();
+                    Yield_tampon->Add(Yields[i][k]);
+                    Yield_tampon->Scale(DimuonCounterZint[i][k]);
+                    Yield_Periph_MassBin[k]->Add(Yield_tampon);
+                    DimuCnt += DimuonCounterZint[i][k];
+                }
+            }
+            cout << " Massbin: " << k << " DimuCnt Periph: " <<DimuCnt<<endl;
+            if(DimuCnt>0){
+                Yield_Periph_MassBin[k]->Scale(1./DimuCnt);
+            }
+            Yield_Difference_MassBin[k]->Reset();
+            Yield_Difference_MassBin[k]->Add(Yield_Central_MassBin[k],Yield_Periph_MassBin[k],1,-1);
+                  
+        }
+        
+        if(PtBinned){
+            for(int ptbin=0; ptbin<NbPtBins; ptbin++){
+                for(int k=0; k<NbinsInvMass; k++){
+     //                  DimuCnt=0;//BigClasses
+    //                   for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+    //                       if(DimuonCounterZintPtBinned[i][k][ptbin]>0){
+                               Yield_tampon->Reset();
+                               Yield_tampon->Add(YieldsPtBinned[0][k][ptbin]);
+    //                           Yield_tampon->Scale(DimuonCounterZintPtBinned[i][k][ptbin]);
+                    Yield_Central_MassBinPtBinned[k][ptbin]->Reset();
+                               Yield_Central_MassBinPtBinned[k][ptbin]->Add(Yield_tampon);
+    //                           DimuCnt += DimuonCounterZintPtBinned[i][k][ptbin];
+    //                       }
+    //                   }
+    //                cout << "ptbin: " << ptbin << " Massbin: " << k << " DimuCnt Central: " <<DimuCnt<<endl;
+    //                if(DimuCnt>0){
+    //                    Yield_Central_MassBinPtBinned[k][ptbin]->Scale(1./DimuCnt);
+    //                }
+    //                   DimuCnt=0;
+    //                   for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+    //                       if(DimuonCounterZintPtBinned[i][k][ptbin]>0){
+                               Yield_tampon->Reset();
+                               Yield_tampon->Add(YieldsPtBinned[1][k][ptbin]);
+    //                           Yield_tampon->Scale(DimuonCounterZintPtBinned[i][k][ptbin]);
+                    Yield_Periph_MassBinPtBinned[k][ptbin]->Reset();
+                               Yield_Periph_MassBinPtBinned[k][ptbin]->Add(Yield_tampon);
+    //                           DimuCnt += DimuonCounterZintPtBinned[i][k][ptbin];
+    //
+    //                           if(k == NbinsInvMass-1 && ptbin ==0){
+    //                               cout << "Looking at YieldsPtBinned ptbin 0 massbin last centralbin "<< i <<endl;
+    //                               for(int index = 0; index<Yield_tampon->GetNbinsX(); index++){
+    //                                   cout<< "Content bin " << index << " is " << Yield_tampon->GetBinContent(index+1)<<endl;
+    //                                   cout<< "Error bin " << index << " is " <<Yield_tampon->GetBinError(index+1)<<endl;
+    //                               }
+    //                           }
+    //
+    //                           if(k == NbinsInvMass-1 && ptbin ==0){
+    //                                              cout << "Looking at progressive Periph Yield ptbin 0 massbin last"<<endl;
+    //                                              for(int index = 0; index<Yield_Periph_MassBinPtBinned[k][ptbin]->GetNbinsX(); index++){
+    //                                                  cout<< "Content bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinContent(index+1)<<endl;
+    //                                                  cout<< "Error bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinError(index+1)<<endl;
+    //                                              }
+    //                                          }
+    //
+    //                       }
+    //                   }
+    //                cout << "ptbin: " << ptbin << " Massbin: " << k << " DimuCnt Periph: " <<DimuCnt<<endl;
+    //                if(k == NbinsInvMass-1 && ptbin ==0){
+    //                    cout << "Looking at Periph Yield ptbin 0 massbin last"<<endl;
+    //                    for(int index = 0; index<Yield_Periph_MassBinPtBinned[k][ptbin]->GetNbinsX(); index++){
+    //                        cout<< "Content bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinContent(index+1)<<endl;
+    //                        cout<< "Error bin " << index << " is " << Yield_Periph_MassBinPtBinned[k][ptbin]->GetBinError(index+1)<<endl;
+    //                    }
+    //                }
+    //                if(DimuCnt>0){
+    //                   Yield_Periph_MassBinPtBinned[k][ptbin]->Scale(1./DimuCnt);
+    //                }
+                      Yield_Difference_MassBinPtBinned[k][ptbin]->Reset(); Yield_Difference_MassBinPtBinned[k][ptbin]->Add(Yield_Central_MassBinPtBinned[k][ptbin],Yield_Periph_MassBinPtBinned[k][ptbin],1,-1);
+                             
+                   }
+            }
+        }
+        
+        TCanvas*cTestRebinning = new TCanvas();
+        cTestRebinning->Divide(1,2);
+        cTestRebinning->cd(1);
+        hnseg->DrawCopy();
+        
+        int RebinningFactor = NbinsDimuInvMass/NbinsInvMass;
+        
+            cout << "Rebinning of InvMass plots to prepare for division" <<endl;
+        TH1I *InvMass_TotRebinned = dynamic_cast<TH1I*>(hnseg->Rebin(NbinsInvMass,"InvMass_TotRebinned",MassBins));
+        TH1I *InvMass_CentralRebinned = dynamic_cast<TH1I*>(InvMass_Central->Rebin(NbinsInvMass,"InvMass_CentralRebinned",MassBins));
+        TH1I *InvMass_PeriphRebinned = dynamic_cast<TH1I*>(InvMass_Periph->Rebin(NbinsInvMass,"InvMass_PeriphRebinned",MassBins));
+        
+    //    TH2F *InvMass_TotRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[0]->Rebin(NbinsInvMass,"InvMass_TotRebinnedPt",MassBins));
+    //    TH2F *InvMass_CentralRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[1]->Rebin(NbinsInvMass,"InvMass_CentralRebinnedPt",MassBins));
+    //    TH2F *InvMass_PeriphRebinnedPt = dynamic_cast<TH2F*>(hPtWrtMassInv[2]->Rebin(NbinsInvMass,"InvMass_PeriphRebinnedPt",MassBins));
+        
+    //    for(int blop=0; blop<10; blop++){
+    //        InvMass_TotRebinned->SetBinError(blop+1,0);
+    //        InvMass_CentralRebinned->SetBinError(blop+1,0);
+    //        InvMass_PeriphRebinned->SetBinError(blop+1,0);
+    //    }
+        
+        cTestRebinning->cd(2);
+           InvMass_TotRebinned->DrawCopy();
+        sprintf(CanvasName,"%s/TestInvMassRebin.pdf",FolderName);
+        cTestRebinning->SaveAs(CanvasName);
+        
+        TCanvas* c11a = new TCanvas;
+        c11a->SetTitle("Pt wrt Mass CentralPeriphAll");
+        //Pt wrt Mass -> Central, Periph, All
+        c11a->Divide(3,1);
+        for(int i=0; i<3; i++){
+            c11a->cd(i+1);
+            hPtWrtMassInv[i]->Draw("colz");
+        }
+        sprintf(CanvasName,"%s/InvMassWrtPt-TH2.pdf",FolderName);
+        c11a->SaveAs(CanvasName);
+        
+        TCanvas* c11b_0 = new TCanvas;
+        c11b_0->SetTitle("Mass all C, pT bins");
+        //Mass -> All C [Pt bins]
+        c11b_0->Divide(2,3);
+        for (int i=0;i<NbPtBins;i++){
+            hPtWrtMassInvSliced[0][i] = hPtWrtMassInv[0]->ProjectionX(Form("bin%d_0",i+1),i+1,i+1,"e");
+            hPtWrtMassInvSlicedRebinned[0][i] = dynamic_cast<TH1D*>(hPtWrtMassInvSliced[0][i]->Rebin(NbinsInvMass,Form("bin%d_0PtRebinned",i+1),MassBins));
+           // hPtWrtMassInvSlicedRebinned[0][i] = InvMass_TotRebinnedPt->ProjectionX(Form("bin%d_0PtRebinned",i+1),i+1,i+1);
+        }
+        
+        TCanvas* c11b_1 = new TCanvas;
+        c11b_1->SetTitle("Mass Central, pT bins");
+        //Mass -> Central [Pt bins]
+        c11b_1->Divide(2,3);
+        for (int i=0;i<NbPtBins;i++){
+            hPtWrtMassInvSliced[1][i] = hPtWrtMassInv[1]->ProjectionX(Form("bin%d_1",i+1),i+1,i+1,"e");
+            hPtWrtMassInvSlicedRebinned[1][i] = dynamic_cast<TH1D*>(hPtWrtMassInvSliced[1][i]->Rebin(NbinsInvMass,Form("bin%d_1PtRebinned",i+1),MassBins));
+          //  hPtWrtMassInvSlicedRebinned[1][i] = InvMass_CentralRebinnedPt->ProjectionX(Form("bin%d_1PtRebinned",i+1),i+1,i+1);
+        }
+        
+        TCanvas* c11b_2 = new TCanvas;
+        c11b_2->SetTitle("Mass Periph, pT bins");
+        //Mass -> Periph [Pt bins]
+        c11b_2->Divide(2,3);
+        for (int i=0;i<NbPtBins;i++){
+            hPtWrtMassInvSliced[2][i] =  hPtWrtMassInv[2]->ProjectionX(Form("bin%d_2",i+1),i+1,i+1,"e");
+            hPtWrtMassInvSlicedRebinned[2][i] = dynamic_cast<TH1D*>(hPtWrtMassInvSliced[2][i]->Rebin(NbinsInvMass,Form("bin%d_2PtRebinned",i+1),MassBins));
+            //hPtWrtMassInvSlicedRebinned[2][i] = InvMass_PeriphRebinnedPt->ProjectionX(Form("bin%d_2PtRebinned",i+1),i+1,i+1);
+        }
+        
+       // cout << "hPtWrtMassInvSlicedRebinned[0][2] bin 3 : " << hPtWrtMassInvSlicedRebinned[0][2]->GetBinContent(3)<<endl;
+        
+        for(int bin_idx=1; bin_idx<=InvMass_TotRebinned->GetNbinsX();bin_idx++){
+            InvMass_TotRebinned->SetBinError(bin_idx,0);
+            InvMass_CentralRebinned->SetBinError(bin_idx,0);
+            InvMass_PeriphRebinned->SetBinError(bin_idx,0);
+        }
+
+
+            for(int p=0; p<NbinsDeltaPhi; p++){
+                YieldWrtMass_allC[p]->Reset();
+                for(int i=0; i<NbBinsCent; i++){
+                    YieldWrtMass_tampon->Reset();
+                    YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
+                    YieldWrtMass_allC[p]->Add(YieldWrtMass_tampon);
+                }
+                YieldWrtMass_allC[p]->Divide(InvMass_TotRebinned);
+            }
+            
+             for(int p=0; p<NbinsDeltaPhi; p++){
+                 YieldWrtMass_Central[p]->Reset();
+                for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                    YieldWrtMass_tampon->Reset();
+                    YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
+                    YieldWrtMass_Central[p]->Add(YieldWrtMass_tampon);
+                }
+                YieldWrtMass_Central[p]->Divide(InvMass_CentralRebinned);
+                 
+            }
+            
+            for(int p=0; p<NbinsDeltaPhi; p++){
+                YieldWrtMass_Periph[p]->Reset();
+                for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                    YieldWrtMass_tampon->Reset();
+                    YieldWrtMass_tampon->Add(Yields_PhiBin[i][p]);
+                    YieldWrtMass_Periph[p]->Add(YieldWrtMass_tampon);
+                }
+                
+                YieldWrtMass_Periph[p]->Divide(InvMass_PeriphRebinned);
+                
+            }
+        
+        if(PtBinned){
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                for(int bin_idx=1; bin_idx<=hPtWrtMassInvSlicedRebinned[0][ptbin]->GetNbinsX();bin_idx++){
+                    hPtWrtMassInvSlicedRebinned[0][ptbin]->SetBinError(bin_idx,0);
+                    hPtWrtMassInvSlicedRebinned[1][ptbin]->SetBinError(bin_idx,0);
+                    hPtWrtMassInvSlicedRebinned[2][ptbin]->SetBinError(bin_idx,0);
+                }
+                
+                int DimuCntMass[NbinsInvMass] = {0};
+                for(int p=0; p<NbinsDeltaPhi; p++){
+                    for(int k = 0; k<NbinsInvMass;k++){
+                        DimuCntMass[k] = 0;
+                    }
+    //                for(int i=0; i<NbBinsCent; i++){//BigClasses
+                        YieldWrtMass_tampon->Reset();
+                        YieldWrtMass_tampon->Add(Yields_PhiBinPtBinned[2][p][ptbin]);
+                    YieldWrtMass_allCPtBinned[p][ptbin]->Reset();
+                        YieldWrtMass_allCPtBinned[p][ptbin]->Add(YieldWrtMass_tampon);
+                        for(int k = 0; k<NbinsInvMass;k++){
+                            DimuCntMass[k] += DimuonCounterZintPtBinnedBigClasses[2][k][ptbin];
+                        }
+    //                }
+                    
+    //                for(int k = 0; k<NbinsInvMass;k++){
+    //                    YieldWrtMass_allCPtBinned[p][ptbin]->SetBinContent(k+1, YieldWrtMass_allCPtBinned[p][ptbin]->GetBinContent(k+1)/DimuCntMass[k]);
+    //                    YieldWrtMass_allCPtBinned[p][ptbin]->SetBinError(k+1, YieldWrtMass_allCPtBinned[p][ptbin]->GetBinError(k+1)/DimuCntMass[k]);
+    //                }
+                    if(strncmp (SummationText,"Method2",10) == 0){
+                    YieldWrtMass_allCPtBinned[p][ptbin]->Divide(hPtWrtMassInvSlicedRebinned[0][ptbin]);
+                    }
+                    
+                }
+                
+                 for(int p=0; p<NbinsDeltaPhi; p++){
+                     for(int k = 0; k<NbinsInvMass;k++){
+                         DimuCntMass[k] = 0;
+                     }
+    //                for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph BigClasses
+                        YieldWrtMass_tampon->Reset();
+                        YieldWrtMass_tampon->Add(Yields_PhiBinPtBinned[0][p][ptbin]);
+                     YieldWrtMass_CentralPtBinned[p][ptbin]->Reset();
+                        YieldWrtMass_CentralPtBinned[p][ptbin]->Add(YieldWrtMass_tampon);
+    //
+                            for(int k = 0; k<NbinsInvMass;k++){
+                                DimuCntMass[k] += DimuonCounterZintPtBinnedBigClasses[0][k][ptbin];
+                            }
+    //                }
+                     
+    //                 for(int k = 0; k<NbinsInvMass;k++){
+    //                     YieldWrtMass_CentralPtBinned[p][ptbin]->SetBinContent(k+1, YieldWrtMass_CentralPtBinned[p][ptbin]->GetBinContent(k+1)/DimuCntMass[k]);
+    //                     YieldWrtMass_CentralPtBinned[p][ptbin]->SetBinError(k+1, YieldWrtMass_CentralPtBinned[p][ptbin]->GetBinError(k+1)/DimuCntMass[k]);
+    //                 }
+                     
+                     if(strncmp (SummationText,"Method2",10) == 0){
+                    YieldWrtMass_CentralPtBinned[p][ptbin]->Divide(hPtWrtMassInvSlicedRebinned[1][ptbin]);
+                     }
+                     
+                }
+                
+                for(int p=0; p<NbinsDeltaPhi; p++){
+                    for(int k = 0; k<NbinsInvMass;k++){
+                        DimuCntMass[k] = 0;
+                    }
+    //                for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){ //BigClasses
+                        YieldWrtMass_tampon->Reset();
+                        YieldWrtMass_tampon->Add(Yields_PhiBinPtBinned[1][p][ptbin]);
+                    YieldWrtMass_PeriphPtBinned[p][ptbin]->Reset();
+                        YieldWrtMass_PeriphPtBinned[p][ptbin]->Add(YieldWrtMass_tampon);
+                        for(int k = 0; k<NbinsInvMass;k++){
+                            DimuCntMass[k] += DimuonCounterZintPtBinnedBigClasses[1][k][ptbin];
+                        }
+      //              }
+    //                for(int k = 0; k<NbinsInvMass;k++){
+    //                    YieldWrtMass_PeriphPtBinned[p][ptbin]->SetBinContent(k+1, YieldWrtMass_PeriphPtBinned[p][ptbin]->GetBinContent(k+1)/DimuCntMass[k]);
+    //                    YieldWrtMass_PeriphPtBinned[p][ptbin]->SetBinError(k+1, YieldWrtMass_PeriphPtBinned[p][ptbin]->GetBinError(k+1)/DimuCntMass[k]);
+    //                }
+                    if(strncmp (SummationText,"Method2",10) == 0){
+                    YieldWrtMass_PeriphPtBinned[p][ptbin]->Divide(hPtWrtMassInvSlicedRebinned[2][ptbin]);
+                    }
+                    
+                }
+            }
+            
+        }
+            
+        
+        
+        
+        
+        if(doTracklets){
+            
+            cout << "Calculation of number of tracklets seen integrated on z [Cent]" <<endl;
+            for(int i=0; i<NbBinsCent; i++){
+                for(int j=0; j<NbBinsZvtx; j++){
+                    RefTklCounterZint[i] += RefTklCounter[i][j];
+                }
+            }
+            
+            TCanvas*ctesteTkl = new TCanvas();
+            ctesteTkl->SetTitle("SE Projected, ME projected and division Tkl-Tkl");
+            ctesteTkl->Divide(1,3);
+                
+                TCanvas*ctestesumTkl = new TCanvas();
+                ctestesumTkl->SetTitle("Sommation des yields selon z Tkl-Tkl");
+                ctestesumTkl->Divide(5,2);
+                
+                TCanvas*ctestefinTkl = new TCanvas();
+                ctestefinTkl->SetTitle("Yield[0] final sommé selon z Tkl-Tkl");
+                
+                TCanvas*ctesteprojTkl = new TCanvas();
+                ctesteprojTkl->SetTitle("Projction SE et ME Tkl-Tkl");
+                ctesteprojTkl->Divide(2,2);
+            
+            ctesteprojTkl->cd(1);
+            CorrelationsTkl[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+            ctesteprojTkl->cd(2);
+            CorrelationsTklME[preciseCentFocus][preciseZbinFocus]->DrawCopy("colz");
+            
+            cout << "Calculation of YieldsTkl[Cent]" <<endl;
+            for(int i=0; i<NbBinsCent; i++){
+                          SoverMi->Reset();
+                          for(int j=0; j<NbBinsZvtx; j++){
+                              SoverMij->Reset();
+                              ProjCopyTkl->Reset();
+                              ProjCopy2Tkl->Reset();
+                              if(doMixedEvents){
+                                  ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaled[i][j]->ProjectionX("ME_proj_Tkl",1,NbinsDeltaEtaTKL,"e")); //Change underflow
+                              }
+                              SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTkl[i][j]->ProjectionX("SE_proj_Tkl",1,NbinsDeltaEtaTKL,"e")); //Change underflow
+                              
+                              ProjCopyTkl->Add(SE_proj_Tkl_tampon);
+                              //   ProjCopy->Sumw2();
+                              if(doMixedEvents){
+                                  ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
+                              }
+                              //   ProjCopy2->Sumw2();
+                              if(doMixedEvents){
+                                  SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
+                              }
+                              else if(!doMixedEvents){
+                                  SoverMij->Add(ProjCopyTkl);
+                              }
+                                 if(i ==preciseCentFocus && j==preciseZbinFocus){
+                                     ctesteprojTkl->cd(3);
+                                     ProjCopyTkl->DrawCopy();
+                                     ctesteprojTkl->cd(4);
+                                     ProjCopy2Tkl->DrawCopy();
+                                     ctesteTkl->cd(1);
+                                     ProjCopyTkl->DrawCopy();
+                                     cout << "Relative error on SE Tkl bin 4 is: " << ProjCopyTkl->GetBinError(4)/ProjCopyTkl->GetBinContent(4) << endl;
+                                      cout << "ProjCopyTkl->GetBinError(4): " << ProjCopyTkl->GetBinError(4) << endl;
+                                     cout << "ProjCopyTkl->GetBinContent(4): " << ProjCopyTkl->GetBinContent(4) << endl;
+                                     ctesteTkl->cd(2);
+                                     if(doMixedEvents){
+                                         ProjCopy2Tkl->DrawCopy();
+                                         cout << "Relative error on ME Tkl bin 4 is: " << ProjCopy2Tkl->GetBinError(4)/ProjCopy2Tkl->GetBinContent(4) << endl;
+                                         cout << "ProjCopy2Tkl->GetBinError(4): " << ProjCopy2Tkl->GetBinError(4) << endl;
+                                         cout << "ProjCopy2Tkl->GetBinContent(4): " << ProjCopy2Tkl->GetBinContent(4) << endl;
+                                     }
+                                     ctesteTkl->cd(3);
+                                     SoverMij->DrawCopy();
+                                     cout << "Relative error on SE/ME Tkl bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
+                                 }
+                                 if(i ==preciseCentFocus && j<5){
+                                     ctestesumTkl->cd(j+1);
+                                     SoverMij->DrawCopy();
+                                     cout << "Relative error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4)/SoverMij->GetBinContent(4) << endl;
+                                     cout << "Error on Mij Tkl " << j << ", bin 4 is: " << SoverMij->GetBinError(4) << endl;
+                                 }
+                                SoverMi->Add(SoverMij);
+                                 if(i ==preciseCentFocus && j<5){
+                                     ctestesumTkl->cd(5+j+1);
+                                     SoverMi->DrawCopy();
+                                     cout << "Relative error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4)/SoverMi->GetBinContent(4) << endl;
+                                     cout << "Error on Mi Tkl " << j << ", bin 4 is: " << SoverMi->GetBinError(4) << endl;
+                                 }
+                            
+                              RefTracklets+=RefTklCounter[i][j];
+                          }
+                          YieldsTkl[i]->Add(SoverMi);
+                          if(RefTklCounterZint[i] >0){
+                            //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR ESSAYER SANS FIXME
+                              for(int binx=1; binx<(1+YieldsTkl[i]->GetNbinsX()); binx++){
+
+                                        double oldContent = YieldsTkl[i]->GetBinContent(binx);
+                                        double oldError = YieldsTkl[i]->GetBinError(binx);
+                                        YieldsTkl[i]->SetBinContent(binx, (YieldsTkl[i]->GetBinContent(binx))/RefTklCounterZint[i]);
+                                        double newContent = YieldsTkl[i]->GetBinContent(binx);
+                                        YieldsTkl[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
+
+                                }
+                          }
+                  
+                if(i==preciseCentFocus){
+                    ctestefinTkl->cd();
+                    YieldsTkl[i]->DrawCopy("colz");
+                }
+                
+                TFile *f = new TFile(FitFileName,"UPDATE");
+                YieldsTkl[i]->Write();
+                f->Close();
+                
+    //            ofstream myassociatetxt;
+    //            myassociatetxt.open(AssociateFileName);
+    //            myassociatetxt<< "RefTklCounterZint[" << i << "] = " << RefTklCounterZint[i] <<endl;
+    //            myassociatetxt.close();
+                
+              }
+            
+            sprintf(CanvasName,"%s/TKL SE ME Division.pdf",FolderName);
+            ctesteTkl->SaveAs(CanvasName);
+            sprintf(CanvasName,"%s/Z_SummationCheckTKL.pdf",FolderName);
+            ctestesumTkl->SaveAs(CanvasName);
+            sprintf(CanvasName,"%s/YieldTkl[0].pdf",FolderName);
+            ctestefinTkl->SaveAs(CanvasName);
+            printf(CanvasName,"%s/TKL SE ME.pdf",FolderName);
+            ctesteprojTkl->SaveAs(CanvasName);
+            
+            cout << "Calculation of YieldsTkl for allC, central, periph" <<endl;
+            for(int i=0; i<NbBinsCent; i++){
+                    YieldTkl_tampon->Reset();
+                    YieldTkl_tampon->Add(YieldsTkl[i]);
+                    YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                    YieldTkl_allC->Add(YieldTkl_tampon);
+            }
+            YieldTkl_allC->Scale(1./RefTracklets);
+            
+            int RefTklCnt=0;
+            for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                YieldTkl_tampon->Reset();
+                YieldTkl_tampon->Add(YieldsTkl[i]);
+                YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                YieldTkl_Central->Add(YieldTkl_tampon);
+                RefTklCnt += RefTklCounterZint[i];
+            }
+             YieldTkl_Central->Scale(1./RefTklCnt);
+            RefTklCnt=0;
+            for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                cout << "i= " << i <<endl;
+                YieldTkl_tampon->Reset();
+                YieldTkl_tampon->Add(YieldsTkl[i]);
+                cout << "Taken YieldsTkl[i]" <<endl;
+                YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                cout << "Scaled by RefTklCounterZint[i]: " << RefTklCounterZint[i] <<endl;
+                YieldTkl_Periph->Add(YieldTkl_tampon);
+                RefTklCnt += RefTklCounterZint[i];
+                cout << "Now RefTklCnt is : " << RefTklCnt <<endl;
+            }
+            YieldTkl_Periph->Scale(1./RefTklCnt);
+            YieldTkl_Difference->Add(YieldTkl_Central,YieldTkl_Periph,1,-1);
+            
+        }
+        
+        if(doTracklets && isCMSMethod){
+
+
+               cout << "Calculation of YieldsTklShortCMS[Cent]" <<endl;
+               for(int i=0; i<NbBinsCent; i++){
+                             SoverMi->Reset();
+                             for(int j=0; j<NbBinsZvtx; j++){
+                                 SoverMij->Reset();
+                                 ProjCopyTkl->Reset();
+                                 ProjCopy2Tkl->Reset();
+                                 if(doMixedEvents){
+                                     ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaledShortCMS[i][j]->ProjectionX("ME_proj_Tkl",1,NbinsDeltaEtaTKL,"e")); //Change underflow
+                                 }
+                                 SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTklShortCMS[i][j]->ProjectionX("SE_proj_Tkl",1,NbinsDeltaEtaTKL,"e")); //Change underflow
+
+                                 ProjCopyTkl->Add(SE_proj_Tkl_tampon);
+                                 //   ProjCopy->Sumw2();
+                                 if(doMixedEvents){
+                                     ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
+                                 }
+                                 //   ProjCopy2->Sumw2();
+                                 if(doMixedEvents){
+                                     SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
+                                 }
+                                 else if(!doMixedEvents){
+                                     SoverMij->Add(ProjCopyTkl);
+                                 }
+
+
+                                   SoverMi->Add(SoverMij);
+
+                             }
+                             YieldsTklShortCMS[i]->Add(SoverMi);
+                             if(RefTklCounterZint[i] >0){
+                               //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                                 for(int binx=1; binx<(1+YieldsTklShortCMS[i]->GetNbinsX()); binx++){
+
+                                           double oldContent = YieldsTklShortCMS[i]->GetBinContent(binx);
+                                           double oldError = YieldsTklShortCMS[i]->GetBinError(binx);
+                                           YieldsTklShortCMS[i]->SetBinContent(binx, (YieldsTklShortCMS[i]->GetBinContent(binx))/RefTklCounterZint[i]);
+                                           double newContent = YieldsTklShortCMS[i]->GetBinContent(binx);
+                                           YieldsTklShortCMS[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
+    //FIXME SAME TRYING
+                                   }
+                             }
+
+
+                 }
+
+
+               cout << "Calculation of YieldsTklShortCMS for allC, central, periph" <<endl;
+               for(int i=0; i<NbBinsCent; i++){
+                       YieldTkl_tampon->Reset();
+                       YieldTkl_tampon->Add(YieldsTklShortCMS[i]);
+                       YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                       YieldTkl_allCShortCMS->Add(YieldTkl_tampon);
+               }
+               YieldTkl_allCShortCMS->Scale(1./RefTracklets);
+
+               int RefTklCnt=0;
+               for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                   YieldTkl_tampon->Reset();
+                   YieldTkl_tampon->Add(YieldsTklShortCMS[i]);
+                   YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                   YieldTkl_CentralShortCMS->Add(YieldTkl_tampon);
+                   RefTklCnt += RefTklCounterZint[i];
+               }
+                YieldTkl_CentralShortCMS->Scale(1./RefTklCnt);
+               RefTklCnt=0;
+               for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                   YieldTkl_tampon->Reset();
+                   YieldTkl_tampon->Add(YieldsTklShortCMS[i]);
+                   YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                   YieldTkl_PeriphShortCMS->Add(YieldTkl_tampon);
+                   RefTklCnt += RefTklCounterZint[i];
+               }
+               YieldTkl_PeriphShortCMS->Scale(1./RefTklCnt);
+               YieldTkl_DifferenceShortCMS->Add(YieldTkl_CentralShortCMS,YieldTkl_PeriphShortCMS,1,-1);
+
+           }
+        
+        if(doTracklets && isCMSMethod){
+
+
+            cout << "Calculation of YieldsTklLongCMS[Cent]" <<endl;
+            for(int i=0; i<NbBinsCent; i++){
+                          SoverMi->Reset();
+                          for(int j=0; j<NbBinsZvtx; j++){
+                              SoverMij->Reset();
+                              ProjCopyTkl->Reset();
+                              ProjCopy2Tkl->Reset();
+                              if(doMixedEvents){
+                                  ME_proj_Tkl_tampon = (TH1F*)(CorrelationsTklMEScaledLongCMS[i][j]->ProjectionX("ME_proj_Tkl",1,NbinsDeltaEtaTKL,"e")); //Change underflow
+                              }
+                              SE_proj_Tkl_tampon = (TH1I*)(CorrelationsTklLongCMS[i][j]->ProjectionX("SE_proj_Tkl",1,NbinsDeltaEtaTKL,"e")); //Change underflow
+
+                              ProjCopyTkl->Add(SE_proj_Tkl_tampon);
+                              //   ProjCopy->Sumw2();
+                              if(doMixedEvents){
+                                  ProjCopy2Tkl->Add(ME_proj_Tkl_tampon);
+                              }
+                              //   ProjCopy2->Sumw2();
+                              if(doMixedEvents){
+                                  SoverMij->Divide(ProjCopyTkl,ProjCopy2Tkl);
+                              }
+                              else if(!doMixedEvents){
+                                  SoverMij->Add(ProjCopyTkl);
+                              }
+
+
+                                SoverMi->Add(SoverMij);
+
+                          }
+                          YieldsTklLongCMS[i]->Add(SoverMi);
+                          if(RefTklCounterZint[i] >0){
+                            //  YieldsTkl[i]->Scale(1./RefTklCounterZint[i]); // ATTACHER ERREUR
+                              for(int binx=1; binx<(1+YieldsTklLongCMS[i]->GetNbinsX()); binx++){
+
+                                        double oldContent = YieldsTklLongCMS[i]->GetBinContent(binx);
+                                        double oldError = YieldsTklLongCMS[i]->GetBinError(binx);
+                                        YieldsTklLongCMS[i]->SetBinContent(binx, (YieldsTklLongCMS[i]->GetBinContent(binx))/RefTklCounterZint[i]);
+                                        double newContent = YieldsTklLongCMS[i]->GetBinContent(binx);
+                                        YieldsTklLongCMS[i]->SetBinError(binx, newContent*sqrt(pow(oldError/oldContent,2)+(1./RefTklCounterZint[i])));
+
+                                }
+                          }
+
+
+              }
+
+
+            cout << "Calculation of YieldsTklLongCMS for allC, central, periph" <<endl;
+            for(int i=0; i<NbBinsCent; i++){
+                    YieldTkl_tampon->Reset();
+                    YieldTkl_tampon->Add(YieldsTklLongCMS[i]);
+                    YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                    YieldTkl_allCLongCMS->Add(YieldTkl_tampon);
+            }
+            YieldTkl_allCLongCMS->Scale(1./RefTracklets);
+
+            int RefTklCnt=0;
+            for(int i=CentralLowBound; i<CentralHighBound+1; i++){ //CentPeriph
+                YieldTkl_tampon->Reset();
+                YieldTkl_tampon->Add(YieldsTklLongCMS[i]);
+                YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                YieldTkl_CentralLongCMS->Add(YieldTkl_tampon);
+                RefTklCnt += RefTklCounterZint[i];
+            }
+             YieldTkl_CentralLongCMS->Scale(1./RefTklCnt);
+            RefTklCnt=0;
+            for(int i=PeripheralLowBound; i<PeripheralHighBound+1; i++){
+                YieldTkl_tampon->Reset();
+                YieldTkl_tampon->Add(YieldsTklLongCMS[i]);
+                YieldTkl_tampon->Scale(RefTklCounterZint[i]);
+                YieldTkl_PeriphLongCMS->Add(YieldTkl_tampon);
+                RefTklCnt += RefTklCounterZint[i];
+            }
+            YieldTkl_PeriphLongCMS->Scale(1./RefTklCnt);
+            YieldTkl_DifferenceLongCMS->Add(YieldTkl_CentralLongCMS,YieldTkl_PeriphLongCMS,1,-1);
+
+        }
+        
+        std::cout << "==================== Analysis Terminated - PLOTTING TIME ====================" << std::endl;
+        //}
+        
+        
+    // ***********************************
+    // Tracer les graphes sur les canevas *
+    // ***********************************
+
+
+        TCanvas*c1=new TCanvas();
+        //Canvas avec plein de petits plots généraux
+        c1->SetTitle("General Plots");
+        c1->Divide(4,2);
+        c1->cd(1);
+        hnseg->SetFillColor(18);
+        hnseg->Draw();
+        c1->cd(2);
+        hnseg2->SetFillColor(18);
+        hnseg2->Draw();
+        c1->cd(3);
+        hnseg3->SetFillColor(18);
+        hnseg3->Draw();
+        c1->cd(4);
+        hnseg4->SetFillColor(18);
+        hnseg4->Draw();
+        c1->cd(5);
+        hnseg5->SetFillColor(18);
+        hnseg5->Draw();
+        c1->cd(6);
+        hnseg6->SetFillColor(18);
+        hnseg6->Draw();
+        c1->cd(7);
+        hnseg7->SetFillColor(18);
+        hnseg7->Draw();
+        c1->cd(8);
+        hnseg8->Draw("colz");
+        sprintf(CanvasName,"%s/GeneralPlots.pdf",FolderName);
+        c1->SaveAs(CanvasName);
+        
+        TCanvas*cJav=new TCanvas();
+        hsingletrac->Draw("colz");
+        sprintf(CanvasName,"%s/TklEtaPhi.pdf",FolderName);
+        cJav->SaveAs(CanvasName);
+        
+        TCanvas*cDPhi=new TCanvas();
+        cDPhi->SetTitle("DPhi distribution");
+        //Plot DPhi distribution
+        hDPhi->SetFillColor(18);
+        hDPhi->Draw();
+        sprintf(CanvasName,"%s/DPhiDist.pdf",FolderName);
+        cDPhi->SaveAs(CanvasName);
+
+        TF1 *fEtaLow = new TF1("fEtaLow","myEtaLow(x)",-10,10);
+        TF1 *fEtaHigh = new TF1("fEtaHigh","myEtaHigh(x)",-10,10);
+        
+        TCanvas*c2=new TCanvas();
+        c2->SetTitle("TklEtaWrtZvtx");
+        //Plot TrkEtaWrtZvtx
+        hnseg9->Draw("colz");
+        fEtaLow->Draw("same");
+        fEtaHigh->Draw("same");
+        sprintf(CanvasName,"%s/TklEtaZvtx.pdf",FolderName);
+        c2->SaveAs(CanvasName);
+        
+        TCanvas*c3=new TCanvas();
+        c3->SetTitle("Ntrk wrt V0M");
+        //Plut Ntrk wrt V0M
+        hnseg10->Draw("colz");
+        
+        TCanvas* c8zoom = new TCanvas;
+        c8zoom->SetTitle("Yields in Mass Bins CtrlPeriphDiff zoom");
+        //Correlation yield DeltaEta wrt DeltaPhi TH2 -> Central, Periph, Difference [MassBins]
+        c8zoom->Divide(3,3);
+        for(int i=1; i<=3; i++){
+            c8zoom->cd(i);
+            Yield_Central_MassBin[i+1]->Draw("E");
+            c8zoom->cd(3+i);
+            Yield_Periph_MassBin[i+1]->Draw("E");
+            c8zoom->cd(2*3+i);
+            Yield_Difference_MassBin[i+1]->Draw("E");
+        }
+        
+        TFile *FitFile;
+        FitFile = new TFile(FitFileName,"RECREATE");
+        
+        TCanvas* c8 = new TCanvas;
+        // ROOT THAT Yield in bins of mass
+        c8->SetTitle("Yields in Mass Bins CtrlPeriphDiff");
+        //Correlation yield DeltaEta wrt DeltaPhi TH2 -> Central, Periph, Difference [MassBins]
+        c8->Divide(NbinsInvMass,3);
+        for(int i=1; i<=NbinsInvMass; i++){
+            c8->cd(i);
+            Yield_Central_MassBin[i-1]->Draw("E");
+            Yield_Central_MassBin[i-1]->Write();
+            c8->cd(NbinsInvMass+i);
+            Yield_Periph_MassBin[i-1]->Draw("E");
+            Yield_Periph_MassBin[i-1]->Write();
+            c8->cd(2*NbinsInvMass+i);
+            Yield_Difference_MassBin[i-1]->Draw("E");
+            Yield_Difference_MassBin[i-1]->Write();
+        }
+        
+        baselines0->Reset();
+        for(int i=1; i<NbinsInvMass+1; i++){
+            baselines0->SetBinContent(i, (Yield_Periph_MassBin[i-1]->GetBinContent(BinZeroLeft)));//Pichange +Yield_Periph_MassBin[i-1]->GetBinContent(BinZeroLeft+1))/2);
+            baselines0->SetBinError(i, sqrt(pow(Yield_Periph_MassBin[i-1]->GetBinError(BinZeroLeft),2)/2+pow(Yield_Periph_MassBin[i-1]->GetBinError(BinZeroLeft),2)/2));
+        }
+        
+        if(PtBinned){
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                baselines0PtBinned[ptbin]->Reset();
+                for(int i=1; i<NbinsInvMass+1; i++){
+                    baselines0PtBinned[ptbin]->SetBinContent(i, (Yield_Periph_MassBinPtBinned[i-1][ptbin]->GetBinContent(BinZeroLeft)+Yield_Periph_MassBinPtBinned[i-1][ptbin]->GetBinContent(BinZeroLeft))/2);
+                    baselines0PtBinned[ptbin]->SetBinError(i, sqrt(pow(Yield_Periph_MassBinPtBinned[i-1][ptbin]->GetBinError(BinZeroLeft),2)/2+pow(Yield_Periph_MassBinPtBinned[i-1][ptbin]->GetBinError(BinZeroLeft),2)/2));
+                }
+            }
+            
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                for(int i=1; i<=NbinsInvMass; i++){
+                    Yield_Central_MassBinPtBinned[i-1][ptbin]->Write();
+                    Yield_Periph_MassBinPtBinned[i-1][ptbin]->Write();
+                    Yield_Difference_MassBinPtBinned[i-1][ptbin]->Write();
+
+                }
+            }
+            
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                for(int i=0; i<NbinsDeltaPhi; i++){
+                    YieldWrtMass_CentralPtBinned[i][ptbin]->Write();
+                    YieldWrtMass_PeriphPtBinned[i][ptbin]->Write();
+
+                }
+            }
+        }
+        
+        TCanvas* c10 = new TCanvas;
+        // ROOT THAT yields phi bins
+        c10->SetTitle("Yields wrt mass Central Periph");
+        // Yields wrt mass -> Periph, Central [Phi bins]
+        c10->Divide(NbinsDeltaPhi/2,4);
+        for(int i=1; i<NbinsDeltaPhi+1; i++){
+            c10->cd(i);
+            YieldWrtMass_Central[i-1]->Draw("E");
+            YieldWrtMass_Central[i-1]->Write();
+            c10->cd(NbinsDeltaPhi+i);
+            YieldWrtMass_Periph[i-1]->Draw("E");
+            YieldWrtMass_Periph[i-1]->Write();
+        }
+        
+        FitFile->Close();
+        
+        TCanvas*c12=new TCanvas();
+        c12->SetTitle("Centrality Estimators");
+        // Estimators
+        c12->Divide(3,2);
+        c12->cd(1);
+        CentV0M->SetFillColor(18);
+        CentV0M->Draw();
+        c12->cd(2);
+        CentTKL->SetFillColor(18);
+        CentTKL->Draw();
+        c12->cd(3);
+        CentCL0->SetFillColor(18);
+        CentCL0->Draw();
+        c12->cd(4);
+        CentCL1->SetFillColor(18);
+        CentCL1->Draw();
+        c12->cd(5);
+        CentSPDTracklets->SetFillColor(18);
+        CentSPDTracklets->Draw();
+        c12->cd(6);
+        CentSPDClusters->SetFillColor(18);
+        CentSPDClusters->Draw();
+        
+        TCanvas*c13=new TCanvas();
+        c13->SetTitle("Estimators wrt tkl");
+        //Estimators
+        c13->Divide(3,2);
+        c13->cd(1);
+        CentV0Mwrttkl->SetFillColor(18);
+        CentV0Mwrttkl->Draw();
+        c13->cd(2);
+        CentTKLwrttkl->SetFillColor(18);
+        CentTKLwrttkl->Draw();
+        c13->cd(3);
+        CentCL0wrttkl->SetFillColor(18);
+        CentCL0wrttkl->Draw();
+        c13->cd(4);
+        CentCL1wrttkl->SetFillColor(18);
+        CentCL1wrttkl->Draw();
+        c13->cd(5);
+        CentSPDTrackletswrttkl->SetFillColor(18);
+        CentSPDTrackletswrttkl->Draw();
+        c13->cd(6);
+        CentSPDClusterswrttkl->SetFillColor(18);
+        CentSPDClusterswrttkl->Draw();
+        
+        
+        TCanvas*c14=new TCanvas();
+        c14->SetTitle("Yield wrt Phi difference fits");
+        //Yield difference wrt Phi [Mass bins] fits
+        c14->Divide(5,2);
+        coefficients0->Reset();
+        coefficients1->Reset();
+        coefficients2->Reset();
+        for(int i=1; i<=NbinsInvMass; i++){
+            cout << "Fit of the difference to extract Fourier wrt mass pt integrated. Mass bin: " << i <<endl;
+            c14->cd(i);
+        // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+            TH1F *histo = Yield_Difference_MassBin[i-1];
+          // create a TF1 with the range from 0 to 3 and 6 parameters
+          TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,0,1.0*TMath::Pi(),3); //Pichange
+          fitFcnV2_2->SetNpx(500);
+          fitFcnV2_2->SetLineWidth(4);
+          fitFcnV2_2->SetLineColor(kMagenta);
+          // first try without starting values for the parameters
+          // This defaults to 1 for each param.
+          // this results in an ok fit for the polynomial function
+          // however the non-linear part (lorenzian) does not
+          // respond well.
+           Double_t params[3] = {1,1,1};
+          fitFcnV2_2->SetParameters(params);
+           TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+           TVirtualFitter::Fitter(histo)->SetPrecision();
+        //  histo->Fit("fitFcn","0");
+          // second try: set start values for some parameters
+           
+           fitFcnV2_2->SetParName(0,"a0");
+           fitFcnV2_2->SetParName(1,"a1");
+           fitFcnV2_2->SetParName(2,"a2");
+           
+          TFitResultPtr res = histo->Fit("fitFcnV2_2","SBMERI+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            if(!doTracklets){
+            TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+            st->SetX1NDC(0.75); //new x start position
+            st->SetY1NDC(0.75); //new x end position
+            }
+          // improve the pictu
+        //   std::cout << "integral error: " << integralerror << std::endl;
+            Double_t par[3];
+            fitFcnV2_2->GetParameters(par);
+            coefficients0->SetBinContent(i, par[0]);
+            coefficients1->SetBinContent(i, par[1]);
+            coefficients2->SetBinContent(i, par[2]);
+            coefficients0->SetBinError(i,fitFcnV2_2->GetParError(0));
+            coefficients1->SetBinError(i,fitFcnV2_2->GetParError(1));
+            coefficients2->SetBinError(i,fitFcnV2_2->GetParError(2));
+          fitFcnV2_2->Draw("same");
+            cout << "STATUS COV : " << res->CovMatrixStatus() <<endl;
+          // draw the legend
+          TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+          legend->SetFillColorAlpha(kWhite, 0.);
+          legend->SetBorderSize(0);
+            legend->SetTextFont(42);
+          legend->SetTextSize(0.03);
+            Char_t message[80];
+            sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+            legend->AddEntry(fitFcnV2_2,message);
+            if(res->CovMatrixStatus() == 3){
+              //  sprintf(message,"The fit is a success");
+            }
+            else{
+                sprintf(message,"The fit is a failure");
+                legend->AddEntry(fitFcnV2_2,message);
+            }
+          legend->AddEntry(histo,"Data","lpe");
+          legend->Draw();
+        //FIXME Ajouter d'autres méthodes ok
+        }
+        
+        if(PtBinned){
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                coefficients0PtBinned[ptbin]->Reset();
+                coefficients1PtBinned[ptbin]->Reset();
+                coefficients2PtBinned[ptbin]->Reset();
+                for(int i=1; i<=NbinsInvMass; i++){
+                    
+                    cout << "Fit of the difference to extract Fourier wrt mass. Mass bin: " << i <<" Pt bin: "<<ptbin <<endl;
+                // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                    TH1F *histo = Yield_Difference_MassBinPtBinned[i-1][ptbin];
+                  // create a TF1 with the range from 0 to 3 and 6 parameters
+                  TF1 *fitFcnV2_2PtBinned = new TF1("fitFcnV2_2PtBinned",FourierV2,0,1.0*TMath::Pi(),3);//Pichange
+                  fitFcnV2_2PtBinned->SetNpx(500);
+                  fitFcnV2_2PtBinned->SetLineWidth(4);
+                  fitFcnV2_2PtBinned->SetLineColor(kMagenta);
+                  // first try without starting values for the parameters
+                  // This defaults to 1 for each param.
+                  // this results in an ok fit for the polynomial function
+                  // however the non-linear part (lorenzian) does not
+                  // respond well.
+                   Double_t params[3] = {1,1,1};
+                  fitFcnV2_2PtBinned->SetParameters(params);
+                   TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+                   TVirtualFitter::Fitter(histo)->SetPrecision();
+                //  histo->Fit("fitFcn","0");
+                  // second try: set start values for some parameters
+                   
+                   fitFcnV2_2PtBinned->SetParName(0,"a0");
+                   fitFcnV2_2PtBinned->SetParName(1,"a1");
+                   fitFcnV2_2PtBinned->SetParName(2,"a2");
+                   
+                  TFitResultPtr res = histo->Fit("fitFcnV2_2PtBinned","SBMERI+","ep");
+                    gStyle->SetOptStat("n");
+                    gStyle->SetOptFit(1011);
+                    if(!doTracklets){
+                    TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+                    st->SetX1NDC(0.8); //new x start position
+                    st->SetY1NDC(0.8); //new x end position
+                    }
+                  // improve the pictu
+                //   std::cout << "integral error: " << integralerror << std::endl;
+                    Double_t par[3];
+                    fitFcnV2_2PtBinned->GetParameters(par);
+                    coefficients0PtBinned[ptbin]->SetBinContent(i, par[0]);
+                    coefficients1PtBinned[ptbin]->SetBinContent(i, par[1]);
+                    coefficients2PtBinned[ptbin]->SetBinContent(i, par[2]);
+                    coefficients0PtBinned[ptbin]->SetBinError(i,fitFcnV2_2PtBinned->GetParError(0));
+                    coefficients1PtBinned[ptbin]->SetBinError(i,fitFcnV2_2PtBinned->GetParError(1));
+                    coefficients2PtBinned[ptbin]->SetBinError(i,fitFcnV2_2PtBinned->GetParError(2));
+                //  fitFcnV2_2->Draw("same");
+                    cout << "STATUS COV : " << res->CovMatrixStatus() <<endl;
+                  // draw the legend
+    //              TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+    //              legend->SetTextFont(61);
+    //              legend->SetTextSize(0.03);
+    //                Char_t message[80];
+    //                sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+    //                legend->AddEntry(fitFcnV2_2,message);
+    //                if(res->CovMatrixStatus() == 3){
+    //                    sprintf(message,"The fit is a success");
+    //                }
+    //                else{
+    //                    sprintf(message,"The fit is a failure");
+    //                }
+    //                legend->AddEntry(fitFcnV2_2,message);
+    //              legend->AddEntry(histo,"Data","lpe");
+    //              legend->Draw();
+                //FIXME Ajouter d'autres méthodes ok
+                }
+            }
+        }
+        
+        
+        TFile *f = new TFile(FitFileName,"UPDATE");
+        
+        TCanvas*c15=new TCanvas();
+        // ROOT THAT Fouriers
+        c15->SetTitle("Fourier coefs of yields wrt Phi");
+        // Fourier coefficients of Yields wrt Phi [Mass bins] -> Extraction method 2
+        c15->Divide(2,2);
+        c15->cd(1);
+        coefficients0->Draw();
+        coefficients0->Write();
+        c15->cd(2);
+        baselines0->Draw();
+        baselines0->Write();
+        c15->cd(3);
+        coefficients1->Draw();
+        coefficients1->Write();
+        c15->cd(4);
+        coefficients2->Draw();
+        coefficients2->Write();
+        
+        sprintf(CanvasName,"%s/Fouriers.pdf",FolderName);
+        c15->SaveAs(CanvasName);
+                
+
+        // Plot du V2 JPsi Tracklet
+        TCanvas*c16=new TCanvas();
+        // ROOT THAT Extraction 2 plot
+        c16->SetTitle("Extraction method 2");
+        //V2_2 Jpsi-tkl wrt Mass fit (Extraction method 2)
+        c2b0->Reset();
+        c2b0->Add(coefficients0, baselines0);
+        V2JPsiTkl->Reset();
+        V2JPsiTkl->Divide(coefficients2, c2b0);
+        
+        V2JPsiTkl->Draw();
+        V2JPsiTkl->Write();
+        
+        hnseg->Write();
+        InvMass_Central->Write();
+        InvMass_Periph->Write();
+        InvMass_Neither->Write();
+        
+        for(int j=0;j<3;j++){
+            for (int i=0;i<NbPtBins;i++){
+                hPtWrtMassInvSliced[j][i]->Write();
+            }
+        }
+        
+        // Plot du V2 JPsi Tracklet PtBinned
+        TCanvas*c16PtBinned=new TCanvas();
+        // ROOT THAT Extraction 2 plot
+        c16PtBinned->SetTitle("Extraction method 2 PtBinned");
+        c16PtBinned->Divide(2,3);
+        //V2_2 Jpsi-tkl wrt Mass fit (Extraction method 2)
+        for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+            c16PtBinned->cd(ptbin+1);
+            c2b0PtBinned[ptbin]->Reset();
+            c2b0PtBinned[ptbin]->Add(coefficients0PtBinned[ptbin], baselines0PtBinned[ptbin]);
+            V2JPsiTklPtBinned[ptbin]->Reset();
+            V2JPsiTklPtBinned[ptbin]->Divide(coefficients2PtBinned[ptbin], c2b0PtBinned[ptbin]);
+            
+    //        if(ptbin==2){
+    //            //Set valeurs Cvetan
+    //          //  V2JPsiTklPtBinned[ptbin]->SetBinContent(2,0.00277);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(2,0.000997);
+    //           // V2JPsiTklPtBinned[ptbin]->SetBinContent(3,0.00144);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(3,0.0011);
+    //           // V2JPsiTklPtBinned[ptbin]->SetBinContent(4,0.00183);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(4,0.00127);
+    //            //V2JPsiTklPtBinned[ptbin]->SetBinContent(5,0.00312);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(5,0.00138);
+    //            //V2JPsiTklPtBinned[ptbin]->SetBinContent(6,0.00373);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(6,0.000957);
+    //            //V2JPsiTklPtBinned[ptbin]->SetBinContent(7,0.000234);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(7,0.00196);
+    //            //V2JPsiTklPtBinned[ptbin]->SetBinContent(8,0.00156);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(8,0.00247);
+    //            //V2JPsiTklPtBinned[ptbin]->SetBinContent(9,-0.000989);
+    //            V2JPsiTklPtBinned[ptbin]->SetBinError(9,0.00293);
+    //        }
+            
+            V2JPsiTklPtBinned[ptbin]->Draw();
+        }
+
+        
+        for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+            coefficients0PtBinned[ptbin]->Write();
+            coefficients1PtBinned[ptbin]->Write();
+            coefficients2PtBinned[ptbin]->Write();
+            baselines0PtBinned[ptbin]->Write();
+            V2JPsiTklPtBinned[ptbin]->Write();
+        }
+        
+        f->Close();
+
+          //Define the location and name of the .root file storing the plots
+         Char_t InvMassName[500];
+          sprintf(InvMassName,"/Volumes/SEBUSB/InvMass_%s.root",RadicalInfo);
+        
+        TFile *outputFile;
+         outputFile = new TFile(InvMassName,"RECREATE");
+         hnseg->Write();
+        InvMass_Central->Write();
+        InvMass_Periph->Write();
+        InvMass_Neither->Write();
+        for(int j=0;j<3;j++){
+            for (int i=0;i<NbPtBins;i++){
+                hPtWrtMassInvSliced[j][i]->Write();
+            }
+        }
+        
+    //    for(int i=0; i<12; i++){
+    //        InvMass_PhiBin[i]->Write();
+    //    }
+         outputFile->Close();
+        
+        
+        
+    //    TCanvas *cinvmassphibin = new TCanvas("cinvmassphibin","Fitting PhiBins",10,10,700,500);
+    //    cinvmassphibin->Divide(4,3);
+        TCanvas *cinvmass = new TCanvas("cinvmass","Fitting All Phi - Different Centralities",10,10,700,500);
+        cinvmass->SetTitle("Inv Mass Fits");
+        // ROOT THAT Inv mass fits
+        cinvmass->Divide(1,4);
+        
+        TFitResultPtr res;
+        TFitResultPtr rescent;
+        TFitResultPtr resperiph;
+        TFitResult resu;
+        char histoname[50];
+        //Values OK for 20M evts
+    //    double startvalues[16] = {800, 3.096916, 0.07, 0.9, 10, 2, 15, 15,   10,     0.1,          50000,   0.01,        1,         1,   1,   1};
+    //    double lowvalues[16] =   {1,    3.05,    0.03, 0.7, 1,  1, 5,  0.01, 0.0001,  0.000000001,  10,    0.0000000001, 0.000001, -10, -10, -10};
+    //    double highvalues[16] = {100000, 3.15,   0.1,  1.1, 30, 5, 25, 50,   100000, 10,           100000, 10,     10,        10,  10,  10};
+        
+        double startvalues[16] = {1100, 3.096916, 0.07,  0.9, 10, 2, 15, 20,    90,      0.01,     80000,      1.4,      1,         1,   1,   1};
+        double lowvalues[16] =   {10,    3.05,     0.03, 0.7, 1,  1, 5,  0.001,  1,    0.00001,   1000,        0.0001, 0.00000001, -10, -10, -10};
+        double highvalues[16] = {100000, 3.15,     1,  1.1, 30, 5, 25, 10000, 1000000, 100,      10000000,  100,    10,        10,  10,  10};
+        
+    //    for(int index=0; index<16; index++){
+    //        if(index==0 || index==7 || index==8 || index==10){
+    //            startvalues[index]*=nevent1/20000000;
+    //            lowvalues[index]*=nevent1/20000000;
+    //            highvalues[index]*=nevent1/20000000;
+    //        }
+    //    }
+        //Values adapted to the number of events considered
+        sprintf(histoname,"hnseg");
+        res = FittingAllInvMassBin(histoname, cinvmass, 0);
+        double par[16];
+        
+        // Parameter setting (either from mass fit either start values)
+        for(int i=0; i <16; i++){
+                par[i] = res->Parameter(i);
+                if(i>11){
+                    par[i] = 1;
+                }
+        }
+        
+        //Definition and design of function on V2 plot
+        c16->cd();
+        TF1 *fitV2_2 = new TF1("fitV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
+        fitV2_2->SetNpx(500);
+        fitV2_2->SetLineWidth(4);
+        fitV2_2->SetLineColor(kMagenta);
+        fitV2_2->SetParameters(par);
+        TF1 *fitJustV2_2 = new TF1("fitJustV2_2",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,4);
+        fitJustV2_2->SetNpx(500);
+        fitJustV2_2->SetLineWidth(0);
+        fitJustV2_2->SetLineColor(kWhite);
+        TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
+        backFcnV2_2->SetLineColor(kRed);
+        TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+        signalFcnJPsiV2_2->SetLineColor(kBlue);
+        signalFcnJPsiV2_2->SetNpx(500);
+        
+           TVirtualFitter::Fitter(V2JPsiTkl)->SetMaxIterations(10000);
+           TVirtualFitter::Fitter(V2JPsiTkl)->SetPrecision();
+            for(int i=0; i<=11; i++){
+                fitV2_2->FixParameter(i,par[i]);
+            }
+           
+           fitV2_2->SetParName(0,"Norm_{J/#psi}");
+              fitV2_2->SetParName(1,"M_{J/#psi}");
+              fitV2_2->SetParName(2,"Sigma_{J/#psi}");
+              fitV2_2->SetParName(3,"a_{1}");
+              fitV2_2->SetParName(4,"n_{1}");
+              fitV2_2->SetParName(5,"a_{2}");
+              fitV2_2->SetParName(6,"n_{2}");
+              fitV2_2->SetParName(7,"Norm_{#Psi(2S)}");
+              fitV2_2->SetParName(8,"Norm_{TailLowM}");
+              fitV2_2->SetParName(9,"Exp_{TailLowM}");
+              fitV2_2->SetParName(10,"Norm_{TailHighM}");
+              fitV2_2->SetParName(11,"Exp_{TailHighM}");
+               fitV2_2->SetParName(12,"V2_2 J/#psi-tkl");
+               fitV2_2->SetParName(13,"V2_2 Bkg M2");
+           fitV2_2->SetParName(14,"V2_2 Bkg M1");
+           fitV2_2->SetParName(15,"V2_2 Bkg M0");
+        
+        //PSI2sTEST
+        //fitV2_2->FixParameter(7,0);
+        
+        fitJustV2_2->SetParName(0,"V2_2 J/#psi-tkl");
+            fitJustV2_2->SetParName(1,"V2_2 Bkg M2");
+        fitJustV2_2->SetParName(2,"V2_2 Bkg M1");
+        fitJustV2_2->SetParName(3,"V2_2 Bkg M0");
+        
+           double minParams[16];
+           double parErrors[16];
+        
+        //Fit of V2
+        cout << "Fit of V2 wrt mass"<<endl;
+            res = V2JPsiTkl->Fit("fitV2_2","SBMERI+","ep");
+        gStyle->SetOptFit(1011);
+               gStyle->SetOptStat("n");
+        if(!doTracklets){
+        TPaveStats *st = (TPaveStats*)V2JPsiTkl->FindObject("stats");
+               st->SetX1NDC(0.75); //new x start position
+               st->SetY1NDC(0.75); //new x end position
+        }
+            Double_t para[16];
+            fitV2_2->GetParameters(para);
+            backFcnV2_2->SetParameters(para);
+            signalFcnJPsiV2_2->SetParameters(para);
+        
+        
+        fitV2_2->Draw("same");
+      //  signalFcnJPsiV2_2->Draw("same");
+        backFcnV2_2->Draw("same");
+          // draw the legend
+          TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+          legend->SetFillColorAlpha(kWhite, 0.);
+          legend->SetBorderSize(0);
+            legend->SetTextFont(42);
+            legend->SetTextSize(0.03);
+        Char_t message[80];
+        sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitV2_2->GetChisquare(),fitV2_2->GetNDF());
+         legend->AddEntry(fitV2_2,message);
+
+            if(res->CovMatrixStatus() == 3){
+                       // sprintf(message,"The fit is a success");
+                 }
+                 else{
+                        sprintf(message,"The fit is a failure");
+                     legend->AddEntry(fitV2_2,message);
+                 }
+            // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+        legend->AddEntry(backFcnV2_2,"Background");
+          legend->AddEntry(V2JPsiTkl,"Data","lpe");
+          legend->Draw();
+        
+        
+        
+        sprintf(CanvasName,"%s/V2_Extraction2.pdf",FolderName);
+        c16->SaveAs(CanvasName);
+        
+        
+        //Ext 2 Pt Binned
+        
+         TCanvas *cinvmassPtBinned = new TCanvas("cinvmassPtBinned","Fitting All Phi - Different Centralities - Pt Binned",10,10,700,500);
+            cinvmassPtBinned->SetTitle("Inv Mass Fits - Pt Binned");
+            // ROOT THAT Inv mass fits
+            cinvmassPtBinned->Divide(NbPtBins,3);
+            
+        if(PtBinned){
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                
+                V2_Ext2[ptbin] = 0;
+                errV2_Ext2[ptbin] = 0;
+        
+            sprintf(histoname,Form("bin%d_0",ptbin+1)); // ZZZZZZZ
+            res = FittingAllInvMassBin(histoname, cinvmassPtBinned, ptbin);
+            double par[16];
+            
+            // Parameter setting (either from mass fit either start values)
+            for(int i=0; i <16; i++){
+                    par[i] = res->Parameter(i);
+                    if(i>11){
+                        par[i] = 1;
+                    }
+            }
+            
+            //Definition and design of function on V2 plot
+            c16PtBinned->cd(ptbin+1);
+            TF1 *fitV2_2PtBinned = new TF1("fitV2_2PtBinned",FourierV2_WrtInvMass,1.5,4.5,16);//Trying this
+            fitV2_2PtBinned->SetNpx(500);
+            fitV2_2PtBinned->SetLineWidth(4);
+            fitV2_2PtBinned->SetLineColor(kMagenta);
+            fitV2_2PtBinned->SetParameters(par);
+            TF1 *backFcnV2_2 = new TF1("backFcnV2_2",BackFcnV2Poly,2.1,5.1,16);
+            backFcnV2_2->SetLineColor(kRed);
+            TF1 *signalFcnJPsiV2_2 = new TF1("signalFcnJPsiV2_2",SignalFcnJPsiV2,2.1,5.1,16);
+            signalFcnJPsiV2_2->SetLineColor(kBlue);
+            signalFcnJPsiV2_2->SetNpx(500);
+            
+               TVirtualFitter::Fitter(V2JPsiTklPtBinned[ptbin])->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(V2JPsiTklPtBinned[ptbin])->SetPrecision();
+                for(int i=0; i<=11; i++){
+                    fitV2_2PtBinned->FixParameter(i,par[i]);
+                }
+               
+               fitV2_2PtBinned->SetParName(0,"Norm_{J/#psi}");
+                  fitV2_2PtBinned->SetParName(1,"M_{J/#psi}");
+                  fitV2_2PtBinned->SetParName(2,"Sigma_{J/#psi}");
+                  fitV2_2PtBinned->SetParName(3,"a_{1}");
+                  fitV2_2PtBinned->SetParName(4,"n_{1}");
+                  fitV2_2PtBinned->SetParName(5,"a_{2}");
+                  fitV2_2PtBinned->SetParName(6,"n_{2}");
+                  fitV2_2PtBinned->SetParName(7,"Norm_{#Psi(2S)}");
+                  fitV2_2PtBinned->SetParName(8,"Norm_{TailLowM}");
+                  fitV2_2PtBinned->SetParName(9,"Exp_{TailLowM}");
+                  fitV2_2PtBinned->SetParName(10,"Norm_{TailHighM}");
+                  fitV2_2PtBinned->SetParName(11,"Exp_{TailHighM}");
+                   fitV2_2PtBinned->SetParName(12,"V2_2 J/#psi");
+                   fitV2_2PtBinned->SetParName(13,"V2_2 Bkg M2");
+               fitV2_2PtBinned->SetParName(14,"V2_2 Bkg M1");
+               fitV2_2PtBinned->SetParName(15,"V2_2 Bkg M0");
+                
+                //PSI2STEST
+                //fitV2_2PtBinned->FixParameter(7,0);
+                
+            
+               double minParams[16];
+               double parErrors[16];
+            
+            //Fit of V2
+                cout << "Fit of V2 wrt mass ptbinned, ptbin: "<<ptbin<<endl;
+                res = V2JPsiTklPtBinned[ptbin]->Fit("fitV2_2PtBinned","SBMERI+","ep");//Trying this
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                if(!doTracklets){
+                TPaveStats *st = (TPaveStats*)V2JPsiTklPtBinned[ptbin]->FindObject("stats");
+                st->SetX1NDC(0.75); //new x start position
+                st->SetY1NDC(0.75); //new x end position
+                }
+                Double_t para[16];
+                fitV2_2PtBinned->GetParameters(para);
+                backFcnV2_2->SetParameters(para);
+                signalFcnJPsiV2_2->SetParameters(para);
+            
+            
+            fitV2_2PtBinned->Draw("same");
+          //  signalFcnJPsiV2_2->Draw("same");
+            backFcnV2_2->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
+              legend->SetTextSize(0.03);
+            Char_t message[80];
+            sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitV2_2PtBinned->GetChisquare(),fitV2_2PtBinned->GetNDF());
+              legend->AddEntry(fitV2_2PtBinned,message);
+
+                 if(res->CovMatrixStatus() == 3){
+                       // sprintf(message,"The fit is a success");
+                 }
+                 else{
+                        sprintf(message,"The fit is a failure");
+                     legend->AddEntry(fitV2_2PtBinned,message);
+                 }
+            // legend->AddEntry(signalFcnJPsiV2_2,"JPsi signal");
+            legend->AddEntry(backFcnV2_2,"Background");
+              legend->AddEntry(V2JPsiTklPtBinned[ptbin],"Data","lpe");
+              legend->Draw();
+                
+                V2_Ext2[ptbin] = para[12];
+                errV2_Ext2[ptbin] = fitV2_2PtBinned->GetParError(12);
+            }
+        }
+        
+        
+        
+        
+        sprintf(CanvasName,"%s/V2_Extraction2PtBinned.pdf",FolderName);
+        c16PtBinned->SaveAs(CanvasName);
+        
+        
+        
+        
+        
+        //Combining or not fit for Central-Periph method Ext1
+        
+        
+        int niterations = 1;
+        cinvmass->cd();
+        sprintf(histoname,"InvMass_Central");
+       res = FittingAllInvMassBin(histoname, cinvmass, 1); //ZZZZZZZ
+        
+        TCanvas* chnsegsigma = new TCanvas;
+        chnsegsigma->cd();
+        hnsegSigma->Draw("colz");
+
+        double parerr[12];
+        TCanvas* c10_fit = new TCanvas;
+           c10_fit->Divide(NbinsDeltaPhi/2,4);
+        TRandom rand = 0;
+        for(int j=0; j<12; j++){
+            parerr[j] = res->ParError(j);
+        }
+        for(int j=0; j <16; j++){
+            par[j] = res->Parameter(j);
+            if(j>11){
+                par[j] = 3;
+            }
+        }
+        //PLOT ICI
+
+        double par12[niterations];
+        double parerr12[niterations];
+        
+        Yields_Central_1->Reset();
+        
+        for(int i=0; i<NbinsDeltaPhi; i++){
+            for(int t=0; t<niterations; t++){
+            TVirtualPad* subpad = c10_fit->cd(i+1);
+                c10_fit->cd(i+1);
+                if(t==niterations-1){
+                    subpad->Clear();
+                }
+            TF1 *fitY_1Central = new TF1("fitY_1Central",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
+              fitY_1Central->SetNpx(500);
+              fitY_1Central->SetLineWidth(4);
+              fitY_1Central->SetLineColor(kMagenta);
+              fitY_1Central->SetParameters(par);
+               TVirtualFitter::Fitter(YieldWrtMass_Central[i])->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(YieldWrtMass_Central[i])->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+            for(int k=0; k<=11; k++){
+                    fitY_1Central->FixParameter(k,par[k]);
+            }
+
+               fitY_1Central->SetParName(0,"Norm_{J/#psi}");
+                  fitY_1Central->SetParName(1,"M_{J/#psi}");
+                  fitY_1Central->SetParName(2,"Sigma_{J/#psi}");
+                  fitY_1Central->SetParName(3,"a_{1}");
+                  fitY_1Central->SetParName(4,"n_{1}");
+                  fitY_1Central->SetParName(5,"a_{2}");
+                  fitY_1Central->SetParName(6,"n_{2}");
+                  fitY_1Central->SetParName(7,"Norm_{#Psi(2S)}");
+                  fitY_1Central->SetParName(8,"Norm_{TailLowM}");
+                  fitY_1Central->SetParName(9,"Exp_{TailLowM}");
+                  fitY_1Central->SetParName(10,"Norm_{TailHighM}");
+                  fitY_1Central->SetParName(11,"Exp_{TailHighM}");
+                   fitY_1Central->SetParName(12,"Y_1 J/#psi");
+                   fitY_1Central->SetParName(13,"Y_1 Bkg M2");
+               fitY_1Central->SetParName(14,"Y_1 Bkg M1");
+               fitY_1Central->SetParName(15,"Y_1 Bkg M0");
+                
+                //PSI2STEST
+                //fitY_1Central->FixParameter(7,0);
+                
+                cout << "YieldWrtMass_Central in phibins. PhiBin: "<<i<<endl;
+
+              rescent = YieldWrtMass_Central[i]->Fit("fitY_1Central","SBMERIQ+","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+                if(!doTracklets){
+                TPaveStats *st = (TPaveStats*)YieldWrtMass_Central[i]->FindObject("stats");
+                st->SetX1NDC(0.75); //new x start position
+                st->SetY1NDC(0.75); //new x end position
+                }
+              Double_t param[16];
+                Double_t paramerrs[16];
+              fitY_1Central->GetParameters(param);
+                for(int i=0; i<16; i++){
+                    paramerrs[i] = fitY_1Central->GetParError(i);
+                }
+                
+                if(rescent->CovMatrixStatus() == 3){
+                par12[t] = param[12];
+                parerr12[t] = paramerrs[12];
+                }
+                else{
+                    par12[t]=parerr12[t]=0;
+                }
+                
+                std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
+                std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
+
+            TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,2.1,5.1,16);
+            backFcnY_1Central->SetLineColor(kRed);
+            TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
+              // writes the fit results into the par array
+            
+                if(t==niterations-1){
+                    YieldWrtMass_Central[i]->GetListOfFunctions()->Clear();
+                    YieldWrtMass_Central[i]->GetListOfFunctions()->Add(fitY_1Central);
+                }
+            signalFcnJPsiY_1Central->SetLineColor(kBlue);
+            signalFcnJPsiY_1Central->SetNpx(500);
+            backFcnY_1Central->SetParameters(param);
+            signalFcnJPsiY_1Central->SetParameters(param);
+          //  signalFcnJPsiY_1Central->Draw("same");
+            backFcnY_1Central->Draw("same");
+                
+                    Yields_Central_1->SetBinContent(i+1, param[12]);
+                    Yields_Central_1->SetBinError(i+1,fitY_1Central->GetParError(12));
+                
+              // writes the fit results into the par array
+               gStyle->SetOptFit(1011);
+              // draw the legend
+              TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
+              legend->SetTextSize(0.03);
+            Char_t message[80];
+            sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitY_1Central->GetChisquare(),fitY_1Central->GetNDF());
+               legend->AddEntry(fitY_1Central,message);
+              if(rescent->CovMatrixStatus() == 3){
+                        // sprintf(message,"The fit is a success");
+                     }
+                     else{
+                         sprintf(message,"The fit is a failure");
+                         legend->AddEntry(fitY_1Central,message);
+                     }
+            //  legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
+              legend->AddEntry(backFcnY_1Central,"Background");
+                legend->AddEntry(YieldWrtMass_Central[i],"Data","lpe");
+                legend->Draw();
+              }
+            
+        }
+        cinvmass->cd();
+        sprintf(histoname,"InvMass_Neither");
+        res = FittingAllInvMassBin(histoname, cinvmass, 3); //ZZZZZ
+        
+        cinvmass->cd();
+        sprintf(histoname,"InvMass_Periph");
+        res = FittingAllInvMassBin(histoname, cinvmass, 2); //ZZZZZ
+        
+           for(int j=0; j<12; j++){
+               parerr[j] = res->ParError(j);
+           }
+           for(int j=0; j <16; j++){
+               par[j] = res->Parameter(j);
+               if(j>11){
+                   par[j] = 3;
+               }
+           }
+        
+        double baseline = 1;
+        double errbaseline = 1;
+        
+        Yields_Periph_1->Reset();
+           
+           for(int i=0; i<NbinsDeltaPhi; i++){
+               for(int t=0; t<niterations; t++){
+                   TVirtualPad* subpad = c10_fit->cd(NbinsDeltaPhi+i+1);
+                   c10_fit->cd(NbinsDeltaPhi+i+1);
+                   if(t==niterations-1){
+                       subpad->Clear();
+                   }
+               TF1 *fitY_1Periph = new TF1("fitY_1Periph",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
+                 fitY_1Periph->SetNpx(500);
+                 fitY_1Periph->SetLineWidth(4);
+                 fitY_1Periph->SetLineColor(kMagenta);
+                 fitY_1Periph->SetParameters(par);
+                  TVirtualFitter::Fitter(YieldWrtMass_Periph[i])->SetMaxIterations(10000);
+                  TVirtualFitter::Fitter(YieldWrtMass_Periph[i])->SetPrecision();
+               //  histo->Fit("fitFcn","0");
+                 // second try: set start values for some parameters
+                for(int k=0; k<=11; k++){
+
+                        fitY_1Periph->FixParameter(k,par[k]);
+                    }
+                
+                  
+                  fitY_1Periph->SetParName(0,"Norm_{J/#psi}");
+                     fitY_1Periph->SetParName(1,"M_{J/#psi}");
+                     fitY_1Periph->SetParName(2,"Sigma_{J/#psi}");
+                     fitY_1Periph->SetParName(3,"a_{1}");
+                     fitY_1Periph->SetParName(4,"n_{1}");
+                     fitY_1Periph->SetParName(5,"a_{2}");
+                     fitY_1Periph->SetParName(6,"n_{2}");
+                     fitY_1Periph->SetParName(7,"Norm_{#Psi(2S)}");
+                     fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
+                     fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
+                     fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
+                     fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
+                      fitY_1Periph->SetParName(12,"Y_1 J/#psi");
+                      fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
+                  fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
+                  fitY_1Periph->SetParName(15,"Y_1 Bkg M0");
+                   
+                   //PSI2STEST
+                   //fitY_1Periph->FixParameter(7,0);
+                  
+                   cout << "YieldWrtMass_Periph in phibins. PhiBin: "<<i<<endl;
+                 resperiph = YieldWrtMass_Periph[i]->Fit("fitY_1Periph","SBMERIQ+","ep");
+                   gStyle->SetOptStat("n");
+                   gStyle->SetOptFit(1011);
+                   if(!doTracklets){
+                   TPaveStats *st = (TPaveStats*)YieldWrtMass_Periph[i]->FindObject("stats");
+                   st->SetX1NDC(0.75); //new x start position
+                   st->SetY1NDC(0.75); //new x end position
+                   }
+                   Double_t param[16];
+                   Double_t paramerrs[16];
+                 fitY_1Periph->GetParameters(param);
+                   
+                   for(int i=0; i<16; i++){
+                                   paramerrs[i] = fitY_1Periph->GetParError(i);
+                               }
+                               
+                               if(resperiph->CovMatrixStatus() == 3){
+                               par12[t] = param[12];
+                               parerr12[t] = paramerrs[12];
+                               }
+                               else{
+                                   par12[t]=parerr12[t]=0;
+                               }
+                   std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
+                    std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
+
+               TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,2.1,5.1,16);
+               backFcnY_1Periph->SetLineColor(kRed);
+               TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
+                 // writes the fit results into the par array
+                   
+                   if(t==niterations-1){
+                       YieldWrtMass_Periph[i]->GetListOfFunctions()->Clear();
+                       YieldWrtMass_Periph[i]->GetListOfFunctions()->Add(fitY_1Periph);
+                   }
+               
+               signalFcnJPsiY_1Periph->SetLineColor(kBlue);
+               signalFcnJPsiY_1Periph->SetNpx(500);
+               backFcnY_1Periph->SetParameters(param);
+               signalFcnJPsiY_1Periph->SetParameters(param);
+            //   signalFcnJPsiY_1Periph->Draw("same");
+               backFcnY_1Periph->Draw("same");
+                   
+
+                       if(i==0){//Pichange
+                           baseline = param[12];
+                           errbaseline = fitY_1Periph->GetParError(12);
+                       }
+    //                   if(i==3){
+    //                       baseline += param[12];
+    //                       baseline /= 2;
+    //                       errbaseline = sqrt(pow(errbaseline,2)+pow(fitY_1Periph->GetParError(12),2));
+    //                       errbaseline/=2;
+    //                   }
+                     Yields_Periph_1->SetBinContent(i+1, param[12]);
+                     Yields_Periph_1->SetBinError(i+1,fitY_1Periph->GetParError(12));
+                   
+                   
+                 // writes the fit results into the par array
+                  gStyle->SetOptFit(1011);
+                 // draw the legend
+                 TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+                 legend->SetFillColorAlpha(kWhite, 0.);
+                 legend->SetBorderSize(0);
+                   legend->SetTextFont(42);
+                 legend->SetTextSize(0.04);
+               Char_t message[80];
+                   sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitY_1Periph->GetChisquare(),fitY_1Periph->GetNDF());
+                    legend->AddEntry(fitY_1Periph,message);
+                   if(resperiph->CovMatrixStatus() == 3){
+                             // sprintf(message,"The fit is a success");
+                          }
+                          else{
+                              sprintf(message,"The fit is a failure");
+                              legend->AddEntry(fitY_1Periph,message);
+                          }
+               //    legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
+                   legend->AddEntry(backFcnY_1Periph,"Background");
+                     legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
+                     legend->Draw();
+                   }
+               
+           }
+        
+        sprintf(CanvasName,"%s/YieldWrtMass_PhiBins.pdf",FolderName);
+        c10_fit->SaveAs(CanvasName);
+        
+        {
+            TCanvas* c17 = new TCanvas;
+            c17->Divide(1,3);
+            //Creer canvas pour imprimer les plots Periph yield et Central yield wrt phi et leur difference
+            c17->cd(1);
+            Yields_Central_1->Draw();
+            c17->cd(2);
+            Yields_Periph_1->Draw();
+            c17->cd(3);
+            Yields_Difference_1->Reset();
+            Yields_Difference_1->Add(Yields_Central_1,Yields_Periph_1,1,-1);
+            Yields_Difference_1->Draw();
+        
+                 TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,0,1.0*TMath::Pi(),3); //Pichange
+                 fitFcnV2_2->SetNpx(500);
+                 fitFcnV2_2->SetLineWidth(4);
+                 fitFcnV2_2->SetLineColor(kMagenta);
+                 // first try without starting values for the parameters
+                 // This defaults to 1 for each param.
+                 // this results in an ok fit for the polynomial function
+                 // however the non-linear part (lorenzian) does not
+                 // respond well.
+                  Double_t params[3] = {1,1,1};
+                 fitFcnV2_2->SetParameters(params);
+                  TVirtualFitter::Fitter(Yields_Difference_1)->SetMaxIterations(10000);
+                  TVirtualFitter::Fitter(Yields_Difference_1)->SetPrecision();
+               //  histo->Fit("fitFcn","0");
+                 // second try: set start values for some parameters
+                  
+                  fitFcnV2_2->SetParName(0,"a0");
+                  fitFcnV2_2->SetParName(1,"a1");
+                  fitFcnV2_2->SetParName(2,"a2");
+            
+            cout << "YieldWrtMass_Difference " <<endl;
+                  
+                 TFitResultPtr res = Yields_Difference_1->Fit("fitFcnV2_2","SBMERI+","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+            if(!doTracklets){
+                TPaveStats *st = (TPaveStats*)Yields_Difference_1->FindObject("stats");
+                st->SetX1NDC(0.75); //new x start position
+                st->SetY1NDC(0.75); //new x end position
+            }
+                Double_t par[3];
+                fitFcnV2_2->GetParameters(par);
+                 // improve the pictu
+               //   std::cout << "integral error: " << integralerror << std::endl;
+                 fitFcnV2_2->Draw("same");
+                 // draw the legend
+                 TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+                 legend->SetFillColorAlpha(kWhite, 0.);
+                 legend->SetBorderSize(0);
+                   legend->SetTextFont(42);
+                 legend->SetTextSize(0.03);
+                   Char_t message[80];
+                   sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+                   legend->AddEntry(fitFcnV2_2,message);
+            sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+                   legend->AddEntry(fitFcnV2_2,message);
+            sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_2->GetParError(0),2)+pow(errbaseline,2))/(par[0] + baseline),2))));
+            legend->AddEntry(fitFcnV2_2,message);
+            if(res->CovMatrixStatus() == 3){
+                     //  sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2_2,message);
+                   }
+                 legend->AddEntry(Yields_Difference_1,"Data","lpe");
+                 legend->Draw();
+               
+            sprintf(CanvasName,"%s/V2_Extraction1.pdf",FolderName);
+            c17->SaveAs(CanvasName);
+        }
+        
+        
+        //DimuTkl Ext1 Pt Binned
+            
+        if(PtBinned){
+            for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+                
+                V2_Ext1[ptbin] = 0;
+                errV2_Ext1[ptbin] = 0;
+        
+            int niterations = 1;
+            cinvmassPtBinned->cd();
+            sprintf(histoname,Form("bin%d_1",ptbin+1));
+            res = FittingAllInvMassBin(histoname, cinvmassPtBinned, NbPtBins + ptbin);
+
+           double parerr[12];
+            TCanvas* c10_fitPtBinned = new TCanvas;
+               c10_fitPtBinned->Divide(NbinsDeltaPhi/2,4);
+            TRandom rand = 0;
+            for(int j=0; j<12; j++){
+                parerr[j] = res->ParError(j);
+            }
+            for(int j=0; j <16; j++){
+                par[j] = res->Parameter(j);
+                if(j>11){
+                    par[j] = 3;
+                }
+            }
+                //PLOT ICI
+
+            double par12[niterations];
+            double parerr12[niterations];
+
+                Yields_Central_1PtBinned[ptbin]->Reset();
+            
+            for(int i=0; i<NbinsDeltaPhi; i++){
+                for(int t=0; t<niterations; t++){
+                    TVirtualPad* subpad = c10_fitPtBinned->cd(i+1);
+                    c10_fitPtBinned->cd(i+1);
+                    if(t==niterations-1){
+                        subpad->Clear();
+                    }
+                TF1 *fitY_1Central = new TF1("fitY_1Central",FourierV2_WrtInvMass,1.5,4.5,16); //Cvetan
+                  fitY_1Central->SetNpx(50000);
+                  fitY_1Central->SetLineWidth(4);
+                  fitY_1Central->SetLineColor(kMagenta);
+                  fitY_1Central->SetParameters(par);
+                   TVirtualFitter::Fitter(YieldWrtMass_CentralPtBinned[i][ptbin])->SetMaxIterations(10000);
+                   TVirtualFitter::Fitter(YieldWrtMass_CentralPtBinned[i][ptbin])->SetPrecision();
+                //  histo->Fit("fitFcn","0");
+                  // second try: set start values for some parameters
+                for(int k=0; k<=11; k++){
+
+                        fitY_1Central->FixParameter(k,par[k]);
+                    
+                }
+
+                   fitY_1Central->SetParName(0,"Norm_{J/#psi}");
+                      fitY_1Central->SetParName(1,"M_{J/#psi}");
+                      fitY_1Central->SetParName(2,"Sigma_{J/#psi}");
+                      fitY_1Central->SetParName(3,"a_{1}");
+                      fitY_1Central->SetParName(4,"n_{1}");
+                      fitY_1Central->SetParName(5,"a_{2}");
+                      fitY_1Central->SetParName(6,"n_{2}");
+                      fitY_1Central->SetParName(7,"Norm_{#Psi(2S)}");
+                      fitY_1Central->SetParName(8,"Norm_{TailLowM}");
+                      fitY_1Central->SetParName(9,"Exp_{TailLowM}");
+                      fitY_1Central->SetParName(10,"Norm_{TailHighM}");
+                      fitY_1Central->SetParName(11,"Exp_{TailHighM}");
+                       fitY_1Central->SetParName(12,"Y_1 J/#psi");
+                       fitY_1Central->SetParName(13,"Y_1 Bkg M2");
+                   fitY_1Central->SetParName(14,"Y_1 Bkg M1");
+                   fitY_1Central->SetParName(15,"Y_1 Bkg M0");
+                    
+                    //PSI2STEST
+                    //fitY_1Central->FixParameter(7,0);
+                    
+                    cout << "YieldWrtMass_CentralPtBinned in phibins. PhiBin: "<<i<<" ptbin: "<<ptbin <<endl;
+                    
+    //                if(ptbin==2 && i==1){
+    //                    //Set valeurs Cvetan
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(2,2.855);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(2,0.00679);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(3,2.848);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(3,0.0076);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(4,2.867);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(4,0.00856);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(5,2.842);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(5,0.00966);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(6,2.83);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(6,0.00715);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(7,2.848);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(7,0.0135);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(8,2.86);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(8,0.0164);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinContent(9,2.83);
+    //                    YieldWrtMass_CentralPtBinned[i][ptbin]->SetBinError(9,0.0199);
+    //                }
+                    
+
+                  rescent = YieldWrtMass_CentralPtBinned[i][ptbin]->Fit("fitY_1Central","SBMERIQ+","ep");
+                    gStyle->SetOptStat("n");
+                    gStyle->SetOptFit(1011);
+                    if(!doTracklets){
+                    TPaveStats *st = (TPaveStats*)YieldWrtMass_CentralPtBinned[i][ptbin]->FindObject("stats");
+                    st->SetX1NDC(0.8); //new x start position
+                    st->SetY1NDC(0.8); //new x end position
+                    }
+                  Double_t param[16];
+                    Double_t paramerrs[16];
+                  fitY_1Central->GetParameters(param);
+                    for(int i=0; i<16; i++){
+                        paramerrs[i] = fitY_1Central->GetParError(i);
+                    }
+                    
+                    if(rescent->CovMatrixStatus() == 3){
+                    par12[t] = param[12];
+                    parerr12[t] = paramerrs[12];
+                    }
+                    else{
+                        par12[t]=parerr12[t]=0;
+                    }
+                    
+                    std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
+                    std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
+
+                TF1 *backFcnY_1Central = new TF1("backFcnY_1Central",BackFcnV2Poly,2.1,5.1,16);
+                backFcnY_1Central->SetLineColor(kRed);
+                TF1 *signalFcnJPsiY_1Central = new TF1("signalFcnJPsiY_1Central",SignalFcnJPsiV2,2.1,5.1,16);
+                  // writes the fit results into the par array
+                
+                    if(t==niterations-1){
+                        YieldWrtMass_CentralPtBinned[i][ptbin]->GetListOfFunctions()->Clear();
+                        YieldWrtMass_CentralPtBinned[i][ptbin]->GetListOfFunctions()->Add(fitY_1Central);
+                    }
+                signalFcnJPsiY_1Central->SetLineColor(kBlue);
+                signalFcnJPsiY_1Central->SetNpx(500);
+                backFcnY_1Central->SetParameters(param);
+                signalFcnJPsiY_1Central->SetParameters(param);
+              //  signalFcnJPsiY_1Central->Draw("same");
+                backFcnY_1Central->Draw("same");
+                    
+
+                        Yields_Central_1PtBinned[ptbin]->SetBinContent(i+1, param[12]); //AEUGG
+                        Yields_Central_1PtBinned[ptbin]->SetBinError(i+1,fitY_1Central->GetParError(12));
+                    
+                    
+                  // writes the fit results into the par array
+                   gStyle->SetOptFit(1011);
+                  // draw the legend
+                  TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
+                    legend->SetBorderSize(0);
+                  legend->SetTextFont(61);
+                  legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitY_1Central->GetChisquare(),fitY_1Central->GetNDF());
+                    legend->AddEntry(fitY_1Central,message);
+                   if(rescent->CovMatrixStatus() == 3){
+                            //  sprintf(message,"The fit is a success");
+                          }
+                          else{
+                              sprintf(message,"The fit is a failure");
+                              legend->AddEntry(fitY_1Central,message);
+                          }
+                //   legend->AddEntry(signalFcnJPsiY_1Central,"JPsi signal");
+                   legend->AddEntry(backFcnY_1Central,"Background");
+                     legend->AddEntry(YieldWrtMass_CentralPtBinned[i][ptbin],"Data","lpe");
+                     legend->Draw();
+                }
+                
+            }
+            
+                
+            cinvmassPtBinned->cd(); //aeugg
+            sprintf(histoname,Form("bin%d_2",ptbin+1));
+            res = FittingAllInvMassBin(histoname, cinvmassPtBinned, NbPtBins+NbPtBins+ptbin);
+            
+               for(int j=0; j<12; j++){
+                   parerr[j] = res->ParError(j);
+               }
+               for(int j=0; j <16; j++){
+                   par[j] = res->Parameter(j);
+                   if(j>11){
+                       par[j] = 3;
+                   }
+               }
+            
+            double baseline = 1;
+            double errbaseline = 1;
+                
+                Yields_Periph_1PtBinned[ptbin]->Reset();
+               
+               for(int i=0; i<NbinsDeltaPhi; i++){
+                   for(int t=0; t<niterations; t++){
+                       TVirtualPad* subpad = c10_fitPtBinned->cd(NbinsDeltaPhi+i+1);
+                       c10_fitPtBinned->cd(NbinsDeltaPhi+i+1);
+                       if(t==niterations-1){
+                           subpad->Clear();
+                       }
+                   TF1 *fitY_1Periph = new TF1("fitY_1Periph",FourierV2_WrtInvMass,MinInvMass,MaxInvMass,16);
+                     fitY_1Periph->SetNpx(500);
+                     fitY_1Periph->SetLineWidth(4);
+                     fitY_1Periph->SetLineColor(kMagenta);
+                     fitY_1Periph->SetParameters(par);
+                      TVirtualFitter::Fitter(YieldWrtMass_PeriphPtBinned[i][ptbin])->SetMaxIterations(10000);
+                      TVirtualFitter::Fitter(YieldWrtMass_PeriphPtBinned[i][ptbin])->SetPrecision();
+                   //  histo->Fit("fitFcn","0");
+                     // second try: set start values for some parameters
+                    for(int k=0; k<=11; k++){
+                            fitY_1Periph->FixParameter(k,par[k]);
+                    }
+                      
+                      fitY_1Periph->SetParName(0,"Norm_{J/#psi}");
+                         fitY_1Periph->SetParName(1,"M_{J/#psi}");
+                         fitY_1Periph->SetParName(2,"Sigma_{J/#psi}");
+                         fitY_1Periph->SetParName(3,"a_{1}");
+                         fitY_1Periph->SetParName(4,"n_{1}");
+                         fitY_1Periph->SetParName(5,"a_{2}");
+                         fitY_1Periph->SetParName(6,"n_{2}");
+                         fitY_1Periph->SetParName(7,"Norm_{#Psi(2S)}");
+                         fitY_1Periph->SetParName(8,"Norm_{TailLowM}");
+                         fitY_1Periph->SetParName(9,"Exp_{TailLowM}");
+                         fitY_1Periph->SetParName(10,"Norm_{TailHighM}");
+                         fitY_1Periph->SetParName(11,"Exp_{TailHighM}");
+                          fitY_1Periph->SetParName(12,"Y_1 J/#psi");
+                          fitY_1Periph->SetParName(13,"Y_1 Bkg M2");
+                      fitY_1Periph->SetParName(14,"Y_1 Bkg M1");
+                      fitY_1Periph->SetParName(15,"Y_1 Bkg M0");
+                       
+                       //PSI2STEST
+                       //fitY_1Periph->FixParameter(7,0);
+                      
+                       cout << "YieldWrtMass_PeriphPtBinned in phibins. PhiBin: "<<i<<" ptbin: "<<ptbin <<endl;
+                     resperiph = YieldWrtMass_PeriphPtBinned[i][ptbin]->Fit("fitY_1Periph","SBMERIQ+","ep");
+                       gStyle->SetOptStat("n");
+                       gStyle->SetOptFit(1011);
+                       if(!doTracklets){
+                       TPaveStats *st = (TPaveStats*)YieldWrtMass_PeriphPtBinned[i][ptbin]->FindObject("stats");
+                       st->SetX1NDC(0.8); //new x start position
+                       st->SetY1NDC(0.8); //new x end position
+                       }
+                       Double_t param[16];
+                       Double_t paramerrs[16];
+                     fitY_1Periph->GetParameters(param);
+                       
+                       for(int i=0; i<16; i++){
+                                       paramerrs[i] = fitY_1Periph->GetParError(i);
+                                   }
+                                   
+                                   if(resperiph->CovMatrixStatus() == 3){
+                                   par12[t] = param[12];
+                                   parerr12[t] = paramerrs[12];
+                                   }
+                                   else{
+                                       par12[t]=parerr12[t]=0;
+                                   }
+                       std::cout << "COV status Central t=" << t << " : " << rescent->CovMatrixStatus()<<endl;
+                        std::cout << "par12: " << par12[t] << ", parerr12: " << parerr12[t] <<endl;
+
+                   TF1 *backFcnY_1Periph = new TF1("backFcnY_1Periph",BackFcnV2Poly,2.1,5.1,16);
+                   backFcnY_1Periph->SetLineColor(kRed);
+                   TF1 *signalFcnJPsiY_1Periph = new TF1("signalFcnJPsiY_1Periph",SignalFcnJPsiV2,2.1,5.1,16);
+                     // writes the fit results into the par array
+                       
+                       if(t==niterations-1){
+                           YieldWrtMass_PeriphPtBinned[i][ptbin]->GetListOfFunctions()->Clear();
+                           YieldWrtMass_PeriphPtBinned[i][ptbin]->GetListOfFunctions()->Add(fitY_1Periph);
+                       }
+                   
+                   signalFcnJPsiY_1Periph->SetLineColor(kBlue);
+                   signalFcnJPsiY_1Periph->SetNpx(500);
+                   backFcnY_1Periph->SetParameters(param);
+                   signalFcnJPsiY_1Periph->SetParameters(param);
+                //   signalFcnJPsiY_1Periph->Draw("same");
+                   backFcnY_1Periph->Draw("same");
+                       
+                           if(i==0){//Pichange
+                               baseline = param[12];
+                               errbaseline = fitY_1Periph->GetParError(12);
+                           }
+    //                       if(i==3){//Pichange
+    //                           baseline += param[12];
+    //                           baseline /= 2;
+    //                           errbaseline = sqrt(pow(errbaseline,2)+pow(fitY_1Periph->GetParError(12),2));
+    //                           errbaseline/=2;
+    //                       }
+                         Yields_Periph_1PtBinned[ptbin]->SetBinContent(i+1, param[12]);
+                         Yields_Periph_1PtBinned[ptbin]->SetBinError(i+1,fitY_1Periph->GetParError(12));
+                       
+                       
+                     // writes the fit results into the par array
+                      gStyle->SetOptFit(1011);
+                     // draw the legend
+                     TLegend *legend=new TLegend(0.12,0.75,0.60,0.90);
+                     legend->SetFillColorAlpha(kWhite, 0.);
+                     legend->SetBorderSize(0);
+                       legend->SetTextFont(42);
+                     legend->SetTextSize(0.03);
+                   Char_t message[80];
+                   sprintf(message,"Global Fit : #chi^{2}/NDF = %.2f / %d",fitY_1Periph->GetChisquare(),fitY_1Periph->GetNDF());
+                    legend->AddEntry(fitY_1Periph,message);
+                   if(resperiph->CovMatrixStatus() == 3){
+                              sprintf(message,"The fit is a success");
+                          }
+                          else{
+                              sprintf(message,"The fit is a failure");
+                          }
+                          legend->AddEntry(fitY_1Periph,message);
+              //     legend->AddEntry(signalFcnJPsiY_1Periph,"JPsi signal");
+                   legend->AddEntry(backFcnY_1Periph,"Background");
+                     legend->AddEntry(YieldWrtMass_Periph[i],"Data","lpe");
+                     legend->Draw();
+                   }
+                   
+               }
+                
+                
+                
+                {
+                    TCanvas* c17PtBinned = new TCanvas;
+                    c17PtBinned->Divide(1,3);
+                    //Creer canvas pour imprimer les plots Periph yield et Central yield wrt phi et leur difference
+                    c17PtBinned->cd(1);
+                    Yields_Central_1PtBinned[ptbin]->Draw();
+                    c17PtBinned->cd(2);
+                    Yields_Periph_1PtBinned[ptbin]->Draw();
+                    c17PtBinned->cd(3);
+                    Yields_Difference_1PtBinned[ptbin]->Reset();
+                    Yields_Difference_1PtBinned[ptbin]->Add(Yields_Central_1PtBinned[ptbin],Yields_Periph_1PtBinned[ptbin],1,-1);
+                    Yields_Difference_1PtBinned[ptbin]->Draw();
+                
+                         TF1 *fitFcnV2_2 = new TF1("fitFcnV2_2",FourierV2,0,1.0*TMath::Pi(),3); //Pichange
+                         fitFcnV2_2->SetNpx(500);
+                         fitFcnV2_2->SetLineWidth(4);
+                         fitFcnV2_2->SetLineColor(kMagenta);
+                         // first try without starting values for the parameters
+                         // This defaults to 1 for each param.
+                         // this results in an ok fit for the polynomial function
+                         // however the non-linear part (lorenzian) does not
+                         // respond well.
+                          Double_t params[3] = {1,1,1};
+                         fitFcnV2_2->SetParameters(params);
+                          TVirtualFitter::Fitter(Yields_Difference_1PtBinned[ptbin])->SetMaxIterations(10000);
+                          TVirtualFitter::Fitter(Yields_Difference_1PtBinned[ptbin])->SetPrecision();
+                       //  histo->Fit("fitFcn","0");
+                         // second try: set start values for some parameters
+                          
+                          fitFcnV2_2->SetParName(0,"a0");
+                          fitFcnV2_2->SetParName(1,"a1");
+                          fitFcnV2_2->SetParName(2,"a2");
+                          
+                    cout << "Yields_Difference_1PtBinned in ptbin: "<<ptbin <<endl;
+                         TFitResultPtr res = Yields_Difference_1PtBinned[ptbin]->Fit("fitFcnV2_2","SBMERI+","ep");
+                    gStyle->SetOptStat("n");
+                    gStyle->SetOptFit(1011);
+                    if(!doTracklets){
+                    TPaveStats *st = (TPaveStats*)Yields_Difference_1PtBinned[ptbin]->FindObject("stats");
+                    st->SetX1NDC(0.8); //new x start position
+                    st->SetY1NDC(0.8); //new x end position
+                    }
+                        Double_t par[3];
+                        fitFcnV2_2->GetParameters(par);
+                         // improve the pictu
+                       //   std::cout << "integral error: " << integralerror << std::endl;
+                         fitFcnV2_2->Draw("same");
+                         // draw the legend
+                         TLegend *legend=new TLegend(0.15,0.70,0.4,0.90);
+                         legend->SetFillColorAlpha(kWhite, 0.);
+                         legend->SetBorderSize(0);
+                           legend->SetTextFont(42);
+                         legend->SetTextSize(0.03);
+                           Char_t message[80];
+                           sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2_2->GetChisquare(),fitFcnV2_2->GetNDF());
+                           legend->AddEntry(fitFcnV2_2,message);
+                    sprintf(message,"V2_1 J/#psi-tkl: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baseline,par[2]/(par[0] + baseline),(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_2->GetParError(0),2)+pow(errbaseline,2))/(par[0] + baseline),2))));
+                    legend->AddEntry(fitFcnV2_2,message);
+                    if(res->CovMatrixStatus() == 3){
+                              // sprintf(message,"The fit is a success");
+                           }
+                           else{
+                               sprintf(message,"The fit is a failure");
+                               legend->AddEntry(fitFcnV2_2,message);
+                           }
+                           
+                         legend->AddEntry(Yields_Difference_1,"Data","lpe");
+                         legend->Draw();
+                    
+                    V2_Ext1[ptbin] = par[2]/(par[0] + baseline);
+                    errV2_Ext1[ptbin] = abs(par[2]/(par[0] + baseline)*sqrt(pow(fitFcnV2_2->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2_2->GetParError(0),2)+pow(errbaseline,2))/(par[0] + baseline),2)));
+                       
+                    
+                    sprintf(CanvasName,"%s/V2_Extraction1PtBin_%d.pdf",FolderName,ptbin);
+                    c17PtBinned->SaveAs(CanvasName);
+                }
+        
+        
+                sprintf(CanvasName,"%s/YieldWrtMass_PhiBins_PtBin_%d.pdf",FolderName,ptbin);
+                c10_fitPtBinned->SaveAs(CanvasName);
+            }
+        }
+        
+        
+        double PtMiddle[NbPtBins];
+        memset( PtMiddle, 0, NbPtBins*sizeof(double));
+        double PtErrorSize[NbPtBins];
+        memset( PtErrorSize, 0, NbPtBins*sizeof(double));
+        
+        for(int ptbin=0;ptbin<NbPtBins;ptbin++){
+            PtMiddle[ptbin] = (PtBins[ptbin]+PtBins[ptbin+1])/2;
+            PtErrorSize[ptbin] = (PtBins[ptbin+1]-PtBins[ptbin])/2;
+        }
+        
+        TCanvas* cV2Pt = new TCanvas;
+        cV2Pt->cd();
+        
+        TGraphErrors *grV2_wrt_Pt1 = new TGraphErrors(NbPtBins,PtMiddle,V2_Ext1,PtErrorSize,errV2_Ext1);
+                 // TGraph *gr3 = new TGraph (n, K3, chi);
+                  grV2_wrt_Pt1->SetTitle("V_{2,J/#psi-tkl} wrt p_{T} for different extraction methods");
+                  grV2_wrt_Pt1->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+                  grV2_wrt_Pt1->GetYaxis()->SetTitle("V_{2,J/#psi-tkl}");
+                grV2_wrt_Pt1->SetMarkerColor(kAzure-3);
+                grV2_wrt_Pt1->SetLineColor(kAzure-3);
+                grV2_wrt_Pt1->SetLineStyle(9);
+                grV2_wrt_Pt1->SetMarkerStyle(4);
+                grV2_wrt_Pt1->GetYaxis()->SetRangeUser(-0.004,0.014);
+                grV2_wrt_Pt1->GetXaxis()->SetRangeUser(PtBins[0],PtBins[NbPtBins]);
+                  grV2_wrt_Pt1->Draw("AP");
+        
+        TGraphErrors *grV2_wrt_Pt2 = new TGraphErrors(NbPtBins,PtMiddle,V2_Ext2,PtErrorSize,errV2_Ext2);
+         // TGraph *gr3 = new TGraph (n, K3, chi);
+        grV2_wrt_Pt2->SetMarkerColor(kGreen-7);
+        grV2_wrt_Pt2->SetLineColor(kGreen-7);
+        grV2_wrt_Pt2->SetLineStyle(9);
+        grV2_wrt_Pt2->SetMarkerStyle(32);
+          grV2_wrt_Pt2->Draw("P");
+        
+        TLegend *legendo=new TLegend(0.12,0.80,0.40,0.90);
+                 legendo->SetFillColorAlpha(kWhite, 0.);
+                 legendo->SetBorderSize(0);
+                  legendo->SetTextFont(42);
+                  legendo->SetTextSize(0.02);
+               legendo->AddEntry(grV2_wrt_Pt1,"V2_Ext1 (pPb-like)");
+                legendo->AddEntry(grV2_wrt_Pt2,"V2_Ext2 (pPb-like)");
+                 legendo->Draw();
+        
+        cV2Pt->Update();
+        TLine *l=new TLine(cV2Pt->GetUxmin(),0.0,cV2Pt->GetUxmax(),0.0);
+        l->SetLineColor(kBlack);
+        l->SetLineWidth(1);
+        l->SetLineStyle(9);
+        l->Draw();
+        
+        sprintf(CanvasName,"%s/V2WrtPt.pdf",FolderName);
+        cV2Pt->SaveAs(CanvasName);
+        
+        sprintf(CanvasName,"%s/InvMassFits.pdf",FolderName);
+        cinvmass->SaveAs(CanvasName);
+        sprintf(CanvasName,"%s/InvMassFitsPtBinned.pdf",FolderName);
+        cinvmassPtBinned->SaveAs(CanvasName);
+        sprintf(CanvasName,"%s/YieldWrtMass_PhiBins_NoFit.pdf",FolderName);
+        c10->SaveAs(CanvasName);
+        sprintf(CanvasName,"%s/YieldWrPhi_MassBins.pdf",FolderName);
+        c14->SaveAs(CanvasName);
+        sprintf(CanvasName,"%s/YieldWrtPhi_MassBin_SubZoom.pdf",FolderName);
+        c8zoom->SaveAs(CanvasName);
+        sprintf(CanvasName,"%s/YieldWrtPhi_MassBin_Sub.pdf",FolderName);
+        c8->SaveAs(CanvasName);
+        
+        
+        
+        double baselineTKL = 1;
+        double errbaselineTKL = 1;
+        
+        if(doTracklets){
+            
+            TCanvas* c6TKL = new TCanvas;
+                //Tracklets yield DeltaEta wrt DeltaPhi TH2 -> Projected for Periph and Central
+
+                c6TKL->Divide(2,2);
+                c6TKL->cd(1);
+                YieldTkl_allC->Draw("E");
+                c6TKL->cd(2);
+                YieldTkl_Difference->Draw("E");
+                c6TKL->cd(3);
+                YieldTkl_Central->Draw("E");
+                c6TKL->cd(4);
+                YieldTkl_Periph->Draw("E");
+                c6TKL->Draw();
+                c6TKL->Modified();
+                c6TKL->ForceUpdate();
+            
+            sprintf(CanvasName,"%s/V2TKL_Sub.pdf",FolderName);
+            c6TKL->SaveAs(CanvasName);
+            
+            TFile *f = new TFile(FitFileName,"UPDATE");
+            YieldTkl_allC->Write();
+            YieldTkl_Periph->Write();
+            YieldTkl_Central->Write();
+            YieldTkl_Difference->Write();
+            f->Close();
+            
+            baselineTKL = (YieldTkl_Periph->GetBinContent(BinZeroLeftTKL) + YieldTkl_Periph->GetBinContent(BinZeroLeftTKL+1))/2;
+            errbaselineTKL = sqrt(pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL),2) + pow(YieldTkl_Periph->GetBinError(BinZeroLeftTKL+1),2))/2;
+                
+            TCanvas*c14TKL=new TCanvas();
+            //Tracklets Yield difference wrt Phi fit
+            c14TKL->cd();
+            // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                TH1F *histo = YieldTkl_Difference;
+              // create a TF1 with the range from 0 to 3 and 6 parameters
+              TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV2,0,1.0*TMath::Pi(),3); //pichange
+              fitFcnV2TKL->SetNpx(500);
+              fitFcnV2TKL->SetLineWidth(4);
+              fitFcnV2TKL->SetLineColor(kMagenta);
+              // first try without starting values for the parameters
+              // This defaults to 1 for each param.
+              // this results in an ok fit for the polynomial function
+              // however the non-linear part (lorenzian) does not
+              // respond well.
+               Double_t params[3] = {1,0.01,0.01};
+              fitFcnV2TKL->SetParameters(params);
+               TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+               TVirtualFitter::Fitter(histo)->SetPrecision();
+            //  histo->Fit("fitFcn","0");
+              // second try: set start values for some parameters
+               
+               fitFcnV2TKL->SetParName(0,"a0");
+               fitFcnV2TKL->SetParName(1,"a1");
+               fitFcnV2TKL->SetParName(2,"a2");
+                fitFcnV2TKL->SetParName(3,"a3");
+    //            fitFcnV2TKL->SetParName(4,"a4");
+    //        fitFcnV2TKL->SetParName(5,"a5");
+    //        fitFcnV2TKL->SetParName(6,"a6");
+    //        fitFcnV2TKL->SetParName(7,"a7");
+    //        fitFcnV2TKL->SetParName(8,"a8");
+    //        fitFcnV2TKL->SetParName(9,"a9");
+    //        fitFcnV2TKL->SetParName(10,"a10");
+    //        fitFcnV2TKL->SetParName(11,"a11");
+    //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+               
+              TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            if(!doTracklets){
+            TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+            st->SetX1NDC(0.8); //new x start position
+            st->SetY1NDC(0.8); //new x end position
+            }
+              // improve the pictu
+            //   std::cout << "integral error: " << integralerror << std::endl;
+                Double_t par[3];
+                fitFcnV2TKL->GetParameters(par);
+              fitFcnV2TKL->Draw("same");
+              // draw the legend
+              TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+              legend->SetFillColorAlpha(kWhite, 0.);
+              legend->SetBorderSize(0);
+                legend->SetTextFont(42);
+              legend->SetTextSize(0.03);
+                Char_t message[80];
+                sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                legend->AddEntry(fitFcnV2TKL,message);
+            sprintf(message,"V_{2,tkl-tkl}: #frac{%.4f}{%.4f + %.4f} = %.4f +- %.4f",par[2],par[0], baselineTKL,par[2]/(par[0] + baselineTKL),(par[2]/(par[0] + baselineTKL)*sqrt(pow(fitFcnV2TKL->GetParError(2)/par[2],2)+pow(sqrt(pow(fitFcnV2TKL->GetParError(0),2)+pow(errbaselineTKL,2))/(par[0] + baselineTKL),2))));
+            legend->AddEntry(fitFcnV2TKL,message);
+            if(res->CovMatrixStatus() == 3){
+                     //  sprintf(message,"The fit is a success");
+                   }
+                   else{
+                       sprintf(message,"The fit is a failure");
+                       legend->AddEntry(fitFcnV2TKL,message);
+                   }
+              legend->AddEntry(histo,"Data","lpe");
+              legend->Draw();
+            
+            sprintf(CanvasName,"%s/V2TKL.pdf",FolderName);
+            c14TKL->SaveAs(CanvasName);
+            
+        }
+        
+        Double_t Acoef_Periph[4];
+        Double_t Acoef_Central[4];
+        Double_t errAcoef_Periph[4];
+        Double_t errAcoef_Central[4];
+        
+        if (doTracklets && isCMSMethod){
+                
+                TCanvas*c14TKLperiph=new TCanvas();
+                //Tracklets Yield difference wrt Phi fit
+                c14TKLperiph->cd();
+                // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                    TH1F *histo = YieldTkl_Periph;
+                  // create a TF1 with the range from 0 to 3 and 6 parameters
+                  TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,0,1.0*TMath::Pi(),4);//Pichange
+                  fitFcnV2TKL->SetNpx(500);
+                  fitFcnV2TKL->SetLineWidth(4);
+                  fitFcnV2TKL->SetLineColor(kMagenta);
+                  // first try without starting values for the parameters
+                  // This defaults to 1 for each param.
+                  // this results in an ok fit for the polynomial function
+                  // however the non-linear part (lorenzian) does not
+                  // respond well.
+                   Double_t params[4] = {1,0.01,0.01, 0.01};
+                  fitFcnV2TKL->SetParameters(params);
+                   TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+                   TVirtualFitter::Fitter(histo)->SetPrecision();
+                //  histo->Fit("fitFcn","0");
+                  // second try: set start values for some parameters
+                   
+                   fitFcnV2TKL->SetParName(0,"a0");
+                   fitFcnV2TKL->SetParName(1,"a1");
+                   fitFcnV2TKL->SetParName(2,"a2");
+                    fitFcnV2TKL->SetParName(3,"a3");
+        //            fitFcnV2TKL->SetParName(4,"a4");
+        //        fitFcnV2TKL->SetParName(5,"a5");
+        //        fitFcnV2TKL->SetParName(6,"a6");
+        //        fitFcnV2TKL->SetParName(7,"a7");
+        //        fitFcnV2TKL->SetParName(8,"a8");
+        //        fitFcnV2TKL->SetParName(9,"a9");
+        //        fitFcnV2TKL->SetParName(10,"a10");
+        //        fitFcnV2TKL->SetParName(11,"a11");
+        //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+                   
+                  TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+            gStyle->SetOptStat("n");
+            gStyle->SetOptFit(1011);
+            if(!doTracklets){
+            TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+            st->SetX1NDC(0.8); //new x start position
+            st->SetY1NDC(0.8); //new x end position
+            }
+                  // improve the pictu
+                //   std::cout << "integral error: " << integralerror << std::endl;
+                    fitFcnV2TKL->GetParameters(Acoef_Periph);
+            for(int index=0; index<4;index++){
+                errAcoef_Periph[index] = fitFcnV2TKL->GetParError(index);
+            }
+                  fitFcnV2TKL->Draw("same");
+                  // draw the legend
+                  TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+                  legend->SetFillColorAlpha(kWhite, 0.);
+                  legend->SetBorderSize(0);
+                    legend->SetTextFont(42);
+                  legend->SetTextSize(0.03);
+                    Char_t message[80];
+                    sprintf(message,"Fit, #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                    legend->AddEntry(fitFcnV2TKL,message);
+                sprintf(message,"V_{2,tkl-tkl} Periph: #frac {%.4f}{%.4f} = %.4f +- %.4f",Acoef_Periph[2],Acoef_Periph[0],Acoef_Periph[2]/(Acoef_Periph[0]),(Acoef_Periph[2]/(Acoef_Periph[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Periph[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Periph[0],2))));
+                legend->AddEntry(fitFcnV2TKL,message);
+                if(res->CovMatrixStatus() == 3){
+                           //sprintf(message,"The fit is a success");
+                       }
+                       else{
+                           sprintf(message,"The fit is a failure");
+                           legend->AddEntry(fitFcnV2TKL,message);
+                       }
+                  legend->AddEntry(histo,"Data","lpe");
+                  legend->Draw();
+            
+            }
+        
+        if (doTracklets && isCMSMethod){
+                
+                TCanvas*c14TKLcent=new TCanvas();
+                //Tracklets Yield difference wrt Phi fit
+                c14TKLcent->cd();
+                // Ici on fit YieldsWrtDeltaPhiMassBin_DifferenceProj
+                    TH1F *histo = YieldTkl_Central;
+                  // create a TF1 with the range from 0 to 3 and 6 parameters
+                  TF1 *fitFcnV2TKL = new TF1("fitFcnV2TKL",FourierV5,0,1.0*TMath::Pi(),4);//Pichange
+                  fitFcnV2TKL->SetNpx(500);
+                  fitFcnV2TKL->SetLineWidth(4);
+                  fitFcnV2TKL->SetLineColor(kMagenta);
+                  // first try without starting values for the parameters
+                  // This defaults to 1 for each param.
+                  // this results in an ok fit for the polynomial function
+                  // however the non-linear part (lorenzian) does not
+                  // respond well.
+                   Double_t params[4] = {1,0.01,0.01, 0.01};
+                  fitFcnV2TKL->SetParameters(params);
+                   TVirtualFitter::Fitter(histo)->SetMaxIterations(10000);
+                   TVirtualFitter::Fitter(histo)->SetPrecision();
+                //  histo->Fit("fitFcn","0");
+                  // second try: set start values for some parameters
+                   
+                   fitFcnV2TKL->SetParName(0,"a0");
+                   fitFcnV2TKL->SetParName(1,"a1");
+                   fitFcnV2TKL->SetParName(2,"a2");
+                    fitFcnV2TKL->SetParName(3,"a3");
+        //            fitFcnV2TKL->SetParName(4,"a4");
+        //        fitFcnV2TKL->SetParName(5,"a5");
+        //        fitFcnV2TKL->SetParName(6,"a6");
+        //        fitFcnV2TKL->SetParName(7,"a7");
+        //        fitFcnV2TKL->SetParName(8,"a8");
+        //        fitFcnV2TKL->SetParName(9,"a9");
+        //        fitFcnV2TKL->SetParName(10,"a10");
+        //        fitFcnV2TKL->SetParName(11,"a11");
+        //        fitFcnV2TKL->SetParLimits(6,-0.1,0.1);
+                   
+                  TFitResultPtr res = histo->Fit("fitFcnV2TKL","SBMERI+","ep");
+                gStyle->SetOptStat("n");
+                gStyle->SetOptFit(1011);
+            if(!doTracklets){
+                TPaveStats *st = (TPaveStats*)histo->FindObject("stats");
+                st->SetX1NDC(0.8); //new x start position
+                st->SetY1NDC(0.8); //new x end position
+            }
+                  // improve the pictu
+                //   std::cout << "integral error: " << integralerror << std::endl;
+                    fitFcnV2TKL->GetParameters(Acoef_Central);
+                    for(int index=0; index<4;index++){
+                        errAcoef_Central[index] = fitFcnV2TKL->GetParError(index);
+                    }
+                  fitFcnV2TKL->Draw("same");
+                  // draw the legend
+                  TLegend *legend=new TLegend(0.12,0.80,0.60,0.90);
+                  legend->SetFillColorAlpha(kWhite, 0.);
+                  legend->SetBorderSize(0);
+                    legend->SetTextFont(42);
+                  legend->SetTextSize(0.03);
+                    Char_t message[80];
+                    sprintf(message,"Fit : #chi^{2}/NDF = %.2f / %d",fitFcnV2TKL->GetChisquare(),fitFcnV2TKL->GetNDF());
+                    legend->AddEntry(fitFcnV2TKL,message);
+                sprintf(message,"V_{2,tkl-tkl} Central: #frac{%.4f}{%.4f} = %.4f +- %.4f",Acoef_Central[2],Acoef_Central[0],Acoef_Central[2]/(Acoef_Central[0]),(Acoef_Central[2]/(Acoef_Central[0])*sqrt(pow(fitFcnV2TKL->GetParError(2)/Acoef_Central[2],2)+pow(fitFcnV2TKL->GetParError(0)/Acoef_Central[0],2))));
+                legend->AddEntry(fitFcnV2TKL,message);
+                if(res->CovMatrixStatus() == 3){
+                         //  sprintf(message,"The fit is a success");
+                       }
+                       else{
+                           sprintf(message,"The fit is a failure");
+                           legend->AddEntry(fitFcnV2TKL,message);
+                       }
+                  legend->AddEntry(histo,"Data","lpe");
+                  legend->Draw();
+            
+            }
+        
+        if(doTracklets && isCMSMethod){
+            Double_t V2_CMS_Periph[4];
+            Double_t V2_CMS_Central[4];
+            Double_t V2_CMS_Difference[4];
+            Double_t errV2_CMS_Periph[4];
+            Double_t errV2_CMS_Central[4];
+            Double_t errV2_CMS_Difference[4];
+            Double_t errCompound[4];
+            
+            for(int index=0; index<4; index++){
+                cout << "Acoef_Periph_" << index << " = " << Acoef_Periph[index] <<" +/- "<<errAcoef_Periph[index]<<endl;
+            }
+            for(int index=0; index<4; index++){
+                       cout << "Acoef_Central_" << index << " = " << Acoef_Central[index] <<" +/- "<< errAcoef_Central[index] <<endl;
+                   }
+            
+            //Calculation V2 Periph and Central
+            for(int index=0; index<4; index++){
+                V2_CMS_Periph[index]=Acoef_Periph[index]/Acoef_Periph[0];
+                V2_CMS_Central[index]=Acoef_Central[index]/Acoef_Central[0];
+                
+                errV2_CMS_Periph[index] = V2_CMS_Periph[index]*sqrt(pow(errAcoef_Periph[index]/Acoef_Periph[index],2)+pow(errAcoef_Periph[0]/Acoef_Periph[0],2));
+                errV2_CMS_Central[index] = V2_CMS_Central[index]*sqrt(pow(errAcoef_Central[index]/Acoef_Central[index],2)+pow(errAcoef_Central[0]/Acoef_Central[0],2));
+            }
+            
+            for(int index=0; index<4; index++){
+                       cout << "V2_Periph_" << index << " = " << V2_CMS_Periph[index] <<" +/- "<<errV2_CMS_Periph[index]<<endl;
+                   }
+                   for(int index=0; index<4; index++){
+                              cout << "V2_Central_" << index << " = " << V2_CMS_Central[index] <<" +/- "<< errV2_CMS_Central[index] <<endl;
+                          }
+            
+            TCanvas* ctry=new TCanvas();
+            ctry->Divide(1,2);
+            ctry->cd(1);
+            YieldTkl_CentralLongCMS->DrawCopy();
+            ctry->cd(2);
+            YieldTkl_CentralShortCMS->DrawCopy();
+            
+            TCanvas* ctry2=new TCanvas();
+            ctry2->Divide(1,2);
+            ctry2->cd(1);
+            YieldTkl_PeriphLongCMS->DrawCopy();
+            ctry2->cd(2);
+            YieldTkl_PeriphShortCMS->DrawCopy();
+            
+            //Calculation Y_jet_Central and Y_jet_Periph
+            Double_t e1;
+            Double_t e2;
+            Double_t e3;
+            Double_t e4;
+            
+            Double_t Y_jet_Central = -(YieldTkl_CentralLongCMS->IntegralAndError(1,YieldTkl_CentralLongCMS->GetNbinsX(),e1) - YieldTkl_CentralShortCMS->IntegralAndError(1,YieldTkl_CentralShortCMS->GetNbinsX(),e2));
+            Double_t Y_jet_Periph = -(YieldTkl_PeriphLongCMS->IntegralAndError(1,YieldTkl_PeriphLongCMS->GetNbinsX(),e3) - YieldTkl_PeriphShortCMS->IntegralAndError(1,YieldTkl_PeriphShortCMS->GetNbinsX(),e4)) ;
+            Double_t errY_jet_Central = sqrt(pow(e1,2)+pow(e2,2));
+            Double_t errY_jet_Periph = sqrt(pow(e3,2)+pow(e4,2));
+            
+            cout << "Y_jet_Central = " << Y_jet_Central << " +/- " << errY_jet_Central <<endl;
+            cout << "Y_jet_Periph = " << Y_jet_Periph << " +/- " << errY_jet_Periph <<endl;
+            
+            cout << "Nassoc_Central_TKL = " << Nassoc_Central_TKL<<endl;
+            cout << "Nassoc_Periph_TKL = " << Nassoc_Periph_TKL<<endl;
+            
+            Double_t factorCMS = static_cast<Double_t>(double(Nassoc_Periph_TKL)/Nassoc_Central_TKL)*(Y_jet_Central/Y_jet_Periph);
+            Double_t errfactorCMS = factorCMS*sqrt(pow(1/sqrt(Nassoc_Periph_TKL),2) + pow(1/sqrt(Nassoc_Central_TKL),2) + pow(errY_jet_Central/Y_jet_Central,2) + pow(errY_jet_Periph/Y_jet_Periph,2));
+            
+            cout << "factorCMS = " << factorCMS<<endl;
+            
+            for(int index=0; index<4; index++){
+                V2_CMS_Difference[index] = V2_CMS_Central[index] - V2_CMS_Periph[index]*factorCMS;
+                errCompound[index] = V2_CMS_Periph[index]*factorCMS*sqrt(pow(errfactorCMS/factorCMS,2) + pow(errV2_CMS_Periph[index]/V2_CMS_Periph[index],2));
+                errV2_CMS_Difference[index] = sqrt(pow(errV2_CMS_Central[index],2)+pow(errCompound[index],2));
+                
+                cout << "V_CMSDiff_" << index << " = " << V2_CMS_Difference[index] << " +/- " <<  errV2_CMS_Difference[index]<<endl;
+            }
+
+        }
+        }
+    }
     
     
     
@@ -8085,90 +11838,61 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
 }
 
 int GetCent(float cent){
-    if(cent <= 1){
-        return 0;
-    }
-    else if(cent <= 3){
-        return 1;
-    }
-    else if(cent <= 5){
-        return 2;
-    }
-    else if(cent <= 10){
-        return 3;
-    }
-    else if(cent <= 15){
-        return 4;
-    }
-    else if(cent <= 20){
-        return 5;
-    }
-    else if(cent <= 30){
-        return 6;
-    }
-    else if(cent <= 40){
-        return 7;
-    }
-    else if(cent <= 50){
-        return 8;
-    }
-    else if(cent <= 60){
-        return 9;
-    }
-    else if(cent <= 70){
-        return 10;
-    }
-    else if(cent <= 80){
-        return 11;
-    }
-    else if(cent <= 90){
-        return 12;
-    }
-    else{
-        return 13;
-    }
-    
-    //BigCent
-    
-//    if(cent<=5){
+//    if(cent <= 1){
 //        return 0;
 //    }
-//    else if(cent<=40){
+//    else if(cent <= 3){
 //        return 1;
 //    }
-//    else{
+//    else if(cent <= 5){
 //        return 2;
 //    }
+//    else if(cent <= 10){
+//        return 3;
+//    }
+//    else if(cent <= 15){
+//        return 4;
+//    }
+//    else if(cent <= 20){
+//        return 5;
+//    }
+//    else if(cent <= 30){
+//        return 6;
+//    }
+//    else if(cent <= 40){
+//        return 7;
+//    }
+//    else if(cent <= 50){
+//        return 8;
+//    }
+//    else if(cent <= 60){
+//        return 9;
+//    }
+//    else if(cent <= 70){
+//        return 10;
+//    }
+//    else if(cent <= 80){
+//        return 11;
+//    }
+//    else if(cent <= 90){
+//        return 12;
+//    }
+//    else{
+//        return 13;
+//    }
     
-    //LessBigCent
-    
-//        if(cent <= 1){
-//            return 0;
-//        }
-//        else if(cent <= 3){
-//            return 1;
-//        }
-//        else if(cent <= 5){
-//            return 2;
-//        }
-//        else if(cent <= 10){
-//            return 3;
-//        }
-//        else if(cent <= 20){
-//            return 4;
-//        }
-//        else if(cent <= 40){
-//            return 5;
-//        }
-//        else if(cent <= 60){
-//            return 6;
-//        }
-//        else if(cent <= 80){
-//            return 7;
-//        }
-//        else{
-//            return 8;
-//        }
+    if(cent<=mostCentralNum){
+        return 0;
+    }
+    else if(cent<=lessCentralNum){
+        return 1;
+    }
+    else if(cent<=40){
+        return 2;
+    }
+    else{
+        return 3;
+    }
 }
 
 int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPer, int zvtx_idx, int groupnumber){
@@ -8322,3 +12046,4 @@ void FcnCombinedAllMass(Int_t & /*nPar*/, Double_t * /*grad*/ , Double_t &fval, 
   }
   fval = chi2;
 }
+

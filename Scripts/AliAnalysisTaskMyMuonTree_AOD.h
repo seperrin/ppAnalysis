@@ -11,6 +11,7 @@
 
 #ifndef ALIANALYSISTASKSE_H
 #include "AliAnalysisTaskSE.h"
+#include "AliTriggerAnalysis.h"
 #endif
 
 class TH1I;
@@ -52,6 +53,8 @@ public:
 
   Int_t fNPileupVtx;
     Bool_t fIsPileupFromSPDMultBins;
+    Bool_t fIsPileupClustVsTkl;
+    Bool_t fIsPileupReimplemented;
 
   Float_t fVertexX; //! vertex X
   Float_t fVertexY; //! vertex Y
@@ -63,6 +66,7 @@ public:
     Float_t fSPDVertexSigmaZ;
   Int_t fVertexNC;
     Int_t fSPDVertexNC;
+    Bool_t fIsFromVertexerZ;
 //  Double_t fVertexResZ; //Resolution on Z
 
   Int_t fTriggerCINT7; //! trigger V0C and V0A
@@ -78,10 +82,10 @@ public:
 
   TString fFiredTriggerClass; //! fired trigger classes
 
-  Int_t fPassPhysicsSelection; //! event selection criteria
+  Int_t fPassPhysicsSelection; // event selection criteria
   // 0: events not selected by physics selection;
   // 1: events selected by physics selection;
-  Int_t fPassTriggerSelection; //! event selection criteria
+  Int_t fPassTriggerSelection; // event selection criteria
   // 0: events not passing trigger selection
   // 1: events passing trigger selection
 
@@ -97,6 +101,8 @@ public:
     Float_t fCentralityADC;
       Float_t fCentralityZNA;
       Float_t fCentralityZNC;
+    
+    AliTriggerAnalysis *fTriggerAnalysis;
     
     Float_t fSPDTrackletsValue;
     Float_t fSPDClustersValue;
@@ -204,6 +210,7 @@ class MCDimuonLight : public TObject {
 public:
   Int_t fPDG;       // PDG code
   Float_t fInvMass; // invariant mass of the muon pair
+  Short_t fCharge;  // charge of the dimuon
   Float_t fPt;      // pt component of the momentum
   Float_t fEta;     // eta
   Float_t fY;       // y

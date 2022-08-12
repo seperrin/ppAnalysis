@@ -18,12 +18,14 @@
 
 
 #include "TAxis.h"
+#include "TLegend.h"
 #include "TH1.h"
 #include "TArrayD.h"
 # include "TF1.h"
 # include "TF2.h"
 # include "TProfile.h"
 # include "TVirtualFitter.h"
+# include "TGraphPolar.h"
 # include "TFitter.h"
 # include "TProfile.h"
 # include "TMinuit.h"
@@ -42,7 +44,16 @@
 
 void PlotQuicker();
 void PlotQuickest();
+void PlotQuickie();
+void PlotQuickie2();
 void PlotComparison(); //V0M SPDtracklets
+void PlotSaucisson();
+void PlotMCdistrib();
+void PlotCorrelEstimators();
+void PlotPolar();
+void CorrelEstMult();
+void PlotPHD();
+void CheckPYTHIA();
 Double_t myFunc(double x);
 Double_t myFunc2(double x);
 Double_t myEtaLow(double x);
@@ -691,13 +702,13 @@ void PlotQuickest(){
         
         NewEst_norm = new TH1F("NewEst_norm",
                          "NewEst_norm",
-                         50,0, 100);
+                         100000,0, 100000);
         NewEst_norm->SetXTitle("NewEst_norm");
         NewEst_norm->SetYTitle("Count");
         
         NewEst_norm_pond = new TH1F("NewEst_norm_pond",
                          "NewEst_norm_pond",
-                         50,0, 100);
+                         100000,0, 100000);
         NewEst_norm_pond->SetXTitle("NewEst_norm_pond");
         NewEst_norm_pond->SetYTitle("Count");
         
@@ -770,7 +781,7 @@ void PlotQuickest(){
                 std::cout << std::endl;
             }
             
-            if(i%100 != 0){
+            if(i%10 != 0){
                 continue;
             }
             theTree->GetEvent(i);
@@ -804,8 +815,8 @@ void PlotQuickest(){
                 
                 //V0M_Dist_norm->Scale(1./entries16h);
                 //SPDTracklets_Dist_norm->Scale(1./entries16h);
-                NewEst_norm->Fill(((4.3*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
-                NewEst_norm_pond->Fill(((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
+                NewEst_norm->Fill(((4.3*((fEvent->fV0MValue/medianV0M16h)*1000)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
+                NewEst_norm_pond->Fill(((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*1000)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*1000)))/6.3));
 
                }
            
@@ -826,7 +837,9 @@ void PlotQuickest(){
         double q_05 = 0;
         double q_03 = 0;
         double q_01 = 0;
-        
+ 
+        entries16h = NewEst_norm->GetEntries();
+                
         for(int bin_idx=NewEst_norm->GetNbinsX(); bin_idx>=1; bin_idx--){
             if(cumul <= entries16h*0.9){
                 q_90 = NewEst_norm->GetXaxis()->GetBinCenter(bin_idx);
@@ -2241,4 +2254,2706 @@ void PlotMass(){
     
     
     
+}
+
+
+void PlotQuickie(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 12;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+   // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+   Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT_AllEst","Group1_LHC16j_CINT_AllEst","Group1_LHC16p_CINT_AllEst","Group1_LHC17i_CINT_AllEst","Group2_LHC17h_CINT_AllEst","Group3_LHC17h_CINT_AllEst","Group4_LHC18o_CINT_AllEst","Group5_LHC17l_CINT_AllEst"};
+   // Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH1F* SPDTracklets_Dist(NULL);
+    TH1F* Z_Dist(NULL);
+    TProfile* SPDTracklets_vs_Z(NULL);
+
+    
+    
+   
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TCanvas* multiplecan=new TCanvas("V0M Distribution Groups");
+    TCanvas* cSPDTracklets_Dist_Groups=new TCanvas("SPDTracklets Distribution Groups");
+    TCanvas* cV0M_Dist_Groups_norm=new TCanvas("V0M norm Distribution Groups");
+    TCanvas* cSPDTracklets_Dist_Groups_norm=new TCanvas("SPDTracklets norm Distribution Groups");
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Sauvegarde\ /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        //sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+        
+        SPDTracklets_Dist = new TH1F("SPDTracklets_Dist",
+                         "SPDTracklets_Dist",
+                         1000,-0.5, 999.5);
+        SPDTracklets_Dist->SetXTitle("SPDTracklets");
+        SPDTracklets_Dist->SetYTitle("Count");
+        
+        Z_Dist = new TH1F("Z_Dist",
+                         "Z_Dist",
+                         20,-10, 10);
+        Z_Dist->SetXTitle("Z");
+        Z_Dist->SetYTitle("Count");
+        
+        SPDTracklets_vs_Z = new TProfile("SPDTracklets_vs_Z",
+                            "SPDTracklets_vs_Z",
+                            81,-10, 10);
+           SPDTracklets_vs_Z->SetXTitle("Z");
+           SPDTracklets_vs_Z->SetYTitle("SPDTracklets");
+        
+        
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            
+            if(i%100 != 0){
+                continue;
+            }
+            theTree->GetEvent(i);
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+          //  cout << "Reading Event " << i <<endl;
+            // Apply a cut on the TrackletEta at +-1
+            int NumberCloseEtaTracklets = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                        NumberCloseEtaTracklets++;
+                }
+                
+            }
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+                SPDTracklets_Dist->Fill(fEvent->fSPDTrackletsValue);
+                Z_Dist->Fill(fEvent->fVertexZ);
+                SPDTracklets_vs_Z->Fill(fEvent->fVertexZ, fEvent->fSPDTrackletsValue);
+               }
+           
+        }
+      
+        
+        //SPDTracklets_vs_Z->Divide(Z_Dist);
+        
+        multiplecan->cd();
+
+        SPDTracklets_vs_Z->SetLineColor(tree_idx+1);
+        SPDTracklets_vs_Z->Draw("same");
+        
+        char message[80];
+        sprintf(message, "%s", arrayOfPeriods[tree_idx]);
+        legend->AddEntry(SPDTracklets_vs_Z,message);
+        
+        
+    }
+    
+
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+    
+    multiplecan->cd();
+    legend->Draw();
+
+}
+
+void PlotQuickie2(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 12;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+   // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+   Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT_AllEst","Group1_LHC16j_CINT_AllEst"};
+   // Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH2F* SPDTracklets_vs_Cent(NULL);
+
+    
+    
+   
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TCanvas* multiplecan=new TCanvas("SPDTracklets 2D");
+    TCanvas* cSPDTracklets_Dist_Groups=new TCanvas("SPDTracklets Distribution Groups");
+    TCanvas* cV0M_Dist_Groups_norm=new TCanvas("V0M norm Distribution Groups");
+    TCanvas* cSPDTracklets_Dist_Groups_norm=new TCanvas("SPDTracklets norm Distribution Groups");
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    SPDTracklets_vs_Cent = new TH2F("SPDTracklets_vs_Cent",
+                     "SPDTracklets_vs_Cent",
+                     200,-0.5, 199.5,100,0,100);
+    SPDTracklets_vs_Cent->SetXTitle("SPDTracklets");
+    SPDTracklets_vs_Cent->SetYTitle("Centrality");
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Sauvegarde\ /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        //sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+    
+
+        
+        
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            
+            if(i%100 != 0){
+                continue;
+            }
+            theTree->GetEvent(i);
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+          //  cout << "Reading Event " << i <<endl;
+            // Apply a cut on the TrackletEta at +-1
+            int NumberCloseEtaTracklets = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                        NumberCloseEtaTracklets++;
+                }
+                
+            }
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+                SPDTracklets_vs_Cent->Fill(fEvent->fSPDTrackletsValue, fEvent->fCentralitySPDTracklets);
+               }
+           
+        }
+      
+        
+        //SPDTracklets_vs_Z->Divide(Z_Dist);
+        
+        
+    }
+    
+
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+    
+    multiplecan->cd();
+
+    SPDTracklets_vs_Cent->Draw("colz");
+    multiplecan->SaveAs("~/Mult.root");
+
+}
+
+
+void PlotSaucisson(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+    //Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+  //  Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH1F* V0M_0_100(NULL);
+    TH1F* V0M_0_1(NULL);
+    TH1F* V0M_1_3(NULL);
+    TH1F* V0M_3_5(NULL);
+    TH1F* V0M_5_10(NULL);
+    TH1F* V0M_10_15(NULL);
+    TH1F* V0M_15_20(NULL);
+    TH1F* V0M_20_30(NULL);
+    TH1F* V0M_30_40(NULL);
+    TH1F* V0M_40_50(NULL);
+    TH1F* V0M_50_60(NULL);
+    TH1F* V0M_60_70(NULL);
+    TH1F* V0M_70_80(NULL);
+    TH1F* V0M_80_90(NULL);
+    TH1F* V0M_90_100(NULL);
+    TH1F* SPDT_0_100(NULL);
+    TH1F* SPDT_0_1(NULL);
+    TH1F* SPDT_1_3(NULL);
+    TH1F* SPDT_3_5(NULL);
+    TH1F* SPDT_5_10(NULL);
+    TH1F* SPDT_10_15(NULL);
+    TH1F* SPDT_15_20(NULL);
+    TH1F* SPDT_20_30(NULL);
+    TH1F* SPDT_30_40(NULL);
+    TH1F* SPDT_40_50(NULL);
+    TH1F* SPDT_50_60(NULL);
+    TH1F* SPDT_60_70(NULL);
+    TH1F* SPDT_70_80(NULL);
+    TH1F* SPDT_80_90(NULL);
+    TH1F* SPDT_90_100(NULL);
+    
+    
+    
+    
+    
+    V0M_0_100 = new TH1F("V0M_0_100",
+                     "V0M_0_100",
+                     200,-0.5, 199.5);
+    V0M_0_100->SetXTitle("Ntkl");
+    V0M_0_100->SetYTitle("Count");
+    V0M_0_1 = new TH1F("V0M_0_1",
+                     "V0M_0_1",
+                     200,-0.5, 199.5);
+    V0M_0_1->SetXTitle("Ntkl");
+    V0M_0_1->SetYTitle("Count");
+    V0M_1_3 = new TH1F("V0M_1_3",
+                     "V0M_1_3",
+                     200,-0.5, 199.5);
+    V0M_1_3->SetXTitle("Ntkl");
+    V0M_1_3->SetYTitle("Count");
+    V0M_3_5 = new TH1F("V0M_3_5",
+                     "V0M_3_5",
+                     200,-0.5, 199.5);
+    V0M_3_5->SetXTitle("Ntkl");
+    V0M_3_5->SetYTitle("Count");
+    V0M_5_10 = new TH1F("V0M_5_10",
+                     "V0M_5_10",
+                     200,-0.5, 199.5);
+    V0M_5_10->SetXTitle("Ntkl");
+    V0M_5_10->SetYTitle("Count");
+    V0M_10_15 = new TH1F("V0M_10_15",
+                     "V0M_10_15",
+                     200,-0.5, 199.5);
+    V0M_10_15->SetXTitle("Ntkl");
+    V0M_10_15->SetYTitle("Count");
+    V0M_15_20 = new TH1F("V0M_15_20",
+                     "V0M_15_20",
+                     200,-0.5, 199.5);
+    V0M_15_20->SetXTitle("Ntkl");
+    V0M_15_20->SetYTitle("Count");
+    V0M_20_30 = new TH1F("V0M_20_30",
+                     "V0M_20_30",
+                     200,-0.5, 199.5);
+    V0M_20_30->SetXTitle("Ntkl");
+    V0M_20_30->SetYTitle("Count");
+    V0M_30_40 = new TH1F("V0M_30_40",
+                     "V0M_30_40",
+                     200,-0.5, 199.5);
+    V0M_30_40->SetXTitle("Ntkl");
+    V0M_30_40->SetYTitle("Count");
+    V0M_40_50 = new TH1F("V0M_40_50",
+                     "V0M_40_50",
+                     200,-0.5, 199.5);
+    V0M_40_50->SetXTitle("Ntkl");
+    V0M_40_50->SetYTitle("Count");
+    V0M_50_60 = new TH1F("V0M_50_60",
+                     "V0M_50_60",
+                     200,-0.5, 199.5);
+    V0M_50_60->SetXTitle("Ntkl");
+    V0M_50_60->SetYTitle("Count");
+    V0M_60_70 = new TH1F("V0M_60_70",
+                     "V0M_60_70",
+                     200,-0.5, 199.5);
+    V0M_60_70->SetXTitle("Ntkl");
+    V0M_60_70->SetYTitle("Count");
+    V0M_70_80 = new TH1F("V0M_70_80",
+                     "V0M_70_80",
+                     200,-0.5, 199.5);
+    V0M_70_80->SetXTitle("Ntkl");
+    V0M_70_80->SetYTitle("Count");
+    V0M_80_90 = new TH1F("V0M_80_90",
+                     "V0M_80_90",
+                     200,-0.5, 199.5);
+    V0M_80_90->SetXTitle("Ntkl");
+    V0M_80_90->SetYTitle("Count");
+    V0M_90_100 = new TH1F("V0M_90_100",
+                     "V0M_90_100",
+                     200,-0.5, 199.5);
+    V0M_90_100->SetXTitle("Ntkl");
+    V0M_90_100->SetYTitle("Count");
+    
+    SPDT_0_100 = new TH1F("SPDT_0_100",
+                     "SPDT_0_100",
+                     200,-0.5, 199.5);
+    SPDT_0_100->SetXTitle("Ntkl");
+    SPDT_0_100->SetYTitle("Count");
+    SPDT_0_1 = new TH1F("SPDT_0_1",
+                     "SPDT_0_1",
+                     200,-0.5, 199.5);
+    SPDT_0_1->SetXTitle("Ntkl");
+    SPDT_0_1->SetYTitle("Count");
+    SPDT_1_3 = new TH1F("SPDT_1_3",
+                     "SPDT_1_3",
+                     200,-0.5, 199.5);
+    SPDT_1_3->SetXTitle("Ntkl");
+    SPDT_1_3->SetYTitle("Count");
+    SPDT_3_5 = new TH1F("SPDT_3_5",
+                     "SPDT_3_5",
+                     200,-0.5, 199.5);
+    SPDT_3_5->SetXTitle("Ntkl");
+    SPDT_3_5->SetYTitle("Count");
+    SPDT_5_10 = new TH1F("SPDT_5_10",
+                     "SPDT_5_10",
+                     200,-0.5, 199.5);
+    SPDT_5_10->SetXTitle("Ntkl");
+    SPDT_5_10->SetYTitle("Count");
+    SPDT_10_15 = new TH1F("SPDT_10_15",
+                     "SPDT_10_15",
+                     200,-0.5, 199.5);
+    SPDT_10_15->SetXTitle("Ntkl");
+    SPDT_10_15->SetYTitle("Count");
+    SPDT_15_20 = new TH1F("SPDT_15_20",
+                     "SPDT_15_20",
+                     200,-0.5, 199.5);
+    SPDT_15_20->SetXTitle("Ntkl");
+    SPDT_15_20->SetYTitle("Count");
+    SPDT_20_30 = new TH1F("SPDT_20_30",
+                     "SPDT_20_30",
+                     200,-0.5, 199.5);
+    SPDT_20_30->SetXTitle("Ntkl");
+    SPDT_20_30->SetYTitle("Count");
+    SPDT_30_40 = new TH1F("SPDT_30_40",
+                     "SPDT_30_40",
+                     200,-0.5, 199.5);
+    SPDT_30_40->SetXTitle("Ntkl");
+    SPDT_30_40->SetYTitle("Count");
+    SPDT_40_50 = new TH1F("SPDT_40_50",
+                     "SPDT_40_50",
+                     200,-0.5, 199.5);
+    SPDT_40_50->SetXTitle("Ntkl");
+    SPDT_40_50->SetYTitle("Count");
+    SPDT_50_60 = new TH1F("SPDT_50_60",
+                     "SPDT_50_60",
+                     200,-0.5, 199.5);
+    SPDT_50_60->SetXTitle("Ntkl");
+    SPDT_50_60->SetYTitle("Count");
+    SPDT_60_70 = new TH1F("SPDT_60_70",
+                     "SPDT_60_70",
+                     200,-0.5, 199.5);
+    SPDT_60_70->SetXTitle("Ntkl");
+    SPDT_60_70->SetYTitle("Count");
+    SPDT_70_80 = new TH1F("SPDT_70_80",
+                     "SPDT_70_80",
+                     200,-0.5, 199.5);
+    SPDT_70_80->SetXTitle("Ntkl");
+    SPDT_70_80->SetYTitle("Count");
+    SPDT_80_90 = new TH1F("SPDT_80_90",
+                     "SPDT_80_90",
+                     200,-0.5, 199.5);
+    SPDT_80_90->SetXTitle("Ntkl");
+    SPDT_80_90->SetYTitle("Count");
+    SPDT_90_100 = new TH1F("SPDT_90_100",
+                     "SPDT_90_100",
+                     200,-0.5, 199.5);
+    SPDT_90_100->SetXTitle("Ntkl");
+    SPDT_90_100->SetYTitle("Count");
+    
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+       // sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+// /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);        
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            
+            theTree->GetEvent(i);
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+          //  cout << "Reading Event " << i <<endl;
+            // Apply a cut on the TrackletEta at +-1
+            int NumberCloseEtaTracklets = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                        NumberCloseEtaTracklets++;
+                }
+                
+            }
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+            
+                V0M_0_100->Fill(NumberCloseEtaTracklets);
+                SPDT_0_100->Fill(NumberCloseEtaTracklets);
+                
+                if(fEvent->fCentralityV0M<1){
+                    V0M_0_1->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=1 && fEvent->fCentralityV0M<3){
+                    V0M_1_3->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=3 && fEvent->fCentralityV0M<5){
+                    V0M_3_5->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=5 && fEvent->fCentralityV0M<10){
+                    V0M_5_10->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=10 && fEvent->fCentralityV0M<15){
+                    V0M_10_15->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=15 && fEvent->fCentralityV0M<20){
+                    V0M_15_20->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=20 && fEvent->fCentralityV0M<30){
+                    V0M_20_30->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=30 && fEvent->fCentralityV0M<40){
+                    V0M_30_40->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=40 && fEvent->fCentralityV0M<50){
+                    V0M_40_50->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=50 && fEvent->fCentralityV0M<60){
+                    V0M_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=50 && fEvent->fCentralityV0M<60){
+                    V0M_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=60 && fEvent->fCentralityV0M<70){
+                    V0M_60_70->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=70 && fEvent->fCentralityV0M<80){
+                    V0M_70_80->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=80 && fEvent->fCentralityV0M<90){
+                    V0M_80_90->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=90){
+                    V0M_90_100->Fill(NumberCloseEtaTracklets);
+                }
+                
+                if(fEvent->fCentralitySPDTracklets<1){
+                    SPDT_0_1->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=1 && fEvent->fCentralitySPDTracklets<3){
+                    SPDT_1_3->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=3 && fEvent->fCentralitySPDTracklets<5){
+                    SPDT_3_5->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=5 && fEvent->fCentralitySPDTracklets<10){
+                    SPDT_5_10->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=10 && fEvent->fCentralitySPDTracklets<15){
+                    SPDT_10_15->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=15 && fEvent->fCentralitySPDTracklets<20){
+                    SPDT_15_20->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=20 && fEvent->fCentralitySPDTracklets<30){
+                    SPDT_20_30->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=30 && fEvent->fCentralitySPDTracklets<40){
+                    SPDT_30_40->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=40 && fEvent->fCentralitySPDTracklets<50){
+                    SPDT_40_50->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=50 && fEvent->fCentralitySPDTracklets<60){
+                    SPDT_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=50 && fEvent->fCentralitySPDTracklets<60){
+                    SPDT_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=60 && fEvent->fCentralitySPDTracklets<70){
+                    SPDT_60_70->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=70 && fEvent->fCentralitySPDTracklets<80){
+                    SPDT_70_80->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=80 && fEvent->fCentralitySPDTracklets<90){
+                    SPDT_80_90->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=90){
+                    SPDT_90_100->Fill(NumberCloseEtaTracklets);
+                }
+                
+
+               }
+           
+        }
+        
+        
+
+        gStyle->SetPalette(kRainBow);
+           int nColors = gStyle->GetNumberOfColors();
+        
+            V0M_0_1->SetLineColor(gStyle->GetColorPalette(int(nColors*0)));
+            V0M_0_1->SetFillColor(gStyle->GetColorPalette(int(nColors*0)));
+            SPDT_0_1->SetLineColor(gStyle->GetColorPalette(int(nColors*0)));
+            SPDT_0_1->SetFillColor(gStyle->GetColorPalette(int(nColors*0)));
+        V0M_1_3->SetLineColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        V0M_1_3->SetFillColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        SPDT_1_3->SetLineColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        SPDT_1_3->SetFillColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        V0M_3_5->SetLineColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        V0M_3_5->SetFillColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        SPDT_3_5->SetLineColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        SPDT_3_5->SetFillColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        V0M_5_10->SetLineColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        V0M_5_10->SetFillColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        SPDT_5_10->SetLineColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        SPDT_5_10->SetFillColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        V0M_10_15->SetLineColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        V0M_10_15->SetFillColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        SPDT_10_15->SetLineColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        SPDT_10_15->SetFillColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        V0M_15_20->SetLineColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        V0M_15_20->SetFillColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        SPDT_15_20->SetLineColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        SPDT_15_20->SetFillColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        V0M_20_30->SetLineColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        V0M_20_30->SetFillColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        SPDT_20_30->SetLineColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        SPDT_20_30->SetFillColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        V0M_30_40->SetLineColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        V0M_30_40->SetFillColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        SPDT_30_40->SetLineColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        SPDT_30_40->SetFillColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        V0M_40_50->SetLineColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        V0M_40_50->SetFillColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        SPDT_40_50->SetLineColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        SPDT_40_50->SetFillColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        V0M_50_60->SetLineColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        V0M_50_60->SetFillColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        SPDT_50_60->SetLineColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        SPDT_50_60->SetFillColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        V0M_60_70->SetLineColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        V0M_60_70->SetFillColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        SPDT_60_70->SetLineColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        SPDT_60_70->SetFillColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        V0M_70_80->SetLineColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        V0M_70_80->SetFillColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        SPDT_70_80->SetLineColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        SPDT_70_80->SetFillColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        V0M_80_90->SetLineColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        V0M_80_90->SetFillColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        SPDT_80_90->SetLineColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        SPDT_80_90->SetFillColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        V0M_90_100->SetLineColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        V0M_90_100->SetFillColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        SPDT_90_100->SetLineColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        SPDT_90_100->SetFillColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        
+               
+        
+        char hname[100];
+        sprintf(hname, "V0M Distribution - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M=new TCanvas(hname);
+        V0M_0_100->SetTitle(hname);
+        V0M_0_100->Draw();
+        V0M_0_1->Draw("same");
+        V0M_1_3->Draw("same");
+        V0M_3_5->Draw("same");
+        V0M_5_10->Draw("same");
+        V0M_10_15->Draw("same");
+        V0M_15_20->Draw("same");
+        V0M_20_30->Draw("same");
+        V0M_30_40->Draw("same");
+        V0M_40_50->Draw("same");
+        V0M_50_60->Draw("same");
+        V0M_60_70->Draw("same");
+        V0M_70_80->Draw("same");
+        V0M_80_90->Draw("same");
+        V0M_90_100->Draw("same");
+        
+        sprintf(hname, "SPDT Distribution - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cSPDT=new TCanvas(hname);
+        SPDT_0_100->SetTitle(hname);
+        SPDT_0_100->Draw();
+        SPDT_0_1->Draw("same");
+        SPDT_1_3->Draw("same");
+        SPDT_3_5->Draw("same");
+        SPDT_5_10->Draw("same");
+        SPDT_10_15->Draw("same");
+        SPDT_15_20->Draw("same");
+        SPDT_20_30->Draw("same");
+        SPDT_30_40->Draw("same");
+        SPDT_40_50->Draw("same");
+        SPDT_50_60->Draw("same");
+        SPDT_60_70->Draw("same");
+        SPDT_70_80->Draw("same");
+        SPDT_80_90->Draw("same");
+        SPDT_90_100->Draw("same");
+        
+        
+        
+    }
+    
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
+}
+
+void PlotMCdistrib(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+    //Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16hMCno"};
+  //  Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH1F* V0M_0_100(NULL);
+    TH1F* V0M_0_1(NULL);
+    TH1F* V0M_1_3(NULL);
+    TH1F* V0M_3_5(NULL);
+    TH1F* V0M_5_10(NULL);
+    TH1F* V0M_10_15(NULL);
+    TH1F* V0M_15_20(NULL);
+    TH1F* V0M_20_30(NULL);
+    TH1F* V0M_30_40(NULL);
+    TH1F* V0M_40_50(NULL);
+    TH1F* V0M_50_60(NULL);
+    TH1F* V0M_60_70(NULL);
+    TH1F* V0M_70_80(NULL);
+    TH1F* V0M_80_90(NULL);
+    TH1F* V0M_90_100(NULL);
+    TH1F* SPDT_0_100(NULL);
+    TH1F* SPDT_0_1(NULL);
+    TH1F* SPDT_1_3(NULL);
+    TH1F* SPDT_3_5(NULL);
+    TH1F* SPDT_5_10(NULL);
+    TH1F* SPDT_10_15(NULL);
+    TH1F* SPDT_15_20(NULL);
+    TH1F* SPDT_20_30(NULL);
+    TH1F* SPDT_30_40(NULL);
+    TH1F* SPDT_40_50(NULL);
+    TH1F* SPDT_50_60(NULL);
+    TH1F* SPDT_60_70(NULL);
+    TH1F* SPDT_70_80(NULL);
+    TH1F* SPDT_80_90(NULL);
+    TH1F* SPDT_90_100(NULL);
+    
+    
+    
+    
+    
+    V0M_0_100 = new TH1F("V0M_0_100",
+                     "V0M_0_100",
+                     100,0, 100);
+    V0M_0_100->SetXTitle("Percentile");
+    V0M_0_100->SetYTitle("Count");
+    V0M_0_1 = new TH1F("V0M_0_1",
+                     "V0M_0_1",
+                     100,0, 100);
+    V0M_0_1->SetXTitle("Percentile");
+    V0M_0_1->SetYTitle("Count");
+    V0M_1_3 = new TH1F("V0M_1_3",
+                     "V0M_1_3",
+                     200,-0.5, 199.5);
+    V0M_1_3->SetXTitle("Ntkl");
+    V0M_1_3->SetYTitle("Count");
+    V0M_3_5 = new TH1F("V0M_3_5",
+                     "V0M_3_5",
+                     200,-0.5, 199.5);
+    V0M_3_5->SetXTitle("Ntkl");
+    V0M_3_5->SetYTitle("Count");
+    V0M_5_10 = new TH1F("V0M_5_10",
+                     "V0M_5_10",
+                     200,-0.5, 199.5);
+    V0M_5_10->SetXTitle("Ntkl");
+    V0M_5_10->SetYTitle("Count");
+    V0M_10_15 = new TH1F("V0M_10_15",
+                     "V0M_10_15",
+                     200,-0.5, 199.5);
+    V0M_10_15->SetXTitle("Ntkl");
+    V0M_10_15->SetYTitle("Count");
+    V0M_15_20 = new TH1F("V0M_15_20",
+                     "V0M_15_20",
+                     200,-0.5, 199.5);
+    V0M_15_20->SetXTitle("Ntkl");
+    V0M_15_20->SetYTitle("Count");
+    V0M_20_30 = new TH1F("V0M_20_30",
+                     "V0M_20_30",
+                     200,-0.5, 199.5);
+    V0M_20_30->SetXTitle("Ntkl");
+    V0M_20_30->SetYTitle("Count");
+    V0M_30_40 = new TH1F("V0M_30_40",
+                     "V0M_30_40",
+                     200,-0.5, 199.5);
+    V0M_30_40->SetXTitle("Ntkl");
+    V0M_30_40->SetYTitle("Count");
+    V0M_40_50 = new TH1F("V0M_40_50",
+                     "V0M_40_50",
+                     200,-0.5, 199.5);
+    V0M_40_50->SetXTitle("Ntkl");
+    V0M_40_50->SetYTitle("Count");
+    V0M_50_60 = new TH1F("V0M_50_60",
+                     "V0M_50_60",
+                     200,-0.5, 199.5);
+    V0M_50_60->SetXTitle("Ntkl");
+    V0M_50_60->SetYTitle("Count");
+    V0M_60_70 = new TH1F("V0M_60_70",
+                     "V0M_60_70",
+                     200,-0.5, 199.5);
+    V0M_60_70->SetXTitle("Ntkl");
+    V0M_60_70->SetYTitle("Count");
+    V0M_70_80 = new TH1F("V0M_70_80",
+                     "V0M_70_80",
+                     200,-0.5, 199.5);
+    V0M_70_80->SetXTitle("Ntkl");
+    V0M_70_80->SetYTitle("Count");
+    V0M_80_90 = new TH1F("V0M_80_90",
+                     "V0M_80_90",
+                     200,-0.5, 199.5);
+    V0M_80_90->SetXTitle("Ntkl");
+    V0M_80_90->SetYTitle("Count");
+    V0M_90_100 = new TH1F("V0M_90_100",
+                     "V0M_90_100",
+                     200,-0.5, 199.5);
+    V0M_90_100->SetXTitle("Ntkl");
+    V0M_90_100->SetYTitle("Count");
+    
+    SPDT_0_100 = new TH1F("SPDT_0_100",
+                     "SPDT_0_100",
+                     200,-0.5, 199.5);
+    SPDT_0_100->SetXTitle("Ntkl");
+    SPDT_0_100->SetYTitle("Count");
+    SPDT_0_1 = new TH1F("SPDT_0_1",
+                     "SPDT_0_1",
+                     200,-0.5, 199.5);
+    SPDT_0_1->SetXTitle("Ntkl");
+    SPDT_0_1->SetYTitle("Count");
+    SPDT_1_3 = new TH1F("SPDT_1_3",
+                     "SPDT_1_3",
+                     200,-0.5, 199.5);
+    SPDT_1_3->SetXTitle("Ntkl");
+    SPDT_1_3->SetYTitle("Count");
+    SPDT_3_5 = new TH1F("SPDT_3_5",
+                     "SPDT_3_5",
+                     200,-0.5, 199.5);
+    SPDT_3_5->SetXTitle("Ntkl");
+    SPDT_3_5->SetYTitle("Count");
+    SPDT_5_10 = new TH1F("SPDT_5_10",
+                     "SPDT_5_10",
+                     200,-0.5, 199.5);
+    SPDT_5_10->SetXTitle("Ntkl");
+    SPDT_5_10->SetYTitle("Count");
+    SPDT_10_15 = new TH1F("SPDT_10_15",
+                     "SPDT_10_15",
+                     200,-0.5, 199.5);
+    SPDT_10_15->SetXTitle("Ntkl");
+    SPDT_10_15->SetYTitle("Count");
+    SPDT_15_20 = new TH1F("SPDT_15_20",
+                     "SPDT_15_20",
+                     200,-0.5, 199.5);
+    SPDT_15_20->SetXTitle("Ntkl");
+    SPDT_15_20->SetYTitle("Count");
+    SPDT_20_30 = new TH1F("SPDT_20_30",
+                     "SPDT_20_30",
+                     200,-0.5, 199.5);
+    SPDT_20_30->SetXTitle("Ntkl");
+    SPDT_20_30->SetYTitle("Count");
+    SPDT_30_40 = new TH1F("SPDT_30_40",
+                     "SPDT_30_40",
+                     200,-0.5, 199.5);
+    SPDT_30_40->SetXTitle("Ntkl");
+    SPDT_30_40->SetYTitle("Count");
+    SPDT_40_50 = new TH1F("SPDT_40_50",
+                     "SPDT_40_50",
+                     200,-0.5, 199.5);
+    SPDT_40_50->SetXTitle("Ntkl");
+    SPDT_40_50->SetYTitle("Count");
+    SPDT_50_60 = new TH1F("SPDT_50_60",
+                     "SPDT_50_60",
+                     200,-0.5, 199.5);
+    SPDT_50_60->SetXTitle("Ntkl");
+    SPDT_50_60->SetYTitle("Count");
+    SPDT_60_70 = new TH1F("SPDT_60_70",
+                     "SPDT_60_70",
+                     200,-0.5, 199.5);
+    SPDT_60_70->SetXTitle("Ntkl");
+    SPDT_60_70->SetYTitle("Count");
+    SPDT_70_80 = new TH1F("SPDT_70_80",
+                     "SPDT_70_80",
+                     200,-0.5, 199.5);
+    SPDT_70_80->SetXTitle("Ntkl");
+    SPDT_70_80->SetYTitle("Count");
+    SPDT_80_90 = new TH1F("SPDT_80_90",
+                     "SPDT_80_90",
+                     200,-0.5, 199.5);
+    SPDT_80_90->SetXTitle("Ntkl");
+    SPDT_80_90->SetYTitle("Count");
+    SPDT_90_100 = new TH1F("SPDT_90_100",
+                     "SPDT_90_100",
+                     200,-0.5, 199.5);
+    SPDT_90_100->SetXTitle("Ntkl");
+    SPDT_90_100->SetYTitle("Count");
+    
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+// /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+//sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            
+            theTree->GetEvent(i);
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+          //  cout << "Reading Event " << i <<endl;
+            // Apply a cut on the TrackletEta at +-1
+            int NumberCloseEtaTracklets = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                        NumberCloseEtaTracklets++;
+                }
+                
+            }
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+          //  if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+            
+                V0M_0_100->Fill(fEvent->fCentralityV0M);
+                SPDT_0_100->Fill(NumberCloseEtaTracklets);
+                
+                if(fEvent->fNTracklets==0){
+                    V0M_0_1->Fill(fEvent->fCentralityV0M);
+                }
+                if(fEvent->fCentralityV0M>=1 && fEvent->fCentralityV0M<3){
+                    V0M_1_3->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=3 && fEvent->fCentralityV0M<5){
+                    V0M_3_5->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=5 && fEvent->fCentralityV0M<10){
+                    V0M_5_10->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=10 && fEvent->fCentralityV0M<15){
+                    V0M_10_15->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=15 && fEvent->fCentralityV0M<20){
+                    V0M_15_20->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=20 && fEvent->fCentralityV0M<30){
+                    V0M_20_30->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=30 && fEvent->fCentralityV0M<40){
+                    V0M_30_40->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=40 && fEvent->fCentralityV0M<50){
+                    V0M_40_50->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=50 && fEvent->fCentralityV0M<60){
+                    V0M_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=50 && fEvent->fCentralityV0M<60){
+                    V0M_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=60 && fEvent->fCentralityV0M<70){
+                    V0M_60_70->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=70 && fEvent->fCentralityV0M<80){
+                    V0M_70_80->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=80 && fEvent->fCentralityV0M<90){
+                    V0M_80_90->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralityV0M>=90){
+                    V0M_90_100->Fill(NumberCloseEtaTracklets);
+                }
+                
+                if(fEvent->fCentralitySPDTracklets<1){
+                    SPDT_0_1->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=1 && fEvent->fCentralitySPDTracklets<3){
+                    SPDT_1_3->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=3 && fEvent->fCentralitySPDTracklets<5){
+                    SPDT_3_5->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=5 && fEvent->fCentralitySPDTracklets<10){
+                    SPDT_5_10->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=10 && fEvent->fCentralitySPDTracklets<15){
+                    SPDT_10_15->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=15 && fEvent->fCentralitySPDTracklets<20){
+                    SPDT_15_20->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=20 && fEvent->fCentralitySPDTracklets<30){
+                    SPDT_20_30->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=30 && fEvent->fCentralitySPDTracklets<40){
+                    SPDT_30_40->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=40 && fEvent->fCentralitySPDTracklets<50){
+                    SPDT_40_50->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=50 && fEvent->fCentralitySPDTracklets<60){
+                    SPDT_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=50 && fEvent->fCentralitySPDTracklets<60){
+                    SPDT_50_60->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=60 && fEvent->fCentralitySPDTracklets<70){
+                    SPDT_60_70->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=70 && fEvent->fCentralitySPDTracklets<80){
+                    SPDT_70_80->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=80 && fEvent->fCentralitySPDTracklets<90){
+                    SPDT_80_90->Fill(NumberCloseEtaTracklets);
+                }
+                if(fEvent->fCentralitySPDTracklets>=90){
+                    SPDT_90_100->Fill(NumberCloseEtaTracklets);
+                }
+                
+
+              // }
+           
+        }
+        
+        
+
+        gStyle->SetPalette(kRainBow);
+           int nColors = gStyle->GetNumberOfColors();
+        
+            V0M_0_1->SetLineColor(gStyle->GetColorPalette(int(nColors*0)));
+            V0M_0_1->SetFillColor(gStyle->GetColorPalette(int(nColors*0)));
+            SPDT_0_1->SetLineColor(gStyle->GetColorPalette(int(nColors*0)));
+            SPDT_0_1->SetFillColor(gStyle->GetColorPalette(int(nColors*0)));
+        V0M_1_3->SetLineColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        V0M_1_3->SetFillColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        SPDT_1_3->SetLineColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        SPDT_1_3->SetFillColor(gStyle->GetColorPalette(int(nColors*0.05)));
+        V0M_3_5->SetLineColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        V0M_3_5->SetFillColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        SPDT_3_5->SetLineColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        SPDT_3_5->SetFillColor(gStyle->GetColorPalette(int(nColors*0.1)));
+        V0M_5_10->SetLineColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        V0M_5_10->SetFillColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        SPDT_5_10->SetLineColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        SPDT_5_10->SetFillColor(gStyle->GetColorPalette(int(nColors*0.15)));
+        V0M_10_15->SetLineColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        V0M_10_15->SetFillColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        SPDT_10_15->SetLineColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        SPDT_10_15->SetFillColor(gStyle->GetColorPalette(int(nColors*0.2)));
+        V0M_15_20->SetLineColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        V0M_15_20->SetFillColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        SPDT_15_20->SetLineColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        SPDT_15_20->SetFillColor(gStyle->GetColorPalette(int(nColors*0.25)));
+        V0M_20_30->SetLineColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        V0M_20_30->SetFillColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        SPDT_20_30->SetLineColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        SPDT_20_30->SetFillColor(gStyle->GetColorPalette(int(nColors*0.3)));
+        V0M_30_40->SetLineColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        V0M_30_40->SetFillColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        SPDT_30_40->SetLineColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        SPDT_30_40->SetFillColor(gStyle->GetColorPalette(int(nColors*0.35)));
+        V0M_40_50->SetLineColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        V0M_40_50->SetFillColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        SPDT_40_50->SetLineColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        SPDT_40_50->SetFillColor(gStyle->GetColorPalette(int(nColors*0.4)));
+        V0M_50_60->SetLineColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        V0M_50_60->SetFillColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        SPDT_50_60->SetLineColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        SPDT_50_60->SetFillColor(gStyle->GetColorPalette(int(nColors*0.45)));
+        V0M_60_70->SetLineColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        V0M_60_70->SetFillColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        SPDT_60_70->SetLineColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        SPDT_60_70->SetFillColor(gStyle->GetColorPalette(int(nColors*0.5)));
+        V0M_70_80->SetLineColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        V0M_70_80->SetFillColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        SPDT_70_80->SetLineColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        SPDT_70_80->SetFillColor(gStyle->GetColorPalette(int(nColors*0.55)));
+        V0M_80_90->SetLineColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        V0M_80_90->SetFillColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        SPDT_80_90->SetLineColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        SPDT_80_90->SetFillColor(gStyle->GetColorPalette(int(nColors*0.6)));
+        V0M_90_100->SetLineColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        V0M_90_100->SetFillColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        SPDT_90_100->SetLineColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        SPDT_90_100->SetFillColor(gStyle->GetColorPalette(int(nColors*0.65)));
+        
+               
+        
+        char hname[100];
+        sprintf(hname, "V0M Distribution - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cV0M=new TCanvas(hname);
+        V0M_0_100->SetTitle(hname);
+        V0M_0_100->Draw();
+        V0M_0_1->Draw("same");
+//        V0M_1_3->Draw("same");
+//        V0M_3_5->Draw("same");
+//        V0M_5_10->Draw("same");
+//        V0M_10_15->Draw("same");
+//        V0M_15_20->Draw("same");
+//        V0M_20_30->Draw("same");
+//        V0M_30_40->Draw("same");
+//        V0M_40_50->Draw("same");
+//        V0M_50_60->Draw("same");
+//        V0M_60_70->Draw("same");
+//        V0M_70_80->Draw("same");
+//        V0M_80_90->Draw("same");
+//        V0M_90_100->Draw("same");
+        
+        sprintf(hname, "SPDT Distribution - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* cSPDT=new TCanvas(hname);
+        SPDT_0_100->SetTitle(hname);
+        SPDT_0_100->Draw();
+        SPDT_0_1->Draw("same");
+        SPDT_1_3->Draw("same");
+        SPDT_3_5->Draw("same");
+        SPDT_5_10->Draw("same");
+        SPDT_10_15->Draw("same");
+        SPDT_15_20->Draw("same");
+        SPDT_20_30->Draw("same");
+        SPDT_30_40->Draw("same");
+        SPDT_40_50->Draw("same");
+        SPDT_50_60->Draw("same");
+        SPDT_60_70->Draw("same");
+        SPDT_70_80->Draw("same");
+        SPDT_80_90->Draw("same");
+        SPDT_90_100->Draw("same");
+        
+        
+        
+    }
+    
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
+}
+
+void PlotCorrelEstimators(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+   // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH2F* V0M_SPDT(NULL);
+    TH2F* V0M_SPDC(NULL);
+    TH2F* V0M_Mixed(NULL);
+    TH2F* SPDT_SPDC(NULL);
+    TH2F* SPDT_Mixed(NULL);
+    TH2F* SPDC_Mixed(NULL);
+    TH1F* Mixed_Dist(NULL);
+    
+    
+    
+    
+    
+    V0M_SPDT = new TH2F("V0M_SPDT",
+                     "V0M_SPDT",
+                     1000,0, 1000, 1000,0, 1000);
+    V0M_SPDT->SetXTitle("V0M");
+    V0M_SPDT->SetYTitle("SPDT");
+    V0M_SPDC = new TH2F("V0M_SPDC",
+                     "V0M_SPDC",
+                     1000,0, 1000, 1000,0, 1000);
+    V0M_SPDC->SetXTitle("V0M");
+    V0M_SPDC->SetYTitle("SPDC");
+    V0M_Mixed = new TH2F("V0M_Mixed",
+                     "V0M_Mixed",
+                     1000,0, 1000, 1000,0, 1000);
+    V0M_Mixed->SetXTitle("V0M");
+    V0M_Mixed->SetYTitle("Mixed");
+    SPDT_SPDC = new TH2F("SPDT_SPDC",
+                     "SPDT_SPDC",
+                     1000,0, 1000, 1000,0, 1000);
+    SPDT_SPDC->SetXTitle("SPDT");
+    SPDT_SPDC->SetYTitle("SPDC");
+    SPDT_Mixed = new TH2F("SPDT_Mixed",
+                     "SPDT_Mixed",
+                     1000,0, 1000, 1000,0, 1000);
+    SPDT_Mixed->SetXTitle("SPDT");
+    SPDT_Mixed->SetYTitle("Mixed");
+    SPDC_Mixed = new TH2F("SPDC_Mixed",
+                     "SPDC_Mixed",
+                     1000,0, 1000, 1000,0, 1000);
+    SPDC_Mixed->SetXTitle("SPDC");
+    SPDC_Mixed->SetYTitle("Mixed");
+    Mixed_Dist = new TH1F("Mixed_Dist",
+                     "Mixed_Dist",
+                     15000,0, 150);
+    Mixed_Dist->SetXTitle("Mixed");
+    Mixed_Dist->SetYTitle("Count");
+
+    int neventos=0;
+    double limitesmixed[100]{0};
+    
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+            
+            sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+    // /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+    //sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+        // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+     //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+        TFile fileIn(fileInLoc);
+       // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+        std::cout << "1" <<std::endl;
+            TTree* theTree = NULL;
+            fileIn.GetObject("MyMuonTree",theTree);
+        std::cout << "2" <<std::endl;
+            
+        MyEventLight* fEvent = 0;
+        TClonesArray *fCorrelations = 0;
+        TClonesArray *fTracklets = 0;
+        TClonesArray *fDimuons = 0;
+        CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+        TrackletLight *trac = 0;
+        DimuonLight *dimu = 0;
+            //setting the branch address
+        std::cout << "3" <<std::endl;
+      //  theTree->SetBranchAddress("event", &fEvent);
+        TBranch *branch = theTree->GetBranch("event");
+    //        auto bntrack = theTree->GetBranch("tracks");
+            //auto branch  = theTree->GetBranch("mcparticles.fPx");
+        std::cout << "3.5" <<std::endl;
+            branch->SetAddress(&fEvent);
+        std::cout << "4" <<std::endl;
+        auto nevent = theTree->GetEntries();
+        
+        std::cout << "5" <<std::endl;
+        fCorrelations = fEvent->fCorrelations;
+        fTracklets = fEvent->fTracklets;
+        fDimuons = fEvent->fDimuons;
+    //            auto nevent = bntrack->GetEntries();
+        //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+        
+        
+    // ************************************
+    // Boucle sur les evenements, notés i *
+    // ************************************
+        
+        
+      //  Double_t px[1000], py[1000];
+            for (Int_t i=0;i<nevent;i++) {
+                if(i%100000 == 0){
+                        std::cout << "[";
+                        double portion = double(i)/nevent;
+                        long pos = barWidth * portion;
+                        for (int k = 0; k < barWidth; ++k) {
+                            if (k < pos) std::cout << "=";
+                            else if (k == pos) std::cout << ">";
+                            else std::cout << " ";
+                        }
+                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                        std::cout.flush();
+                    std::cout << std::endl;
+                }
+                
+                theTree->GetEvent(i);
+         //       cout << "Looking at Event " << i << endl;
+    //            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+    //            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+    //            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+    //            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+                //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+              //  cout << "Computing the number of tracklets in Event " << i << endl;
+                
+              //  cout << "Reading Event " << i <<endl;
+                // Apply a cut on the TrackletEta at +-1
+                int NumberCloseEtaTracklets = 0;
+                for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                    trac = (TrackletLight*)fTracklets->At(j);
+                    if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                            NumberCloseEtaTracklets++;
+                    }
+                    
+                }
+                
+            //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+                if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+                    
+                    double mixedvalue = ((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3);
+                    
+                    Mixed_Dist->Fill(mixedvalue);
+                    neventos++;
+                   }
+               
+            }
+                   TCanvas* c37=new TCanvas();
+                   Mixed_Dist->Draw("");
+    }
+    
+    cout << neventos<< " events seen"<<endl;
+    
+    int quantile = 1;
+    int runningsum = 0;
+    for(int binx = Mixed_Dist->GetNbinsX(); binx>=0; binx--){
+        
+        runningsum+=Mixed_Dist->GetBinContent(binx+1);
+        cout << "binx: "<<binx<<" runningsum: "<<runningsum<<endl;
+        if (runningsum > neventos*(quantile/100.)){
+            cout << "above " << neventos*(quantile/100.)<<endl;
+            limitesmixed[quantile-1] = (binx+1)*150/15000.; // limitmixed[x] is the last bin in which the amount of estimator was strictly less than x% of the distrib
+            cout << "limites "<< quantile-1<< " fixed at "<<(binx+1)*150/15000.<<endl;
+            quantile++;
+        }
+    }
+    
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+        
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+// /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+//sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        
+    // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+ //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+    TFile fileIn(fileInLoc);
+   // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+    std::cout << "1" <<std::endl;
+        TTree* theTree = NULL;
+        fileIn.GetObject("MyMuonTree",theTree);
+    std::cout << "2" <<std::endl;
+        
+    MyEventLight* fEvent = 0;
+    TClonesArray *fCorrelations = 0;
+    TClonesArray *fTracklets = 0;
+    TClonesArray *fDimuons = 0;
+    CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+    TrackletLight *trac = 0;
+    DimuonLight *dimu = 0;
+        //setting the branch address
+    std::cout << "3" <<std::endl;
+  //  theTree->SetBranchAddress("event", &fEvent);
+    TBranch *branch = theTree->GetBranch("event");
+//        auto bntrack = theTree->GetBranch("tracks");
+        //auto branch  = theTree->GetBranch("mcparticles.fPx");
+    std::cout << "3.5" <<std::endl;
+        branch->SetAddress(&fEvent);
+    std::cout << "4" <<std::endl;
+    auto nevent = theTree->GetEntries();
+    
+    std::cout << "5" <<std::endl;
+    fCorrelations = fEvent->fCorrelations;
+    fTracklets = fEvent->fTracklets;
+    fDimuons = fEvent->fDimuons;
+//            auto nevent = bntrack->GetEntries();
+    //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+    
+    
+// ************************************
+// Boucle sur les evenements, notés i *
+// ************************************
+    
+  //  Double_t px[1000], py[1000];
+        for (Int_t i=0;i<nevent;i++) {
+            if(i%100000 == 0){
+                    std::cout << "[";
+                    double portion = double(i)/nevent;
+                    long pos = barWidth * portion;
+                    for (int k = 0; k < barWidth; ++k) {
+                        if (k < pos) std::cout << "=";
+                        else if (k == pos) std::cout << ">";
+                        else std::cout << " ";
+                    }
+                    std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                    std::cout.flush();
+                std::cout << std::endl;
+            }
+            
+            theTree->GetEvent(i);
+     //       cout << "Looking at Event " << i << endl;
+//            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+//            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+//            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+//            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+            //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+          //  cout << "Computing the number of tracklets in Event " << i << endl;
+            
+          //  cout << "Reading Event " << i <<endl;
+            // Apply a cut on the TrackletEta at +-1
+            int NumberCloseEtaTracklets = 0;
+            for (Int_t j=0; j<fEvent->fNTracklets; j++) {
+                trac = (TrackletLight*)fTracklets->At(j);
+                if((TMath::Abs(trac->fEta) < 1) && (TMath::Abs(trac->fDPhi) < DPhiCut)){
+                        NumberCloseEtaTracklets++;
+                }
+                
+            }
+            
+        //    if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC >= 1 && fEvent->fNPileupVtx == 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<0.25 && (TMath::Abs(fEvent->fVertexZ))<10){
+            if(NumberCloseEtaTracklets>0 && fEvent->fVertexNC > 0 && fEvent->fIsPileupFromSPDMultBins == 0 && fEvent->fSPDVertexSigmaZ<=0.25 && (TMath::Abs(fEvent->fVertexZ))<10){ //&& fEvent->fNPileupVtx == 0
+                
+                double mixedvalue = ((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3);
+                int mixedperc = 0;
+                for(int quantos=0; quantos<100; quantos++){
+                    if(mixedvalue > limitesmixed[quantos]){
+                        mixedperc = quantos+1;
+                        break;
+                    }
+                }
+                
+                V0M_SPDT->Fill(fEvent->fCentralityV0M, fEvent->fCentralitySPDTracklets);
+                V0M_SPDC->Fill(fEvent->fCentralityV0M, fEvent->fCentralitySPDClusters);
+                V0M_Mixed->Fill(fEvent->fCentralityV0M, mixedperc);
+                SPDT_SPDC->Fill(fEvent->fCentralitySPDTracklets, fEvent->fCentralitySPDClusters);
+                SPDT_Mixed->Fill(fEvent->fCentralitySPDTracklets, mixedperc);
+                SPDC_Mixed->Fill(fEvent->fCentralitySPDClusters, mixedperc);
+
+               }
+           
+        }
+        
+               
+        
+        char hname[100];
+        sprintf(hname, "V0M vs SPDT - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* c1=new TCanvas(hname);
+        V0M_SPDT->SetTitle(hname);
+        V0M_SPDT->Draw("colz");
+       
+        sprintf(hname, "V0M vs SPDC - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* c2=new TCanvas(hname);
+        V0M_SPDC->SetTitle(hname);
+        V0M_SPDC->Draw("colz");
+        
+        sprintf(hname, "V0M vs Mixed - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* c3=new TCanvas(hname);
+        V0M_Mixed->SetTitle(hname);
+        V0M_Mixed->Draw("colz");
+        
+        sprintf(hname, "SPDT vs SPDC - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* c4=new TCanvas(hname);
+        SPDT_SPDC->SetTitle(hname);
+        SPDT_SPDC->Draw("colz");
+        
+        sprintf(hname, "SPDT vs Mixed - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* c5=new TCanvas(hname);
+        SPDT_Mixed->SetTitle(hname);
+        SPDT_Mixed->Draw("colz");
+        
+        sprintf(hname, "SPDC vs Mixed - %s" ,arrayOfPeriods[tree_idx]);
+        TCanvas* c6=new TCanvas(hname);
+        SPDC_Mixed->SetTitle(hname);
+        SPDC_Mixed->Draw("colz");
+        
+        
+        
+    }
+    
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
+}
+
+void PlotPolar(){
+
+    auto c = new TCanvas("myCanvas","myCanvas",1600,400);
+    c->Divide(6,1);
+    Double_t rmin=0.;
+    Double_t rmax=TMath::Pi()*2.;
+    const Int_t npoints=1000;
+    Double_t r[npoints];
+    Double_t theta[npoints];
+    
+    gStyle->SetPalette(kRainBow);
+    int nColors = gStyle->GetNumberOfColors();
+    
+    
+    for(int order=0;order<=6;order++){
+    for (Int_t ipt = 0; ipt < npoints; ipt++) {
+        r[ipt] = ipt*(rmax-rmin)/npoints + rmin;
+        theta[ipt] = TMath::Cos(order*r[ipt]);
+    }
+    c->cd(order+1);
+        char hname[20];
+        sprintf(hname, "n=%i", order);
+    TGraphPolar grP1 (npoints,r,theta);
+    grP1.SetTitle(hname);
+    grP1.SetLineWidth(6);
+    grP1.SetLineColor(gStyle->GetColorPalette(int(nColors-(nColors*(order)/6.))));
+   // grP1.SetLineColor(2);
+        if(order>0){
+    grP1.DrawClone("L");
+        }
+        c->Update();
+    }
+
+}
+
+void CorrelEstMult(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+   // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16hMCno2Chg"};//
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH2F* V0M_Nch(NULL);
+    TH2F* SPDT_Nch(NULL);
+    TH2F* SPDC_Nch(NULL);
+    
+    
+    
+    
+    
+    V0M_Nch = new TH2F("V0M_Nch",
+                     "V0M_Nch",
+                     1000,0, 1000, 1000,0, 1000);
+    V0M_Nch->SetXTitle("V0M");
+    V0M_Nch->SetYTitle("Nch");
+    SPDT_Nch = new TH2F("SPDT_Nch",
+                     "SPDT_Nch",
+                     1000,0, 1000, 1000,0, 1000);
+    SPDT_Nch->SetXTitle("SPDT");
+    SPDT_Nch->SetYTitle("Nch");
+    SPDC_Nch = new TH2F("SPDC_Nch",
+                     "SPDC_Nch",
+                     1000,0, 1000, 1000,0, 1000);
+    SPDC_Nch->SetXTitle("SPDC");
+    SPDC_Nch->SetYTitle("Nch");
+    
+    int neventos=0;
+    double limitesmixed[100]{0};
+    
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+            
+            sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+    // /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+    //sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+        // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+     //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+        TFile fileIn(fileInLoc);
+       // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+        std::cout << "1" <<std::endl;
+            TTree* theTree = NULL;
+            fileIn.GetObject("MyMuonTree",theTree);
+        std::cout << "2" <<std::endl;
+            
+        MyEventLight* fEvent = 0;
+        TClonesArray *fCorrelations = 0;
+        TClonesArray *fTracklets = 0;
+        TClonesArray *fDimuons = 0;
+        CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+        TrackletLight *trac = 0;
+        DimuonLight *dimu = 0;
+        
+        TClonesArray *fMCDimuons = 0;
+        MCDimuonLight *mcdimuon = 0;
+        
+            //setting the branch address
+        std::cout << "3" <<std::endl;
+      //  theTree->SetBranchAddress("event", &fEvent);
+        TBranch *branch = theTree->GetBranch("event");
+    //        auto bntrack = theTree->GetBranch("tracks");
+            //auto branch  = theTree->GetBranch("mcparticles.fPx");
+        std::cout << "3.5" <<std::endl;
+            branch->SetAddress(&fEvent);
+        std::cout << "4" <<std::endl;
+        auto nevent = theTree->GetEntries();
+        
+        std::cout << "5" <<std::endl;
+        fCorrelations = fEvent->fCorrelations;
+        fTracklets = fEvent->fTracklets;
+        fDimuons = fEvent->fDimuons;
+        fMCDimuons = fEvent->fMCDimuons;
+    //            auto nevent = bntrack->GetEntries();
+        //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+        
+        
+    // ************************************
+    // Boucle sur les evenements, notés i *
+    // ************************************
+        
+        
+      //  Double_t px[1000], py[1000];
+            for (Int_t i=0;i<nevent;i++) {
+                if(i%100000 == 0){
+                        std::cout << "[";
+                        double portion = double(i)/nevent;
+                        long pos = barWidth * portion;
+                        for (int k = 0; k < barWidth; ++k) {
+                            if (k < pos) std::cout << "=";
+                            else if (k == pos) std::cout << ">";
+                            else std::cout << " ";
+                        }
+                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                        std::cout.flush();
+                    std::cout << std::endl;
+                }
+                
+                if(i%10!=0){
+                    continue;
+                }
+                
+                theTree->GetEvent(i);
+         //       cout << "Looking at Event " << i << endl;
+    //            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+    //            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+    //            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+    //            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+                //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+              //  cout << "Computing the number of tracklets in Event " << i << endl;
+                
+             int NumberAcceptedEtaTracklets = 0;
+              int NumberOfTrackletsForCentrality = 0;
+              for (Int_t j=0; j<fEvent->fNMCDimuons; j++) {
+                  mcdimuon = (MCDimuonLight*)fMCDimuons->At(j);
+                  if((TMath::Abs(mcdimuon->fEta) < 2.5) && (mcdimuon->fPt > 0.4) && (mcdimuon->fCharge != 0) && (TMath::Abs(mcdimuon->fPDG)==211 || TMath::Abs(mcdimuon->fPDG)==321 || TMath::Abs(mcdimuon->fPDG)==2212)){
+                      NumberOfTrackletsForCentrality++;
+                  }
+                  if((mcdimuon->fEta < myEtaHigh(fEvent->fVertexZ)) && (mcdimuon->fEta > myEtaLow(fEvent->fVertexZ)) && (mcdimuon->fPt > 0.5) && (mcdimuon->fPt < 5.0) && (mcdimuon->fCharge != 0) && (TMath::Abs(mcdimuon->fPDG)==211 || TMath::Abs(mcdimuon->fPDG)==321 || TMath::Abs(mcdimuon->fPDG)==2212)){
+                      NumberAcceptedEtaTracklets++;
+                  }
+                  
+              }
+                
+                V0M_Nch->Fill(fEvent->fV0MValue,NumberOfTrackletsForCentrality);
+                SPDT_Nch->Fill(fEvent->fSPDTrackletsValue,NumberOfTrackletsForCentrality);
+                SPDC_Nch->Fill(fEvent->fSPDClustersValue,NumberOfTrackletsForCentrality);
+                
+    }
+        
+        
+    }
+
+    
+    TCanvas* cV0M_Nch=new TCanvas();
+    cV0M_Nch->cd();
+    V0M_Nch->Draw("colz");
+
+    
+    TCanvas* cSPDT_Nch=new TCanvas();
+    cSPDT_Nch->cd();
+    SPDT_Nch->Draw("colz");
+
+    
+    TCanvas* cSPDC_Nch=new TCanvas();
+    cSPDC_Nch->cd();
+    SPDC_Nch->Draw("colz");
+
+    
+ 
+    
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
+}
+
+void PlotPHD(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+   // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+    Char_t *arrayOfPeriods[] = {"Group4_LHC18o"};
+   // Char_t *arrayOfPeriods[] = {"Group1_LHC16hMCno2Chg"};//
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH2F* hnsegSigma(NULL);
+    
+    
+    
+    
+    
+    hnsegSigma = new TH2F("hnsegSigma",
+                      "z_{vtx} resolution wrt number of contributors",
+                      60,0,60,1000,0,10);
+    hnsegSigma->SetXTitle("Contributors");
+    hnsegSigma->SetYTitle("z_{vtx} Resolution (SPD)");
+    
+    int neventos=0;
+    double limitesmixed[100]{0};
+    
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+            
+            sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+    // /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+    //sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+        // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+     //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+        TFile fileIn(fileInLoc);
+       // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+        std::cout << "1" <<std::endl;
+            TTree* theTree = NULL;
+            fileIn.GetObject("MyMuonTree",theTree);
+        std::cout << "2" <<std::endl;
+            
+        MyEventLight* fEvent = 0;
+        TClonesArray *fCorrelations = 0;
+        TClonesArray *fTracklets = 0;
+        TClonesArray *fDimuons = 0;
+        CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+        TrackletLight *trac = 0;
+        DimuonLight *dimu = 0;
+        
+        TClonesArray *fMCDimuons = 0;
+        MCDimuonLight *mcdimuon = 0;
+        
+            //setting the branch address
+        std::cout << "3" <<std::endl;
+      //  theTree->SetBranchAddress("event", &fEvent);
+        TBranch *branch = theTree->GetBranch("event");
+    //        auto bntrack = theTree->GetBranch("tracks");
+            //auto branch  = theTree->GetBranch("mcparticles.fPx");
+        std::cout << "3.5" <<std::endl;
+            branch->SetAddress(&fEvent);
+        std::cout << "4" <<std::endl;
+        auto nevent = theTree->GetEntries();
+        
+        std::cout << "5" <<std::endl;
+        fCorrelations = fEvent->fCorrelations;
+        fTracklets = fEvent->fTracklets;
+        fDimuons = fEvent->fDimuons;
+        fMCDimuons = fEvent->fMCDimuons;
+    //            auto nevent = bntrack->GetEntries();
+        //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+        
+        
+    // ************************************
+    // Boucle sur les evenements, notés i *
+    // ************************************
+        
+        
+      //  Double_t px[1000], py[1000];
+            for (Int_t i=0;i<nevent;i++) {
+                if(i%100000 == 0){
+                        std::cout << "[";
+                        double portion = double(i)/nevent;
+                        long pos = barWidth * portion;
+                        for (int k = 0; k < barWidth; ++k) {
+                            if (k < pos) std::cout << "=";
+                            else if (k == pos) std::cout << ">";
+                            else std::cout << " ";
+                        }
+                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                        std::cout.flush();
+                    std::cout << std::endl;
+                }
+                
+//                if(i%10!=0){
+//                    continue;
+//                }
+                
+                theTree->GetEvent(i);
+         //       cout << "Looking at Event " << i << endl;
+    //            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+    //            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+    //            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+    //            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+                //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+              //  cout << "Computing the number of tracklets in Event " << i << endl;
+                
+             
+        
+    hnsegSigma->Fill(fEvent->fVertexNC, fEvent->fSPDVertexSigmaZ); //SIGMA
+
+    
+            }
+
+    }
+ 
+    TCanvas* chnsegsigma = new TCanvas;
+       chnsegsigma->cd();
+       hnsegSigma->Draw("colz");
+    
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
+}
+
+void CheckPYTHIA(){
+ //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
+    
+// ************************************
+// Définitions de paramètres          *
+// ************************************
+
+    double ZvtxCut = 10;
+    double DPhiCut = 0.01;
+    double LowDimuYCut = -4;
+    double HighDimuYCut = -2.5;
+    double LowDimuPtCut = 0;
+    double HighDimuPtCut = 99999;
+    double MinMultCentral = 37;
+    double MaxMultPeriph = 23;
+    double CentSPDTrackletsCentral = 1;
+    double CentSPDTrackletsPeriph = 7;
+    
+    double meanV0M16h = 107.5;
+    double meanSPDTkl16h = 16.5;
+    double entries16h = 680844;
+    double medianV0M16h = 82;
+    double maxV0M16h = 868;
+    double medianSPD16h = 12;
+    double maxSPD16h = 139;
+
+    double LowJPsiMass = 3.0;
+    double HighJPsiMass = 3.3;
+
+    double MinInvMass = 2.0;
+    double MaxInvMass = 4.5;
+    const int NbinsInvMass = 10;
+    double SizeBinInvMass = (MaxInvMass-MinInvMass)/NbinsInvMass;
+
+    double MinDeltaPhi = -TMath::Pi()/2;
+    double MaxDeltaPhi = 1.5*TMath::Pi();
+    const int NbinsDeltaPhi = 12;
+    double SizeBinDeltaPhi = (MaxDeltaPhi-MinDeltaPhi)/NbinsDeltaPhi;
+    
+    double MinDeltaEta = 0;
+    double MaxDeltaEta = 6;
+    const int NbinsDeltaEta = 20;
+    double SizeBinDeltaEta = (MaxDeltaEta-MinDeltaEta)/NbinsDeltaEta;
+    int barWidth = 50;
+    
+   // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
+  //  Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16hMCnospe", "Group1_LHC16hMCno2Chg"};//
+    int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
+    
+    const double binsCent[6] = {0,1,10,20,40,100};
+    Char_t filePMLim[200];
+    Char_t filePMLimSaveName[200];
+    Char_t filePM[200];
+    Char_t fileNmean[200];
+    Char_t fileNmeanROOT[200];
+    Char_t fileInLoc[200];
+// *************************
+// Initialiser les graphes *
+// *************************
+    
+    TH1F* Nch(NULL);
+    TH1F* Nchexplicit(NULL);
+    TH1F* PDG(NULL);
+    TH1F* Charge(NULL);
+    TH1F* Pt(NULL);
+    TH1F* Eta(NULL);
+    
+    
+    
+    
+    Nch = new TH1F("Nch",
+                     "Nch",
+                     1000,0, 1000);
+    Nch->SetXTitle("Nch");
+    Nch->SetYTitle("Count");
+    
+    Nchexplicit = new TH1F("Nchexplicit",
+                     "Nchexplicit",
+                     1000,0, 1000);
+    Nchexplicit->SetXTitle("Nch");
+    Nchexplicit->SetYTitle("Count");
+
+PDG = new TH1F("PDG",
+                     "PDG",
+                     10000,-5000, 5000);
+    PDG->SetXTitle("PDG");
+    PDG->SetYTitle("Count");
+    
+    Charge = new TH1F("Charge",
+                     "Charge",
+                     10,-5, 5);
+    Charge->SetXTitle("Charge");
+    Charge->SetYTitle("Count");
+    
+    Eta = new TH1F("Eta",
+                     "Eta",
+                     1000,-5, 5);
+    Eta->SetXTitle("Eta");
+    Eta->SetYTitle("Count");
+    
+    Pt = new TH1F("Pt",
+                     "Pt",
+                     1000,0, 20);
+    Pt->SetXTitle("Pt");
+    Pt->SetYTitle("Count");
+    
+    int neventos=0;
+    double limitesmixed[100]{0};
+    int countery = 0;
+    
+    
+   
+// *************************
+// Analyse                 *
+// *************************
+    
+    TLegend *legend=new TLegend(0.15,0.65,0.3,0.85);
+    legend->SetTextFont(42);
+    legend->SetTextSize(0.03);
+    TCanvas* cNch=new TCanvas();
+TCanvas* cPDG=new TCanvas();
+    TCanvas* cCharge=new TCanvas();
+    TCanvas* cPt=new TCanvas();
+    TCanvas* cEta=new TCanvas();
+
+    for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
+            
+            sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+    // /Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT
+
+    //sprintf(fileInLoc,"~/../../Volumes/Sauvegarde /LegacySebAnalysepp/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+            
+        // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
+     //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
+        TFile fileIn(fileInLoc);
+       // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/CINT_16o_PS_CutsEvent_Val_CENT/muonGrid.root");
+        std::cout << "1" <<std::endl;
+            TTree* theTree = NULL;
+            fileIn.GetObject("MyMuonTree",theTree);
+        std::cout << "2" <<std::endl;
+            
+        MyEventLight* fEvent = 0;
+        TClonesArray *fCorrelations = 0;
+        TClonesArray *fTracklets = 0;
+        TClonesArray *fDimuons = 0;
+        CorrelationLight *correl = 0; //= new CorrelationLight(); //object must be created before
+        TrackletLight *trac = 0;
+        DimuonLight *dimu = 0;
+        
+        TClonesArray *fMCDimuons = 0;
+        MCDimuonLight *mcdimuon = 0;
+        
+            //setting the branch address
+        std::cout << "3" <<std::endl;
+      //  theTree->SetBranchAddress("event", &fEvent);
+        TBranch *branch = theTree->GetBranch("event");
+    //        auto bntrack = theTree->GetBranch("tracks");
+            //auto branch  = theTree->GetBranch("mcparticles.fPx");
+        std::cout << "3.5" <<std::endl;
+            branch->SetAddress(&fEvent);
+        std::cout << "4" <<std::endl;
+        auto nevent = theTree->GetEntries();
+        
+        std::cout << "5" <<std::endl;
+        fCorrelations = fEvent->fCorrelations;
+        fTracklets = fEvent->fTracklets;
+        fDimuons = fEvent->fDimuons;
+        fMCDimuons = fEvent->fMCDimuons;
+    //            auto nevent = bntrack->GetEntries();
+        //cout << " theTree->GetEntries() " << theTree->GetEntries() << endl;
+        
+        
+    // ************************************
+    // Boucle sur les evenements, notés i *
+    // ************************************
+        
+      //  Double_t px[1000], py[1000];
+            for (Int_t i=0;i<nevent;i++) {
+                if(i%100000 == 0){
+                        std::cout << "[";
+                        double portion = double(i)/nevent;
+                        long pos = barWidth * portion;
+                        for (int k = 0; k < barWidth; ++k) {
+                            if (k < pos) std::cout << "=";
+                            else if (k == pos) std::cout << ">";
+                            else std::cout << " ";
+                        }
+                        std::cout << "] " << long(100 * portion) << "%     " << i << "/" << nevent << " Tree " << tree_idx << "/" << numberOfPeriods;
+                        std::cout.flush();
+                    std::cout << std::endl;
+                }
+                
+                if(i%10!=0){
+                    continue;
+                }
+                
+                theTree->GetEvent(i);
+         //       cout << "Looking at Event " << i << endl;
+    //            cout << "fPassPhysicsSelection : " << fEvent->fPassPhysicsSelection << endl;
+    //            cout << "fPassTriggerSelection : " << fEvent->fPassTriggerSelection << endl;
+    //            cout << "fTriggerCMUL7 : " << fEvent->fTriggerCMUL7 << endl;
+    //            cout << "fTriggerCINT7 : " << fEvent->fTriggerCINT7 << endl;
+                //cout << "tracks->GetEntries() " << tracks->GetEntries() << endl;
+              //  cout << "Computing the number of tracklets in Event " << i << endl;
+                
+             int NumberAcceptedEtaTracklets = 0;
+              int NumberOfTrackletsForCentrality = 0;
+                int NumberOfTrackletsForCentralityExplicit = 0;
+              for (Int_t j=0; j<fEvent->fNMCDimuons; j++) {
+                  mcdimuon = (MCDimuonLight*)fMCDimuons->At(j);
+//                  if((TMath::Abs(mcdimuon->fEta) < 2.5) && (mcdimuon->fPt > 0.4) && (mcdimuon->fCharge != 0) && (TMath::Abs(mcdimuon->fPDG)==211 || TMath::Abs(mcdimuon->fPDG)==321 || TMath::Abs(mcdimuon->fPDG)==2212)){
+//                      NumberOfTrackletsForCentrality++;
+//                  }
+//                  if((mcdimuon->fEta < myEtaHigh(fEvent->fVertexZ)) && (mcdimuon->fEta > myEtaLow(fEvent->fVertexZ)) && (mcdimuon->fPt > 0.5) && (mcdimuon->fPt < 5.0) && (mcdimuon->fCharge != 0) && (TMath::Abs(mcdimuon->fPDG)==211 || TMath::Abs(mcdimuon->fPDG)==321 || TMath::Abs(mcdimuon->fPDG)==2212)){
+//                      NumberAcceptedEtaTracklets++;
+//                  }
+                  if((TMath::Abs(mcdimuon->fEta) < 2.5) && (mcdimuon->fPt > 0.4) && (mcdimuon->fCharge != 0)){
+                                       NumberOfTrackletsForCentrality++;
+                    PDG->Fill(mcdimuon->fPDG);
+                      Charge->Fill(mcdimuon->fCharge);
+                      Pt->Fill(mcdimuon->fPt);
+                      Eta->Fill(mcdimuon->fEta);
+  if((TMath::Abs(mcdimuon->fPDG)==211 || TMath::Abs(mcdimuon->fPDG)==321 || TMath::Abs(mcdimuon->fPDG)==2212));
+                          NumberOfTrackletsForCentralityExplicit++;
+                      }
+                  
+                  if(NumberOfTrackletsForCentrality != NumberOfTrackletsForCentralityExplicit){
+                      cout << "DIFFERENCE"<<endl;
+                  }
+                  
+                  Nch->Fill(NumberOfTrackletsForCentrality);
+                 // Nchexplicit->Fill(NumberOfTrackletsForCentralityExplicit);
+                  
+              }
+    }
+        
+Nch->Scale(1./nevent);
+        PDG->Scale(1./nevent);
+        Charge->Scale(1./nevent);
+        Pt->Scale(1./nevent);
+        Eta->Scale(1./nevent);
+        
+        
+        
+        if(countery==0){
+            cNch->cd();
+            Nch->DrawCopy();
+            cPDG->cd();
+            PDG->DrawCopy();
+            cCharge->cd();
+            Charge->DrawCopy();
+            cPt->cd();
+            Pt->DrawCopy();
+            cEta->cd();
+            Eta->DrawCopy();
+            countery++;
+        }
+        
+        else if(countery>0){
+        cNch->cd();
+        Nch->SetLineColor(kRed);
+        Nch->Draw("same");
+            cPDG->cd();
+            PDG->SetLineColor(kRed);
+            PDG->Draw("same");
+            cCharge->cd();
+            Charge->SetLineColor(kRed);
+            Charge->Draw("same");
+            cPt->cd();
+            Pt->SetLineColor(kRed);
+            Pt->Draw("same");
+            cEta->cd();
+            Eta->SetLineColor(kRed);
+            Eta->Draw("same");
+        }
+       Nch->Clear();
+        PDG->Clear();
+        Charge->Clear();
+        Pt->Clear();
+        Eta->Clear();
+        
+    }
+
+ 
+    
+    
+    //Ajouter une boucle pour lire les résultats finaux de Percentile Method et les écrire dans un fichier
+    
+    cout << "Reading of events finished" <<endl;
+    
+
+    std::cout << "==================== Analysis Terminated ====================" << std::endl;
+    
+
 }
