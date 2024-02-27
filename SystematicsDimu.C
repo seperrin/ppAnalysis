@@ -84,8 +84,8 @@ void CentralityDimu(Char_t ListeCSVFiles[100], Char_t SystematicsFocus[50]);
 void CentralityPlotDimu(Char_t ListeCSVFiles[100], Char_t SystematicsFocus[50]);
 bool isRowSuitableForCentrality(CSVRow row, Char_t SystematicsFocus[50], Char_t CentralityEstimator[50]);
 
-int NbPtBins = 6;
-double PtBins[] = {0,2,3,4,6,8,12};
+int NbPtBins = 1;
+double PtBins[] = {3,6};
 //int NbPtBins = 2;
 //double PtBins[] = {0,1,12};
 

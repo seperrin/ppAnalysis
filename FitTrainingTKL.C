@@ -167,10 +167,10 @@ void FitTrainingTKL(Char_t radical[200]){
     //sprintf(RadicalName,"NewAnalysisAllEst_TKL_16h25_SPDTrackletsPercentile_0-5_40-100_pt0-12");
     if(!isCentralityStudy){
         //Where the FitFile is stored on disk
-        sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesAout/FitFile_%s.root", radical); //TO_ADAPT
+        sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFilesSystFevrier/FitFile_%s.root", radical); //TO_ADAPT
     }
     //Where the output should be saved
-        sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022aoutPYTHIA/%s", radical); //TO_ADAPT
+        sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrier/%s", radical); //TO_ADAPT
     sprintf(SystematicsFileName,"%s/SystematicsFile.csv", FolderName);
     
 //    if(exists_test0(SystematicsFileName)){
@@ -213,7 +213,7 @@ void FitTrainingTKL(Char_t radical[200]){
     double ZvtxCutNum;
     
     //What is the format of the radical
-    sscanf(radical, "NewAnalysisAllEstMCATLASCentBvrNospe_TKL_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest); //TO_ADAPT
+    sscanf(radical, "NewAnalysisAllEst_TKL_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest); //TO_ADAPT
     
     bool hasClassifiedSpecificity = kFALSE;
     bool isSpecificityZvtx = kFALSE;
@@ -1972,12 +1972,12 @@ void FitTrainingTKL(Char_t radical[200]){
            cout << "Couldn't open syst file" << endl;
        }
     
-   // myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << v2ClassiqueTKL << "," << errv2ClassiqueTKL << "," << v2ClassiqueTKL_noZYAM << "," << errv2ClassiqueTKL_noZYAM << "," << v2CvetanTKL << "," << errv2CvetanTKL << "," << v2ZYAMTKL << "," << errv2ZYAMTKL << "," << v2PRLTKL << "," << errv2PRLTKL << "," << v2PRL_PeriphZYAMTKL << "," << errv2PRL_PeriphZYAMTKL << "," << v2ClassiqueTKLV3 << "," << errv2ClassiqueTKLV3 << "," << v2ClassiqueTKLGauss << "," << errv2ClassiqueTKLGauss << endl;
+    myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << v2ClassiqueTKL << "," << errv2ClassiqueTKL << "," << v2ClassiqueTKL_noZYAM << "," << errv2ClassiqueTKL_noZYAM << "," << v2CvetanTKL << "," << errv2CvetanTKL << "," << v2ZYAMTKL << "," << errv2ZYAMTKL << "," << v2PRLTKL << "," << errv2PRLTKL << "," << v2PRL_PeriphZYAMTKL << "," << errv2PRL_PeriphZYAMTKL << "," << v2ClassiqueTKLV3 << "," << errv2ClassiqueTKLV3 << "," << v2ClassiqueTKLGauss << "," << errv2ClassiqueTKLGauss << endl;
     
     //Pour PYTHIA Test grand V2
     
-    myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << V2ClassiqueTKL << "," << errV2ClassiqueTKL << "," << V2ClassiqueTKL_noZYAM << "," << errV2ClassiqueTKL_noZYAM << "," << V2CvetanTKL << "," << errV2CvetanTKL << "," << V2ZYAMTKL << "," << errV2ZYAMTKL << "," << V2PRLTKL << "," << errV2PRLTKL << "," << V2PRL_PeriphZYAMTKL << "," << errV2PRL_PeriphZYAMTKL << "," << V2ClassiqueTKLV3 << "," << errV2ClassiqueTKLV3 << "," << V2ClassiqueTKLGauss << "," << errV2ClassiqueTKLGauss << endl;
-       
+//    myfiletx << DPhiCutText << "," << CentEstText << "," << CentralClassText << "," << PeriphClassText << "," << DeltaEtaGapText << "," << ZvtxCutText << "," << EMNormText << "," << EMPoolMaxText << "," << EMPoolThresholdText << "," << ScalingPeriphText << "," << SummationText << "," << V2ClassiqueTKL << "," << errV2ClassiqueTKL << "," << V2ClassiqueTKL_noZYAM << "," << errV2ClassiqueTKL_noZYAM << "," << V2CvetanTKL << "," << errV2CvetanTKL << "," << V2ZYAMTKL << "," << errV2ZYAMTKL << "," << V2PRLTKL << "," << errV2PRLTKL << "," << V2PRL_PeriphZYAMTKL << "," << errV2PRL_PeriphZYAMTKL << "," << V2ClassiqueTKLV3 << "," << errV2ClassiqueTKLV3 << "," << V2ClassiqueTKLGauss << "," << errV2ClassiqueTKLGauss << endl;
+//
     
     myfiletx.close();
 

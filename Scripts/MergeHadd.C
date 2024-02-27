@@ -45,11 +45,11 @@ void hadd() {
    // root > .L hadd.C
    // root > hadd()
 
-   Target = TFile::Open( "merge3.root", "RECREATE" );
+   Target = TFile::Open( "merge16hj_PS_CutsEvent.root", "RECREATE" );
 
    FileList = new TList();
-   FileList->Add( TFile::Open("GoodLHC16o/muonGrid.root") );
-   FileList->Add( TFile::Open("GoodLHC16p/muonGrid.root") );
+   FileList->Add( TFile::Open("16hTest2/muonGrid.root") );
+   FileList->Add( TFile::Open("GoodLHC16j_AOD_PS_CutsEvent/muonGrid.root") );
 
    MergeRootfile( Target, FileList );
 

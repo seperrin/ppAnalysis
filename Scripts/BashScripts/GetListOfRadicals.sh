@@ -11,7 +11,7 @@ touch "${pwd}ListRadicals.txt"
 declare -a ZvtxCutArray=("8" "10" "12")
 declare -a DPhiCutArray=("5mrad")
 declare -a EtaGapArray=("1.0" "1.2" "1.4" "1.6" "1.8" "2.0")
-declare -a CentralityEstimatorArray=("V0MPercentile" "SPDTrackletsPercentile" "SPDClustersPercentile")
+declare -a CentralityEstimatorArray=("V0MPercentile")
 declare -a CentralClassArray=("0-3" "0-5" "0-10")
 declare -a PeriphClassArray=("30-100" "40-100" "40-80" "50-100")
 declare -a EMNormArray=("Method1" "Method2" "Method3" "Method4")
@@ -37,10 +37,10 @@ DefaultSummationZvtx="Method1c"
 
 
 DefaultDataUsed="Run2"
-declare -a SystematicsFocusArray=("CentralClass")
+declare -a SystematicsFocusArray=("")
 
 
-Radical="NewAnalysisAllEst_"
+Radical="NewAnalysisAllEstCentBvr_"
 Radical="${Radical}${DefaultDataUsed}"
 
 
@@ -99,7 +99,7 @@ addVariable() {
 addVariable "" "" "${CentralityEstimatorArray[@]}"
 addParam "CentralClass" "" ${DefaultCentralClass} "${CentralClassArray[@]}"
 addParam "PeriphClass" "" ${DefaultPeriphClass} "${PeriphClassArray[@]}"
-addDefault "pt" "0-1-12"
+addDefault "pt" "0-3-6"
 
 addParamMaybe "ZvtxCut" "Zvtx" ${DefaultZvtxCut} "${ZvtxCutArray[@]}"
 addParamMaybe "DPhiCut" "DPhiCut" ${DefaultDPhiCut} "${DPhiCutArray[@]}"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPTDIR=$(pwd)
-DOSSIER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/CentralitySystDimu/"
+DOSSIER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/"
 
 sh $(pwd)/GetListOfRadicals.sh
 

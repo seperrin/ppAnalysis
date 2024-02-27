@@ -3,32 +3,32 @@ Jobtag = {
 };
 # Input xml collections
 InputDataCollection = {
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/$1,nodownload"
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/$1,nodownload"
 };
 # Output directory
-OutputDir = "/alice/cern.ch/user/s/seperrin//ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/output/$2/#alien_counter_03i#";
+OutputDir = "/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/output/$2/#alien_counter_03i#";
 # List of requested packages
 Packages = {
-   "VO_ALICE@AliPhysics::vAN-20200629-1",
+   "VO_ALICE@AliPhysics::vAN-20210607-1",
    "VO_ALICE@APISCONFIG::V1.1x"
 };
 # List of input files to be uploaded to workers
 InputFile = {
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT.C",
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT.root",
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AliAnalysisTaskMyMuonTree_AOD.h",
-   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AliAnalysisTaskMyMuonTree_AOD.cxx"
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/AMMT.C",
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/AMMT.root",
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/AliAnalysisTaskMyMuonTree_AOD.h",
+   "LF:/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/AliAnalysisTaskMyMuonTree_AOD.cxx"
 };
 # This is the startup script
-Executable = "/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT.sh";
+Executable = "/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/AMMT.sh";
 # We split per SE or file
 Split = "se";
-# Time after which the job is killed (120 min.)
-TTL = "7200";
+# Time after which the job is killed (180 min.)
+TTL = "10800";
 # Resubmit failed jobs until DONE rate reaches this percentage
 MasterResubmitThreshold = "99%";
 # Maximum number of input files to be processed per subjob
-SplitMaxInputFileNumber = "200";
+SplitMaxInputFileNumber = "30";
 # Format of input data
 InputDataListFormat = "xml-single";
 # Collection name to be processed on each worker node
@@ -41,7 +41,7 @@ Output = {
 # AliEn price for this job
 Price = "1";
 # Validation script to be run for each subjob
-Validationcommand = "/alice/cern.ch/user/s/seperrin/ppwrk/MA_LHC16j_mcp1_AOD_PS_CutsEvent/AMMT_validation.sh";
+Validationcommand = "/alice/cern.ch/user/s/seperrin/ppwrk/Manu16hMCINTnospe_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose/AMMT_validation.sh";
 User = "seperrin";
 
 # JDL variables

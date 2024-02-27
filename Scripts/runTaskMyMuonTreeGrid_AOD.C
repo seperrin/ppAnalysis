@@ -30,8 +30,8 @@ void runTaskMyMuonTreeGrid_AOD(Int_t runno = 0, Bool_t bSig = kFALSE) {
   gROOT->ProcessLine(".include $ALICE_ROOT/include");
   gROOT->ProcessLine(".include $ALICE_PHYSICS/include");
 
-  Bool_t isMC = kFALSE;
-  Bool_t isMMC = kFALSE;
+  Bool_t isMC = kTRUE;
+  Bool_t isMMC = kTRUE;
 
   // Create the analysis manager
   AliAnalysisManager *mgr = new AliAnalysisManager("muonAnalysis");
@@ -53,7 +53,7 @@ void runTaskMyMuonTreeGrid_AOD(Int_t runno = 0, Bool_t bSig = kFALSE) {
 //      "$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"));
 //  AliPhysicsSelectionTask *physseltask =
 //      reinterpret_cast<AliPhysicsSelectionTask *>(physseladd.Exec());
-   AliPhysicsSelectionTask *physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"),kFALSE,kTRUE))); //kFALSE, kTRUE (not MC, remove PU)
+   AliPhysicsSelectionTask *physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"),kTRUE,kTRUE))); //kFALSE, kTRUE (not MC, remove PU) >>>>>
 
   // centrality task
   TMacro multseladd(gSystem->ExpandPathName(

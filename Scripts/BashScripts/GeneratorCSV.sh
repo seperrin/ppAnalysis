@@ -1,10 +1,10 @@
 #!/bin/bash
 
-FOLDER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/*/"
+FOLDER="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/*/"
 SCRIPTDIR="${pwd}"
-prefix="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/"
+prefix="/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/"
 suffix="/"
-for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/NewAnalysisAllEst_Run2_SPDTracklets*_pt0-1-12*/ 
+for fo in /Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/NewAnalysisAllEstCentBvr_Run2_V0M*_pt3-6*/ 
 	do
 	echo "Looking into folder ${fo}"
 	focsv="${fo}SystematicsFile.csv"

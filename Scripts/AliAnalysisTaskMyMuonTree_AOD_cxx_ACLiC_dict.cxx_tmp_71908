@@ -1,0 +1,648 @@
+// Do NOT change. Changes will be lost next time file is generated
+
+#define R__DICTIONARY_FILENAME dIVolumesdITranscend2dIppAnalysisdIScriptsdIAliAnalysisTaskMyMuonTree_AOD_cxx_ACLiC_dict
+#define R__NO_DEPRECATION
+
+/*******************************************************************/
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#define G__DICTIONARY
+#include "RConfig.h"
+#include "TClass.h"
+#include "TDictAttributeMap.h"
+#include "TInterpreter.h"
+#include "TROOT.h"
+#include "TBuffer.h"
+#include "TMemberInspector.h"
+#include "TInterpreter.h"
+#include "TVirtualMutex.h"
+#include "TError.h"
+
+#ifndef G__ROOT
+#define G__ROOT
+#endif
+
+#include "RtypesImp.h"
+#include "TIsAProxy.h"
+#include "TFileMergeInfo.h"
+#include <algorithm>
+#include "TCollectionProxyInfo.h"
+/*******************************************************************/
+
+#include "TDataMember.h"
+
+// Header files passed as explicit arguments
+#include "/Volumes/Transcend2/ppAnalysis/Scripts/AliAnalysisTaskMyMuonTree_AOD.cxx"
+
+// Header files passed via #pragma extra_include
+
+// The generated code does not explicitly qualifies STL entities
+namespace std {} using namespace std;
+
+   namespace ROOT {
+      inline ::ROOT::TGenericClassInfo *GenerateInitInstance();
+      static TClass *ROOT_Dictionary();
+
+      // Function generating the singleton type initializer
+      inline ::ROOT::TGenericClassInfo *GenerateInitInstance()
+      {
+         static ::ROOT::TGenericClassInfo 
+            instance("ROOT", 0 /*version*/, "Rtypes.h", 107,
+                     ::ROOT::Internal::DefineBehavior((void*)0,(void*)0),
+                     &ROOT_Dictionary, 0);
+         return &instance;
+      }
+      // Insure that the inline function is _not_ optimized away by the compiler
+      ::ROOT::TGenericClassInfo *(*_R__UNIQUE_DICT_(InitFunctionKeeper))() = &GenerateInitInstance;  
+      // Static variable to force the class initialization
+      static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstance(); R__UseDummy(_R__UNIQUE_DICT_(Init));
+
+      // Dictionary for non-ClassDef classes
+      static TClass *ROOT_Dictionary() {
+         return GenerateInitInstance()->GetClass();
+      }
+
+   }
+
+namespace ROOT {
+   static void *new_MyEventLight(void *p = 0);
+   static void *newArray_MyEventLight(Long_t size, void *p);
+   static void delete_MyEventLight(void *p);
+   static void deleteArray_MyEventLight(void *p);
+   static void destruct_MyEventLight(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::MyEventLight*)
+   {
+      ::MyEventLight *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::MyEventLight >(0);
+      static ::ROOT::TGenericClassInfo 
+         instance("MyEventLight", ::MyEventLight::Class_Version(), "AliAnalysisTaskMyMuonTree_AOD.h", 45,
+                  typeid(::MyEventLight), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &::MyEventLight::Dictionary, isa_proxy, 4,
+                  sizeof(::MyEventLight) );
+      instance.SetNew(&new_MyEventLight);
+      instance.SetNewArray(&newArray_MyEventLight);
+      instance.SetDelete(&delete_MyEventLight);
+      instance.SetDeleteArray(&deleteArray_MyEventLight);
+      instance.SetDestructor(&destruct_MyEventLight);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::MyEventLight*)
+   {
+      return GenerateInitInstanceLocal((::MyEventLight*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::MyEventLight*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+} // end of namespace ROOT
+
+namespace ROOT {
+   static void *new_TrackletLight(void *p = 0);
+   static void *newArray_TrackletLight(Long_t size, void *p);
+   static void delete_TrackletLight(void *p);
+   static void deleteArray_TrackletLight(void *p);
+   static void destruct_TrackletLight(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::TrackletLight*)
+   {
+      ::TrackletLight *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::TrackletLight >(0);
+      static ::ROOT::TGenericClassInfo 
+         instance("TrackletLight", ::TrackletLight::Class_Version(), "AliAnalysisTaskMyMuonTree_AOD.h", 122,
+                  typeid(::TrackletLight), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &::TrackletLight::Dictionary, isa_proxy, 4,
+                  sizeof(::TrackletLight) );
+      instance.SetNew(&new_TrackletLight);
+      instance.SetNewArray(&newArray_TrackletLight);
+      instance.SetDelete(&delete_TrackletLight);
+      instance.SetDeleteArray(&deleteArray_TrackletLight);
+      instance.SetDestructor(&destruct_TrackletLight);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::TrackletLight*)
+   {
+      return GenerateInitInstanceLocal((::TrackletLight*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::TrackletLight*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+} // end of namespace ROOT
+
+namespace ROOT {
+   static void *new_DimuonLight(void *p = 0);
+   static void *newArray_DimuonLight(Long_t size, void *p);
+   static void delete_DimuonLight(void *p);
+   static void deleteArray_DimuonLight(void *p);
+   static void destruct_DimuonLight(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::DimuonLight*)
+   {
+      ::DimuonLight *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::DimuonLight >(0);
+      static ::ROOT::TGenericClassInfo 
+         instance("DimuonLight", ::DimuonLight::Class_Version(), "AliAnalysisTaskMyMuonTree_AOD.h", 137,
+                  typeid(::DimuonLight), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &::DimuonLight::Dictionary, isa_proxy, 4,
+                  sizeof(::DimuonLight) );
+      instance.SetNew(&new_DimuonLight);
+      instance.SetNewArray(&newArray_DimuonLight);
+      instance.SetDelete(&delete_DimuonLight);
+      instance.SetDeleteArray(&deleteArray_DimuonLight);
+      instance.SetDestructor(&destruct_DimuonLight);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::DimuonLight*)
+   {
+      return GenerateInitInstanceLocal((::DimuonLight*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::DimuonLight*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+} // end of namespace ROOT
+
+namespace ROOT {
+   static void *new_CorrelationLight(void *p = 0);
+   static void *newArray_CorrelationLight(Long_t size, void *p);
+   static void delete_CorrelationLight(void *p);
+   static void deleteArray_CorrelationLight(void *p);
+   static void destruct_CorrelationLight(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::CorrelationLight*)
+   {
+      ::CorrelationLight *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::CorrelationLight >(0);
+      static ::ROOT::TGenericClassInfo 
+         instance("CorrelationLight", ::CorrelationLight::Class_Version(), "AliAnalysisTaskMyMuonTree_AOD.h", 155,
+                  typeid(::CorrelationLight), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &::CorrelationLight::Dictionary, isa_proxy, 4,
+                  sizeof(::CorrelationLight) );
+      instance.SetNew(&new_CorrelationLight);
+      instance.SetNewArray(&newArray_CorrelationLight);
+      instance.SetDelete(&delete_CorrelationLight);
+      instance.SetDeleteArray(&deleteArray_CorrelationLight);
+      instance.SetDestructor(&destruct_CorrelationLight);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::CorrelationLight*)
+   {
+      return GenerateInitInstanceLocal((::CorrelationLight*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::CorrelationLight*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+} // end of namespace ROOT
+
+namespace ROOT {
+   static void *new_MCDimuonLight(void *p = 0);
+   static void *newArray_MCDimuonLight(Long_t size, void *p);
+   static void delete_MCDimuonLight(void *p);
+   static void deleteArray_MCDimuonLight(void *p);
+   static void destruct_MCDimuonLight(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::MCDimuonLight*)
+   {
+      ::MCDimuonLight *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::MCDimuonLight >(0);
+      static ::ROOT::TGenericClassInfo 
+         instance("MCDimuonLight", ::MCDimuonLight::Class_Version(), "AliAnalysisTaskMyMuonTree_AOD.h", 177,
+                  typeid(::MCDimuonLight), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &::MCDimuonLight::Dictionary, isa_proxy, 4,
+                  sizeof(::MCDimuonLight) );
+      instance.SetNew(&new_MCDimuonLight);
+      instance.SetNewArray(&newArray_MCDimuonLight);
+      instance.SetDelete(&delete_MCDimuonLight);
+      instance.SetDeleteArray(&deleteArray_MCDimuonLight);
+      instance.SetDestructor(&destruct_MCDimuonLight);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::MCDimuonLight*)
+   {
+      return GenerateInitInstanceLocal((::MCDimuonLight*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::MCDimuonLight*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+} // end of namespace ROOT
+
+namespace ROOT {
+   static void *new_AliAnalysisTaskMyMuonTree_AOD(void *p = 0);
+   static void *newArray_AliAnalysisTaskMyMuonTree_AOD(Long_t size, void *p);
+   static void delete_AliAnalysisTaskMyMuonTree_AOD(void *p);
+   static void deleteArray_AliAnalysisTaskMyMuonTree_AOD(void *p);
+   static void destruct_AliAnalysisTaskMyMuonTree_AOD(void *p);
+
+   // Function generating the singleton type initializer
+   static TGenericClassInfo *GenerateInitInstanceLocal(const ::AliAnalysisTaskMyMuonTree_AOD*)
+   {
+      ::AliAnalysisTaskMyMuonTree_AOD *ptr = 0;
+      static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::AliAnalysisTaskMyMuonTree_AOD >(0);
+      static ::ROOT::TGenericClassInfo 
+         instance("AliAnalysisTaskMyMuonTree_AOD", ::AliAnalysisTaskMyMuonTree_AOD::Class_Version(), "AliAnalysisTaskMyMuonTree_AOD.h", 195,
+                  typeid(::AliAnalysisTaskMyMuonTree_AOD), ::ROOT::Internal::DefineBehavior(ptr, ptr),
+                  &::AliAnalysisTaskMyMuonTree_AOD::Dictionary, isa_proxy, 4,
+                  sizeof(::AliAnalysisTaskMyMuonTree_AOD) );
+      instance.SetNew(&new_AliAnalysisTaskMyMuonTree_AOD);
+      instance.SetNewArray(&newArray_AliAnalysisTaskMyMuonTree_AOD);
+      instance.SetDelete(&delete_AliAnalysisTaskMyMuonTree_AOD);
+      instance.SetDeleteArray(&deleteArray_AliAnalysisTaskMyMuonTree_AOD);
+      instance.SetDestructor(&destruct_AliAnalysisTaskMyMuonTree_AOD);
+      return &instance;
+   }
+   TGenericClassInfo *GenerateInitInstance(const ::AliAnalysisTaskMyMuonTree_AOD*)
+   {
+      return GenerateInitInstanceLocal((::AliAnalysisTaskMyMuonTree_AOD*)0);
+   }
+   // Static variable to force the class initialization
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::AliAnalysisTaskMyMuonTree_AOD*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
+} // end of namespace ROOT
+
+//______________________________________________________________________________
+atomic_TClass_ptr MyEventLight::fgIsA(0);  // static to hold class pointer
+
+//______________________________________________________________________________
+const char *MyEventLight::Class_Name()
+{
+   return "MyEventLight";
+}
+
+//______________________________________________________________________________
+const char *MyEventLight::ImplFileName()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::MyEventLight*)0x0)->GetImplFileName();
+}
+
+//______________________________________________________________________________
+int MyEventLight::ImplFileLine()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::MyEventLight*)0x0)->GetImplFileLine();
+}
+
+//______________________________________________________________________________
+TClass *MyEventLight::Dictionary()
+{
+   fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::MyEventLight*)0x0)->GetClass();
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+TClass *MyEventLight::Class()
+{
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::MyEventLight*)0x0)->GetClass(); }
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+atomic_TClass_ptr TrackletLight::fgIsA(0);  // static to hold class pointer
+
+//______________________________________________________________________________
+const char *TrackletLight::Class_Name()
+{
+   return "TrackletLight";
+}
+
+//______________________________________________________________________________
+const char *TrackletLight::ImplFileName()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::TrackletLight*)0x0)->GetImplFileName();
+}
+
+//______________________________________________________________________________
+int TrackletLight::ImplFileLine()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::TrackletLight*)0x0)->GetImplFileLine();
+}
+
+//______________________________________________________________________________
+TClass *TrackletLight::Dictionary()
+{
+   fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::TrackletLight*)0x0)->GetClass();
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+TClass *TrackletLight::Class()
+{
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::TrackletLight*)0x0)->GetClass(); }
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+atomic_TClass_ptr DimuonLight::fgIsA(0);  // static to hold class pointer
+
+//______________________________________________________________________________
+const char *DimuonLight::Class_Name()
+{
+   return "DimuonLight";
+}
+
+//______________________________________________________________________________
+const char *DimuonLight::ImplFileName()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::DimuonLight*)0x0)->GetImplFileName();
+}
+
+//______________________________________________________________________________
+int DimuonLight::ImplFileLine()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::DimuonLight*)0x0)->GetImplFileLine();
+}
+
+//______________________________________________________________________________
+TClass *DimuonLight::Dictionary()
+{
+   fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::DimuonLight*)0x0)->GetClass();
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+TClass *DimuonLight::Class()
+{
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::DimuonLight*)0x0)->GetClass(); }
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+atomic_TClass_ptr CorrelationLight::fgIsA(0);  // static to hold class pointer
+
+//______________________________________________________________________________
+const char *CorrelationLight::Class_Name()
+{
+   return "CorrelationLight";
+}
+
+//______________________________________________________________________________
+const char *CorrelationLight::ImplFileName()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::CorrelationLight*)0x0)->GetImplFileName();
+}
+
+//______________________________________________________________________________
+int CorrelationLight::ImplFileLine()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::CorrelationLight*)0x0)->GetImplFileLine();
+}
+
+//______________________________________________________________________________
+TClass *CorrelationLight::Dictionary()
+{
+   fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::CorrelationLight*)0x0)->GetClass();
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+TClass *CorrelationLight::Class()
+{
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::CorrelationLight*)0x0)->GetClass(); }
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+atomic_TClass_ptr MCDimuonLight::fgIsA(0);  // static to hold class pointer
+
+//______________________________________________________________________________
+const char *MCDimuonLight::Class_Name()
+{
+   return "MCDimuonLight";
+}
+
+//______________________________________________________________________________
+const char *MCDimuonLight::ImplFileName()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::MCDimuonLight*)0x0)->GetImplFileName();
+}
+
+//______________________________________________________________________________
+int MCDimuonLight::ImplFileLine()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::MCDimuonLight*)0x0)->GetImplFileLine();
+}
+
+//______________________________________________________________________________
+TClass *MCDimuonLight::Dictionary()
+{
+   fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::MCDimuonLight*)0x0)->GetClass();
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+TClass *MCDimuonLight::Class()
+{
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::MCDimuonLight*)0x0)->GetClass(); }
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+atomic_TClass_ptr AliAnalysisTaskMyMuonTree_AOD::fgIsA(0);  // static to hold class pointer
+
+//______________________________________________________________________________
+const char *AliAnalysisTaskMyMuonTree_AOD::Class_Name()
+{
+   return "AliAnalysisTaskMyMuonTree_AOD";
+}
+
+//______________________________________________________________________________
+const char *AliAnalysisTaskMyMuonTree_AOD::ImplFileName()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::AliAnalysisTaskMyMuonTree_AOD*)0x0)->GetImplFileName();
+}
+
+//______________________________________________________________________________
+int AliAnalysisTaskMyMuonTree_AOD::ImplFileLine()
+{
+   return ::ROOT::GenerateInitInstanceLocal((const ::AliAnalysisTaskMyMuonTree_AOD*)0x0)->GetImplFileLine();
+}
+
+//______________________________________________________________________________
+TClass *AliAnalysisTaskMyMuonTree_AOD::Dictionary()
+{
+   fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::AliAnalysisTaskMyMuonTree_AOD*)0x0)->GetClass();
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+TClass *AliAnalysisTaskMyMuonTree_AOD::Class()
+{
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::AliAnalysisTaskMyMuonTree_AOD*)0x0)->GetClass(); }
+   return fgIsA;
+}
+
+//______________________________________________________________________________
+void MyEventLight::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class MyEventLight.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(MyEventLight::Class(),this);
+   } else {
+      R__b.WriteClassBuffer(MyEventLight::Class(),this);
+   }
+}
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_MyEventLight(void *p) {
+      return  p ? new(p) ::MyEventLight : new ::MyEventLight;
+   }
+   static void *newArray_MyEventLight(Long_t nElements, void *p) {
+      return p ? new(p) ::MyEventLight[nElements] : new ::MyEventLight[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_MyEventLight(void *p) {
+      delete ((::MyEventLight*)p);
+   }
+   static void deleteArray_MyEventLight(void *p) {
+      delete [] ((::MyEventLight*)p);
+   }
+   static void destruct_MyEventLight(void *p) {
+      typedef ::MyEventLight current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::MyEventLight
+
+//______________________________________________________________________________
+void TrackletLight::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class TrackletLight.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(TrackletLight::Class(),this);
+   } else {
+      R__b.WriteClassBuffer(TrackletLight::Class(),this);
+   }
+}
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_TrackletLight(void *p) {
+      return  p ? new(p) ::TrackletLight : new ::TrackletLight;
+   }
+   static void *newArray_TrackletLight(Long_t nElements, void *p) {
+      return p ? new(p) ::TrackletLight[nElements] : new ::TrackletLight[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_TrackletLight(void *p) {
+      delete ((::TrackletLight*)p);
+   }
+   static void deleteArray_TrackletLight(void *p) {
+      delete [] ((::TrackletLight*)p);
+   }
+   static void destruct_TrackletLight(void *p) {
+      typedef ::TrackletLight current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::TrackletLight
+
+//______________________________________________________________________________
+void DimuonLight::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class DimuonLight.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(DimuonLight::Class(),this);
+   } else {
+      R__b.WriteClassBuffer(DimuonLight::Class(),this);
+   }
+}
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_DimuonLight(void *p) {
+      return  p ? new(p) ::DimuonLight : new ::DimuonLight;
+   }
+   static void *newArray_DimuonLight(Long_t nElements, void *p) {
+      return p ? new(p) ::DimuonLight[nElements] : new ::DimuonLight[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_DimuonLight(void *p) {
+      delete ((::DimuonLight*)p);
+   }
+   static void deleteArray_DimuonLight(void *p) {
+      delete [] ((::DimuonLight*)p);
+   }
+   static void destruct_DimuonLight(void *p) {
+      typedef ::DimuonLight current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::DimuonLight
+
+//______________________________________________________________________________
+void CorrelationLight::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class CorrelationLight.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(CorrelationLight::Class(),this);
+   } else {
+      R__b.WriteClassBuffer(CorrelationLight::Class(),this);
+   }
+}
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_CorrelationLight(void *p) {
+      return  p ? new(p) ::CorrelationLight : new ::CorrelationLight;
+   }
+   static void *newArray_CorrelationLight(Long_t nElements, void *p) {
+      return p ? new(p) ::CorrelationLight[nElements] : new ::CorrelationLight[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_CorrelationLight(void *p) {
+      delete ((::CorrelationLight*)p);
+   }
+   static void deleteArray_CorrelationLight(void *p) {
+      delete [] ((::CorrelationLight*)p);
+   }
+   static void destruct_CorrelationLight(void *p) {
+      typedef ::CorrelationLight current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::CorrelationLight
+
+//______________________________________________________________________________
+void MCDimuonLight::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class MCDimuonLight.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(MCDimuonLight::Class(),this);
+   } else {
+      R__b.WriteClassBuffer(MCDimuonLight::Class(),this);
+   }
+}
+
+namespace ROOT {
+   // Wrappers around operator new
+   static void *new_MCDimuonLight(void *p) {
+      return  p ? new(p) ::MCDimuonLight : new ::MCDimuonLight;
+   }
+   static void *newArray_MCDimuonLight(Long_t nElements, void *p) {
+      return p ? new(p) ::MCDimuonLight[nElements] : new ::MCDimuonLight[nElements];
+   }
+   // Wrapper around operator delete
+   static void delete_MCDimuonLight(void *p) {
+      delete ((::MCDimuonLight*)p);
+   }
+   static void deleteArray_MCDimuonLight(void *p) {
+      delete [] ((::MCDimuonLight*)p);
+   }
+   static void destruct_MCDimuonLight(void *p) {
+      typedef ::MCDimuonLight current_t;
+      ((current_t*)p)->~current_t();
+   }
+} // end of namespace ROOT for class ::MCDimuonLight
+
+//______________________________________________________________________________
+void AliAnalysisTaskMyMuonTree_AOD::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class AliAnalysisTaskMyMuonTree_AOD.
+
+   if (R__b.IsReading()) {
+      R__b.ReadClassBuffer(AliAnalysisTaskMyMuonTree_AOD::Class(),this);
+   } else {
+      R__b.WriteClassBuffer(AliAnalysisTaskMyMuonTree_AOD::Class(),this);
+   }
+}
+

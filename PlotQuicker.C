@@ -100,7 +100,8 @@ void PlotQuicker(){
     
     Char_t Group_Period[50] = "Group1_LHC16h";
    // Char_t *arrayOfPeriods[] = {"Group5_LHC17l_CINT","Group5_LHC17m_CINT","Group5_LHC17o_CINT","Group5_LHC17r_CINT","Group5_LHC18c_CINT","Group5_LHC18d_CINT","Group5_LHC18e_CINT","Group5_LHC18f_CINT"};
-    Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    //Char_t *arrayOfPeriods[] = {"Group1_LHC16h"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h","Group1_LHC16j","Group1_LHC16k","Group1_LHC16o","Group1_LHC16p","Group1_LHC17i","Group1_LHC17k","Group1_LHC17l","Group2_LHC17h","Group3_LHC17h","Group4_LHC17k","Group4_LHC18l","Group4_LHC18m","Group4_LHC18o","Group4_LHC18p","Group5_LHC17l","Group5_LHC17m","Group5_LHC17o","Group5_LHC17r","Group5_LHC18c","Group5_LHC18d","Group5_LHC18e","Group5_LHC18f","Group6_LHC18m","Group7_LHC18m","Group8_LHC18m","Group9_LHC18m","Group10_LHC18m","Group11_LHC18m","Group12_LHC18m"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     
     const double binsCent[6] = {0,1,10,20,40,100};
@@ -261,7 +262,7 @@ void PlotQuicker(){
     
     for(int tree_idx=0; tree_idx<numberOfPeriods; tree_idx++){
         
-        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CINT/%s_CINT_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
+        sprintf(fileInLoc,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/NewAnalysis_AllEst/CMUL/%s_AllEst/muonGrid.root",arrayOfPeriods[tree_idx]);
         
     // TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/muonGrid.root");
  //   TFile fileIn("~/../../Volumes/Transcend2/ppAnalysis/Scripts/Group12_LHC18m_CINT7CENT/muonGrid.root");
@@ -329,6 +330,8 @@ void PlotQuicker(){
                 trac = (TrackletLight*)fTracklets->At(j);
                 hEtaWrtZ->Fill(fEvent->fVertexZ, trac->fEta);
             }
+            
+            continue;
             
           //  cout << "Reading Event " << i <<endl;
             // Apply a cut on the TrackletEta at +-1
@@ -551,10 +554,25 @@ void PlotQuicker(){
     TF1 *fEtaLow = new TF1("fEtaLow","myEtaLow(x)",-10,10);
     TF1 *fEtaHigh = new TF1("fEtaHigh","myEtaHigh(x)",-10,10);
     
+    TLine *l=new TLine(-10,-2.5,-10,2.5);
+    l->SetLineColor(kBlack);
+    l->SetLineWidth(3);
+    l->SetLineStyle(9);
+    
+    TLine *l2=new TLine(10,-2.5,10,2.5);
+    l2->SetLineColor(kBlack);
+    l2->SetLineWidth(3);
+    l2->SetLineStyle(9);
+    
     TCanvas*cAA=new TCanvas();
     hEtaWrtZ->Draw("colz");
+    l->Draw("same");
+    l2->Draw("same");
+    fEtaLow->SetLineWidth(3);
     fEtaLow->Draw("same");
+    fEtaHigh->SetLineWidth(3);
     fEtaHigh->Draw("same");
+    
     
 }
 
@@ -702,25 +720,25 @@ void PlotQuickest(){
         
         NewEst_norm = new TH1F("NewEst_norm",
                          "NewEst_norm",
-                         100000,0, 100000);
+                         1000,0, 100);
         NewEst_norm->SetXTitle("NewEst_norm");
         NewEst_norm->SetYTitle("Count");
         
         NewEst_norm_pond = new TH1F("NewEst_norm_pond",
                          "NewEst_norm_pond",
-                         100000,0, 100000);
+                         1000,0, 100);
         NewEst_norm_pond->SetXTitle("NewEst_norm_pond");
         NewEst_norm_pond->SetYTitle("Count");
         
         V0M_Dist_norm = new TH1F("V0M_Dist_norm",
                          "V0M_Dist_norm",
-                         50,0, 100);
+                         1000,0, 100);
         V0M_Dist_norm->SetXTitle("V0M_norm");
         V0M_Dist_norm->SetYTitle("Count");
         
         SPDTracklets_Dist_norm = new TH1F("SPDTracklets_Dist_norm",
                          "SPDTracklets_Dist_norm",
-                         50,0, 100);
+                         100,-0.5, 99.5);
         SPDTracklets_Dist_norm->SetXTitle("SPDTracklets_norm");
         SPDTracklets_Dist_norm->SetYTitle("Count");
         
@@ -810,13 +828,13 @@ void PlotQuickest(){
                 SPDTracklets_Dist->Fill(fEvent->fSPDTrackletsValue);
                 V0M_vs_SPD->Fill(fEvent->fV0MValue, fEvent->fSPDTrackletsValue);
                 V0M_Dist_norm->Fill((fEvent->fV0MValue/medianV0M16h)*10);
-                SPDTracklets_Dist_norm->Fill((fEvent->fSPDTrackletsValue/medianSPD16h)*10);
+                SPDTracklets_Dist_norm->Fill((fEvent->fSPDTrackletsValue/medianSPD16h)*10,0.1);
                 V0M_vs_SPD_norm->Fill((fEvent->fV0MValue/medianV0M16h)*10,((fEvent->fSPDTrackletsValue/medianSPD16h)*10));
                 
                 //V0M_Dist_norm->Scale(1./entries16h);
-                //SPDTracklets_Dist_norm->Scale(1./entries16h);
-                NewEst_norm->Fill(((4.3*((fEvent->fV0MValue/medianV0M16h)*1000)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
-                NewEst_norm_pond->Fill(((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*1000)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*1000)))/6.3));
+                //SPDTracklets_Dist_norm->Scale(1./10);
+                NewEst_norm->Fill(((4.3*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
+                NewEst_norm_pond->Fill(((4.3*(5.39/5.62)*((fEvent->fV0MValue/medianV0M16h)*10)+(2.*((fEvent->fSPDTrackletsValue/medianSPD16h)*10)))/6.3));
 
                }
            
@@ -2303,7 +2321,8 @@ void PlotQuickie(){
     int barWidth = 50;
     
    // Char_t Group_Period[1000] = "Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose";
-   Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT_AllEst","Group1_LHC16j_CINT_AllEst","Group1_LHC16p_CINT_AllEst","Group1_LHC17i_CINT_AllEst","Group2_LHC17h_CINT_AllEst","Group3_LHC17h_CINT_AllEst","Group4_LHC18o_CINT_AllEst","Group5_LHC17l_CINT_AllEst"};
+  // Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT_AllEst","Group1_LHC16j_CINT_AllEst","Group1_LHC16p_CINT_AllEst","Group1_LHC17i_CINT_AllEst","Group2_LHC17h_CINT_AllEst","Group3_LHC17h_CINT_AllEst","Group4_LHC18o_CINT_AllEst","Group5_LHC17l_CINT_AllEst"};
+    Char_t *arrayOfPeriods[] = {"Group1_LHC16h_CINT_AllEst"};
    // Char_t *arrayOfPeriods[] = {"Manu16hCINT_PhySelTRUE_SelNtkl1_Vertexer_CorrelVeryLoose"};//, "Group1_LHC17k", "Group4_LHC17k", "Group4_LHC18o"};
     int numberOfPeriods = sizeof(arrayOfPeriods) / sizeof(arrayOfPeriods[0]);
     

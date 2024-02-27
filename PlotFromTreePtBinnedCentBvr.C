@@ -414,7 +414,7 @@ void PlotFromTreePtBinnedCentBvr(Char_t radical[200]){
  //   freopen( "logPlotFromTreeJavier16h_NoDPhiCut_NoConstraintPileUp.txt", "w", stdout );
     TH1::SetDefaultSumw2();
     bool doTracklets = kFALSE; //Do tracklet-tracklet analysis ? Obsolete now
-    bool isCentralityBehaviour = kFALSE;
+    bool isCentralityBehaviour = kTRUE;
     bool isCMSMethod = kFALSE; //Do CMS way of getting to the V2 ?
     bool doMixedEvents = kTRUE; //Do event mixing ?
     bool KeepOnlyOne = kFALSE; //Useless
@@ -473,7 +473,7 @@ void PlotFromTreePtBinnedCentBvr(Char_t radical[200]){
     int BinZeroLeftTKL = floor((0-MinDeltaPhi)*NbinsDeltaPhiTKL/(2*TMath::Pi()));
     
     //Define the number of centrality bins and z_vtx bins used in the analysis
-    const int NbBinsCent = 4;//14
+    const int NbBinsCent = 14;//4
     int NbBinsZvtx = 20;
     
     //Define bounds on DeltaEta in the CMS approach to separate long range and short range
@@ -11838,61 +11838,61 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
 }
 
 int GetCent(float cent){
-//    if(cent <= 1){
-//        return 0;
-//    }
-//    else if(cent <= 3){
-//        return 1;
-//    }
-//    else if(cent <= 5){
-//        return 2;
-//    }
-//    else if(cent <= 10){
-//        return 3;
-//    }
-//    else if(cent <= 15){
-//        return 4;
-//    }
-//    else if(cent <= 20){
-//        return 5;
-//    }
-//    else if(cent <= 30){
-//        return 6;
-//    }
-//    else if(cent <= 40){
-//        return 7;
-//    }
-//    else if(cent <= 50){
-//        return 8;
-//    }
-//    else if(cent <= 60){
-//        return 9;
-//    }
-//    else if(cent <= 70){
-//        return 10;
-//    }
-//    else if(cent <= 80){
-//        return 11;
-//    }
-//    else if(cent <= 90){
-//        return 12;
-//    }
-//    else{
-//        return 13;
-//    }
-    
-    if(cent<=mostCentralNum){
+    if(cent <= 1){
         return 0;
     }
-    else if(cent<=lessCentralNum){
+    else if(cent <= 3){
         return 1;
     }
-    else if(cent<=40){
+    else if(cent <= 5){
         return 2;
     }
-    else{
+    else if(cent <= 10){
         return 3;
     }
+    else if(cent <= 15){
+        return 4;
+    }
+    else if(cent <= 20){
+        return 5;
+    }
+    else if(cent <= 30){
+        return 6;
+    }
+    else if(cent <= 40){
+        return 7;
+    }
+    else if(cent <= 50){
+        return 8;
+    }
+    else if(cent <= 60){
+        return 9;
+    }
+    else if(cent <= 70){
+        return 10;
+    }
+    else if(cent <= 80){
+        return 11;
+    }
+    else if(cent <= 90){
+        return 12;
+    }
+    else{
+        return 13;
+    }
+    
+//    if(cent<=mostCentralNum){
+//        return 0;
+//    }
+//    else if(cent<=lessCentralNum){
+//        return 1;
+//    }
+//    else if(cent<=40){
+//        return 2;
+//    }
+//    else{
+//        return 3;
+//    }
 }
 
 int GetCentPM(int Ntkl, float SPDTrackletsPer, float SPDClustersPer, float V0MPer, int zvtx_idx, int groupnumber){

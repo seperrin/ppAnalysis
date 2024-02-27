@@ -1,0 +1,87 @@
+   ------------------------------------------------------------------
+  | Welcome to ROOT 6.20/02                        https://root.cern |
+  | (c) 1995-2020, The ROOT Team; conception: R. Brun, F. Rademakers |
+  | Built for macosx64 on Oct 11 2020, 18:23:00                      |
+  | From tags/v6-20-02-alice8@v6-07-06-16912-gfe9a8a60cb             |
+  | Try '.help', '.demo', '.license', '.credits', '.quit'/'.q'       |
+   ------------------------------------------------------------------
+
+
+Processing runTaskMyMuonTreeGrid_AOD.C...
+I-AliAnalysisAlien::SetDefaultOutputs: Plugin will use the output files taken from analysis manager
+Run 264076
+Run 264078
+Run 264082
+Run 264085
+Run 264086
+Run 264109
+Run 264110
+Run 264129
+Run 264137
+Run 264138
+Run 264164
+Run 264168
+Run 264188
+Run 264194
+Run 264197
+Run 264198
+Run 264232
+Run 264233
+Run 264238
+Run 264259
+Run 264260
+Run 264261
+Run 264262
+Run 264264
+Run 264265
+Run 264266
+Run 264267
+Run 264273
+Run 264277
+Run 264279
+Run 264281
+Run 264305
+Run 264312
+Run 264336
+Run 264341
+Run 264345
+Run 264346
+Run 264347
+I-AliPhysicsSelectionTask::AliPhysicsSelectionTask: Physics Event Selection enabled.
+(AliPhysicsSelectionTask *) 0x7fba8e30f9a0
+Set OutputFileName : 
+ AnalysisResults.root:MultSelection
+
+(AliMultSelectionTask *) 0x7fba852b6800
+ *** Muon track parameter summary: ***
+  Mean vertex DCA: (0, 0, 0)
+  Mean p correction (GeV/c): theta2-3 = 0  theta3-10 = 0
+  Sigma p x DCA (cm x GeV/c): theta2-3 = 0  theta3-10 = 0
+  Cut p x DCA in units of sigma: 0
+  Cut on track chi2/NDF: 0
+  Momentum resolution: 0
+  Slope resolution: 0
+  Sharp pt cut: 0 (Apt)  0 (Lpt)  0 (Hpt)
+ ********************************
+E-ACLiC: The file ../AliAnalysisTaskMyMuonTree_AOD.cxx can not be found in the include path: /Volumes/Transcend2/ppAnalysis/Scripts:.::$ROOTSYS/include:"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sd/usr/include/k":"/Users/sperrin/alice/sw/osx_x86-64/AliPhysics/master_ROOT6-1/include":"/Users/sperrin/alice/sw/osx_x86-64/KFParticle/alice-v1.1-1-2/include":"/Users/sperrin/alice/sw/osx_x86-64/treelite/8498081-2/runtime/native/include":"/Users/sperrin/alice/sw/osx_x86-64/treelite/8498081-2/include":"/Users/sperrin/alice/sw/osx_x86-64/RooUnfold/V02-00-01-alice5-1/include":"/Users/sperrin/alice/sw/osx_x86-64/AliRoot/master_ROOT6-1/include/Pythia8":"/Users/sperrin/alice/sw/osx_x86-64/AliRoot/master_ROOT6-1/include":"/Users/sperrin/alice/sw/osx_x86-64/JAliEn-ROOT/0.5.5-2/include":"/Users/sperrin/alice/sw/osx_x86-64/Vc/1.4.1-5/include":"/Users/sperrin/alice/sw/osx_x86-64/GEANT4_VMC/v5-0-p5-1/include/g4root":"/Users/sperrin/alice/sw/osx_x86-64/GEANT4_VMC/v5-0-p5-1/include/geant4vmc":"/Users/sperrin/alice/sw/osx_x86-64/GEANT4_VMC/v5-0-p5-1/include/mtroot":"/Users/sperrin/alice/sw/osx_x86-64/GEANT4/v10.5.1-2/include":"/Users/sperrin/alice/sw/osx_x86-64/GEANT4/v10.5.1-2/include/Geant4":"/Users/sperrin/alice/sw/osx_x86-64/GEANT3/v3-5-1/include/TGeant3":"/Users/sperrin/alice/sw/osx_x86-64/fastjet/v3.2.1_1.024-alice3-2/include":"/Users/sperrin/alice/sw/osx_x86-64/boost/v1.72.0-alice2-3/include":"/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/etc/":"/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/etc//cling":"/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/include/":"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include":"/usr/local/include":"/usr/local/opt/openssl@1.1/include":"/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/include":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/STAT":"/Users/sperrin/alice/sw/osx_x86-64/AliEn-Runtime/v2-19-le-2/include":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/STAT/":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/version":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/STEER/STEERBase":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/STEER/STEERBase/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/RAW/dateStream":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/STEER/STEER":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/STEER/ESD":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/STEER/ESD/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/RAW/RAWDatabase":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/RAW/RAWDatabase/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/RAW/RAWDatarec":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/RAW/RAWDatarec/":"/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/include/libxml2":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/STEER/CDB":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/STEER/CDB/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ANALYSIS/ANALYSIS":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/ANALYSIS/ANALYSIS/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/HLT/BASE/HOMER":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/HLT/BASE/HOMER/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/HLT/BASE":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/HLT/BASE/":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/STEER/STEER/":"/Users/sperrin/alice/sw/osx_x86-64/AliRoot/master_ROOT6-1":"/Users/sperrin/alice/sw/osx_x86-64/AliPhysics/master_ROOT6-1":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ANALYSIS/ANALYSISaliceBase":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/ANALYSIS/ANALYSISaliceBase/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/STEER/AOD":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/STEER/AOD/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ANALYSIS/ANALYSISalice":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/ANALYSIS/ANALYSISalice/":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/CORRFW":"/Users/sperrin/alice/sw/osx_x86-64/AliRoot/master_ROOT6-1/include/pythia":"/Users/sperrin/alice/sw/BUILD/5b4e3a41c3e60a9ecef2d53b00b56d0b579ab6db/AliPhysics/CORRFW/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/RAW/RAWDatasim":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/RAW/RAWDatasim/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ITS/ITSbase":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/ITS/ITSbase/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ITS/ITSsim":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/ITS/ITSsim/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ITS/ITSrec":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/ITS/ITSrec/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/VZERO/VZERObase":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/VZERO/VZERObase/":"/Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/EMCAL/EMCALUtils":"/Users/sperrin/alice/sw/BUILD/2223af05617491de6723f5359dd5c21301544b1c/AliRoot/EMCAL/EMCALUtils/":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/OADB/COMMON/MULTIPLICITY":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/OADB":"/Users/sperrin/alice/sw/BUILD/5b4e3a41c3e60a9ecef2d53b00b56d0b579ab6db/AliPhysics/OADB/":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWGLF/FORWARD/photons":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWGLF/FORWARD/GEO":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWGLF/FORWARD/analysis2":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWGLF/FORWARD":"/Users/sperrin/alice/sw/BUILD/5b4e3a41c3e60a9ecef2d53b00b56d0b579ab6db/AliPhysics/PWGLF/FORWARD/":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWGPP/EVCHAR/FlowVectorCorrections/QnCorrections":"/Users/sperrin/alice/sw/BUILD/5b4e3a41c3e60a9ecef2d53b00b56d0b579ab6db/AliPhysics/PWGPP/EVCHAR/FlowVectorCorrections/QnCorrections/":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWGPP/EVCHAR/FlowVectorCorrections/QnCorrectionsInterface":"/Users/sperrin/alice/sw/BUILD/5b4e3a41c3e60a9ecef2d53b00b56d0b579ab6db/AliPhysics/PWGPP/EVCHAR/FlowVectorCorrections/QnCorrectionsInterface/":"/Users/sperrin/alice/sw/SOURCES/AliPhysics/master_ROOT6/0/PWG/muon":"/Users/sperrin/alice/sw/BUILD/5b4e3a41c3e60a9ecef2d53b00b56d0b579ab6db/AliPhysics/PWG/muon/":"$ALICE_ROOT/include":"$ALICE_PHYSICS/include":
+E-TApplication::ExecuteFile: macro ../AddTaskMyMuonTreeGrid_AOD.C not found in path .:/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/macros
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling_runtime_internal_throwIfInvalidPointer (no debug info)
+[<unknown binary>] (no debug info)
+[<unknown binary>] (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::IncrementalExecutor::executeWrapper(llvm::StringRef, cling::Value*) const (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::Interpreter::RunFunction(clang::FunctionDecl const*, cling::Value*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::Interpreter::EvaluateInternal(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, cling::CompilationOptions, cling::Value*, cling::Transaction**, unsigned long) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::MetaSema::actOnxCommand(llvm::StringRef, llvm::StringRef, cling::Value*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::MetaParser::isXCommand(cling::MetaSema::ActionResult&, cling::Value*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::MetaParser::isCommand(cling::MetaSema::ActionResult&, cling::Value*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] cling::MetaProcessor::process(llvm::StringRef, cling::Interpreter::CompilationResult&, cling::Value*, bool) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] HandleInterpreterException(cling::MetaProcessor*, char const*, cling::Interpreter::CompilationResult&, cling::Value*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] TCling::ProcessLine(char const*, TInterpreter::EErrorCode*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCling.6.20.02.so] TCling::ProcessLineSynch(char const*, TInterpreter::EErrorCode*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libCore.6.20.02.so] TApplication::ExecuteFile(char const*, int*, bool) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libRint.6.20.02.so] TRint::ProcessLineNr(char const*, char const*, int*) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/ROOT/v6-20-02-alice8-3/lib/libRint.6.20.02.so] TRint::Run(bool) (no debug info)
+[/Users/sperrin/alice/sw/osx_x86-64/AliRoot/master_ROOT6-1/bin/aliroot] main /Users/sperrin/alice/sw/SOURCES/AliRoot/master_ROOT6/0/ALIROOT/aliroot.cxx:0
+[/usr/lib/system/libdyld.dylib] start (no debug info)
+E-HandleInterpreterException: Trying to dereference null pointer or trying to call routine taking non-null arguments.
+Execution of your code was aborted.

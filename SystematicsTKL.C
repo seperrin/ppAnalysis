@@ -27,6 +27,7 @@
 # include "TGraph2D.h"
  # include "TVirtualFitter.h"
  # include "TBackCompFitter.h"
+ # include "TMultiGraph.h"
  # include "TGraphErrors.h"
  # include "TFitter.h"
  # include "TMinuit.h"
@@ -1238,13 +1239,13 @@ bool isRowSuitableForCentralityPYTHIA(CSVRow row, Char_t SystematicsFocus[50], C
     for(int index=0; index<11; index++){
        // cout << "row[" << index << "] = " << row[index] << " comapred with " << DefaultConditions[index]<< " " <<endl;
         if(index == 2){
-            if(row[index] != "140-135" && row[index] != "135-130" && row[index] != "130-125" && row[index] != "125-120" && row[index] != "120-115" && row[index] != "115-110" && row[index] != "110-105" && row[index] != "105-100" && row[index] != "100-95" && row[index] != "95-90" && row[index] != "90-85" && row[index] != "85-80" && row[index] != "80-75" && row[index] != "75-70" && row[index] != "70-65" && row[index] != "65-60" && row[index] != "60-55" && row[index] != "55-50" && row[index] != "50-45" && row[index] != "45-40" && row[index] != "40-35" && row[index] != "35-30" && row[index] != "30-25" && row[index] != "25-20"){
+            if(row[index] != "140-130" && row[index] != "130-120" && row[index] != "120-110" && row[index] != "110-100" && row[index] != "100-90" && row[index] != "90-80" && row[index] != "80-70" && row[index] != "70-60" && row[index] != "60-50" && row[index] != "50-40" && row[index] != "40-30" && row[index] != "30-20"){
             isSuitable = kFALSE;
             return isSuitable;
             }
         }
         else if(index == 3){
-            if(row[index] != "10-0"){
+            if(row[index] != "5-0"){
             isSuitable = kFALSE;
             return isSuitable;
             }
@@ -1271,7 +1272,7 @@ void CentralityStudyTKLPYTHIA(Char_t listeCSVFiles[200], Char_t SystematicsFocus
     cout << "Lele"<<endl;
     
     TCanvas *c1 = new TCanvas("c1", "c1",15,49,1051,500);
-    const Int_t numsituations=24;
+    const Int_t numsituations=12;
 
     Double_t sit[numsituations];
     Double_t errsit[numsituations];
@@ -1377,7 +1378,7 @@ void CentralityStudyTKLPYTHIA(Char_t listeCSVFiles[200], Char_t SystematicsFocus
     
     
     TGraphErrors *v2syst = new TGraphErrors(numsituations,sit,V22pPb,errsit,errV22pPb);
-     v2syst->SetTitle("Centrality study PYTHIA - ATLAS - Periph: 10-0");
+     v2syst->SetTitle("Centrality study PYTHIA - ATLAS - Periph: 5-0");
     TAxis *ax = v2syst->GetHistogram()->GetXaxis();
     Double_t x1 = ax->GetBinLowEdge(1);
     Double_t x2 = ax->GetBinUpEdge(ax->GetNbins());
@@ -1385,7 +1386,8 @@ void CentralityStudyTKLPYTHIA(Char_t listeCSVFiles[200], Char_t SystematicsFocus
      v2syst->GetHistogram()->GetYaxis()->SetRangeUser(-0.005,0.005);
      v2syst->GetHistogram()->GetYaxis()->SetTitle("V_{22,tkl}");
     v2syst->SetMarkerStyle(20);
-    v2syst->SetMarkerColor(kBlue);
+    v2syst->SetMarkerColor(kMagenta);
+    v2syst->SetLineColor(kMagenta);
     
     TLine *l=new TLine(0.,0.0,140,0.0);
     l->SetLineColor(kBlack);
@@ -1396,14 +1398,45 @@ void CentralityStudyTKLPYTHIA(Char_t listeCSVFiles[200], Char_t SystematicsFocus
 //    v2syst->GetHistogram()->GetXaxis()->SetBinLabel(k+1,names[k].c_str());
 //    }
     
-    v2syst->Draw("AP");
-    l->Draw("same");
+    //v2syst->Draw("AP");
+    //l->Draw("same");
+
     
-    Char_t CanvasName[500];
-    Char_t FolderName[500];
-    sprintf(FolderName,"~/Desktop");
-    sprintf(CanvasName,"%s/PYTHIACheckNospeThim_10-0.pdf",FolderName);
-    c1->SaveAs(CanvasName);
+    
+    
+    TMultiGraph* mg = new TMultiGraph();
+
+    //loop on your files reading each TGraph and add it to the TMultiGraph
+    TFile *filerec5 = new TFile("~/Desktop/5-0.root");
+    TFile *filerec10 = new TFile("~/Desktop/10-0.root");
+    TFile *filerec20 = new TFile("~/Desktop/20-10.root");
+    TFile *filerec30 = new TFile("~/Desktop/30-20.root");
+    TGraph* g = (TGraph*)filerec30->Get("AP");
+    mg->Add(g);
+    g = (TGraph*)filerec20->Get("AP");
+    mg->Add(g);
+    g = (TGraph*)filerec10->Get("AP");
+    mg->Add(g);
+    g = (TGraph*)filerec5->Get("AP");
+    mg->Add(g);
+    
+    mg->Draw("AP");
+    mg->GetXaxis()->SetTitle("N^{ch}");
+    mg->GetYaxis()->SetTitle("V_{22,tkl}");
+    mg->GetYaxis()->SetRangeUser(-0.006,0.01);
+    l->Draw("same");
+
+Char_t CanvasName[500];
+Char_t FolderName[500];
+sprintf(FolderName,"~/Desktop");
+sprintf(CanvasName,"%s/PYTHIACheckFullerFinal.pdf",FolderName);
+c1->SaveAs(CanvasName);
+    
+    
+    TFile *filerec = new TFile("~/Desktop/Cumulative.root","RECREATE");
+    mg->Write("Cumul");
+    
+    //hnseg = (TH1F*)filerec->Get("hnseg");
     
 }
 

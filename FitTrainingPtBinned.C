@@ -289,12 +289,12 @@ void Runner(Char_t radical[500], bool isFullStudy = kFALSE){
     }
     if(isFullStudy){
         cout << "=== Will run FitTrainingPtBinned default and fit variants ===" <<endl;
-        for(int signal=2; signal<3; signal++){//3
-            for(int background=2; background<4; background++){//4
-                for(int massrange=0; massrange<3; massrange++){//3
-                    for(int ratsigma=0; ratsigma<2; ratsigma++){//2
-                        for(int v2range=0; v2range<1; v2range++){//2
-                            for(int v2bkg=0; v2bkg<1; v2bkg++){//3
+        for(int signal=0; signal<1; signal++){//3
+            for(int background=0; background<1; background++){//4
+                for(int massrange=0; massrange<1; massrange++){//3
+                    for(int ratsigma=0; ratsigma<1; ratsigma++){//2
+                        for(int v2range=0; v2range<2; v2range++){//2
+                            for(int v2bkg=0; v2bkg<3; v2bkg++){//3
                                 FitTrainingPtBinned(radical, VarSignals[signal], VarBackgrounds[background], VarMinInvMass[massrange], VarMaxInvMass[massrange], VarRatSigma[ratsigma], VarMinV2fit[v2range], VarMaxV2fit[v2range], VarV2Backgrounds[v2bkg]);
                                 numLoops+=1;
                             }
@@ -360,7 +360,7 @@ void FitTrainingPtBinned(Char_t radical[500], string SignalF, string BackgroundF
         sprintf(FitFileName,"~/../../Volumes/Transcend2/ppAnalysis/Scripts/FitFile_%s.root",RadicalName);
     }
     
-    sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/%s", radical);
+    sprintf(FolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/%s", radical);
     
     sprintf(SystematicsFileName,"%s/SystematicsFile.csv", FolderName);
     
@@ -371,7 +371,7 @@ void FitTrainingPtBinned(Char_t radical[500], string SignalF, string BackgroundF
             sprintf(SystematicsFileName,"%s/SystematicsFile_%s_%s_%.2f-%.2f_%.2f_%.2f-%.2f_%s.csv", FolderName,SignalF.c_str(), BackgroundF.c_str(), minmass, maxmass, ratsigma, minv2, maxv2, BackgroundV2F.c_str());
         
 
-        sprintf(CanvasFolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022fevrierDimu/%s/%s_%s_%.2f-%.2f_%.2f_%.2f-%.2f_%s", radical, SignalF.c_str(), BackgroundF.c_str(), minmass, maxmass, ratsigma, minv2, maxv2, BackgroundV2F.c_str());
+        sprintf(CanvasFolderName,"/Users/sperrin/Desktop/ImagesJavierAnalysis/2022juinDimu/%s/%s_%s_%.2f-%.2f_%.2f_%.2f-%.2f_%s", radical, SignalF.c_str(), BackgroundF.c_str(), minmass, maxmass, ratsigma, minv2, maxv2, BackgroundV2F.c_str());
         int rc = mkdir(CanvasFolderName, 0777);
         cout << "rc " <<rc<<endl;
     }
@@ -434,7 +434,7 @@ void FitTrainingPtBinned(Char_t radical[500], string SignalF, string BackgroundF
     double DeltaEtaGapMaxNum;
     double ZvtxCutNum;
     
-    sscanf(radical, "NewAnalysisAllEst_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
+    sscanf(radical, "NewAnalysisAllEstCentBvr_%[^_]_%[^_]_%[^-]-%[^_]_%[^-]-%[^_]_pt%[^-]-%s", dataUsed, estimator, mostCentral,lessCentral, lessPeriph, mostPeriph, minpt, rest);
     
     cout << "Radical is: "<< radical<<endl;
     cout << "dataUsed is: "<< dataUsed<<endl;
@@ -6888,7 +6888,7 @@ TFitResultPtr FittingAllInvMassBin(const char *histoname, TCanvas *cinvmass, int
   //  THnSparse *histoa = (THnSparse*)file0->Get("CMUL_fhDimuon");
     //  TH1F* histo = (TH1F*)histoa->Projection(0);
   //  create a TF1 with the range from 0 to 3 and 6 parameters
-    
+
     TF1 *fitFcn = NULL;
     TF1 *backFcn1 = NULL;
      TFitResultPtr res2;
